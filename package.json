@@ -17,7 +17,7 @@
   "license": "Apache 2.0",
   "bugs": {
     "url": "https://github.com/xtwxy/mysc/issues"
-  }
+  },
   "dependencies": {
     "express": "~4.14.0",
     "mysql": "~2.11.1",
