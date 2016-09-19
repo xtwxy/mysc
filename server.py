@@ -4,7 +4,6 @@ import sys
 import time
 from flask import Flask,redirect,Response,request,g
 
-aa="abcde"
 app = Flask( __name__, static_url_path = '')
 
 reload( sys )
