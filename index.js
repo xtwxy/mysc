@@ -1,6 +1,7 @@
 var http = require("http");
-var pool = require("./lib/mysql_pool");
 var app = require("./lib/app");
+
+/* assemble the request handles here to form the application. */
 require("./lib/tree_node");
 
 
