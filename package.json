@@ -21,6 +21,11 @@
   "dependencies": {
     "express": "~4.14.0",
     "mysql": "~2.11.1",
-    "redis": "~0.4.2"
+    "redis": "~0.4.2",
+    "body-parser": "~1.15.2",
+	"async":"~2.0.1"
+  },
+  "devDependencies": {
+	  "hbs": "~4.0.1"
   }
 }
