@@ -23,7 +23,7 @@
         "mysql": "~2.11.1",
         "node-mysql-transaction": "~0.2.1",
         "redis": "~0.4.2",
-        "body-parser": "~1.15.2",
+        "body-parser": "~1.15.2"
     },
     "devDependencies": {
         "hbs": "~4.0.1"
