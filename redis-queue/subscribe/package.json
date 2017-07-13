@@ -1,0 +1,25 @@
+{
+  "name": "subscribe",
+  "version": "1.0.0",
+  "description": "redis subscribe test.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xtwxy/redis-tests.git"
+  },
+  "keywords": [
+    "redis"
+  ],
+  "author": "Wangxy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xtwxy/redis-tests/issues"
+  },
+  "homepage": "https://github.com/xtwxy/redis-tests#readme",
+  "dependencies": {
+      "redis": "~2.7.1"
+  }
+}
