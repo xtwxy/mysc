@@ -13,7 +13,7 @@ client.on("error", function(err) {
 
 var publish = function(conn) {
     if(count > 0) {
-        conn.publish("chat", "Hello, World! - " + count--, function(err, msg) {
+        conn.publish("chat", `Hello, World!`, function(err, msg) {
             publish(conn);
         });
     } else {
