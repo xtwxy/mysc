@@ -20,9 +20,8 @@ fork := true
 libraryDependencies ++= {
   val akkaVersion = "2.5.1"
   Seq(
-    "com.typesafe.akka"         %%  "akka-actor"                          % akkaVersion,
-    "org.slf4j"                 %   "slf4j-simple"                        % "1.7.12"       % "compile",
-    "org.reflections"           %   "reflections"                         % "0.9.11"
+    //"com.typesafe.akka"         %%  "akka-actor"                          % akkaVersion,
+    //"org.reflections"           %   "reflections"                         % "0.9.11"
   )
 }
 assemblyMergeStrategy in assembly := {

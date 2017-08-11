@@ -59,7 +59,7 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
-mainClass in assembly := Some("com.wincom.dcim.da.Main")
-assemblyJarName in assembly := "dcim-cluster.jar"
+mainClass in assembly := Some("com.wincom.dcim.sharded.Main")
+assemblyJarName in assembly := "cluster.jar"
 
 
