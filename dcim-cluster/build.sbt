@@ -13,6 +13,8 @@ lazy val root = (project in file(".")).
   .aggregate(domain, cluster, driver, driverMock)
 
 
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+
 lazy val domain = (project in file("domain"))
 lazy val cluster = (project in file("cluster")).dependsOn(driver)
 lazy val driver = (project in file("driver")).dependsOn(domain)

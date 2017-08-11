@@ -1,9 +1,9 @@
 import sbtassembly.MergeStrategy
 
-    name := "driver"
-    organization := "com.wincom.dcim"
-    version := "1.0.0"
-    scalaVersion := "2.11.11"
+name := "driver"
+organization := "com.wincom.dcim"
+version := "1.0.0"
+scalaVersion := "2.11.11"
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 

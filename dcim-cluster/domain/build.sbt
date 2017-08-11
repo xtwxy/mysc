@@ -1,6 +1,6 @@
 import sbtassembly.MergeStrategy
 
-name := "driver-mock"
+name := "domain"
 organization := "com.wincom.dcim"
 version := "1.0.0"
 scalaVersion := "2.11.11"
