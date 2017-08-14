@@ -7,6 +7,7 @@ import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.util.Timeout
 import com.wincom.dcim.domain.Signal._
+
 import org.joda.time.Duration
 
 import scala.concurrent.ExecutionContext
@@ -17,65 +18,57 @@ import scala.util.Success
   * Created by wangxy on 17-8-14.
   */
 object Signal {
-  def props(signalId: Int, driverShard: ActorRef) = Props(new Signal(signalId, driverShard))
-  def name(signalId: Int) = s"signal_$signalId"
+  def props(signalId: String, driverShard: ActorRef) = Props(new Signal(signalId, driverShard))
+  def name(signalId: String) = s"signal_$signalId"
 
   sealed trait Command {
-    def signalId: Int
+    def signalId: String
   }
 
   sealed trait Event extends Serializable
 
-  /* domain objects */
-  final case class SignalVo(signalId: Int, name: String, driverId: Int, key: String) extends Command
+  /* value objects */
+  final case class SignalVo(signalId: String, name: String, driverId: String, key: String) extends Serializable
 
-  final case class SignalValue(signalId: Int, ts: DateTime, value: AnyVal) extends Command
-
-  final case class Ok(signalId: Int) extends Command
-
-  final case class NotAvailable(signalId: Int) extends Command
-
-  final case class NotExist(signalId: Int) extends Command
-
-  final case class AlreadyExists(signalId: Int) extends Command
+  final case class SignalValue(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
   /* commands */
-  final case class CreateSignalCmd(signalId: Int, name: String, driverId: Int, key: String) extends Command
+  final case class CreateSignalCmd(signalId: String, name: String, driverId: String, key: String) extends Command
 
-  final case class RenameSignalCmd(signalId: Int, newName: String) extends Command
+  final case class RenameSignalCmd(signalId: String, newName: String) extends Command
 
-  final case class SelectDriverCmd(signalId: Int, driverId: Int) extends Command
+  final case class SelectDriverCmd(signalId: String, driverId: String) extends Command
 
-  final case class SelectKeyCmd(signalId: Int, key: String) extends Command
+  final case class SelectKeyCmd(signalId: String, key: String) extends Command
 
-  final case class SaveSnapshotCmd(signalId: Int) extends Command
+  final case class SaveSnapshotCmd(signalId: String) extends Command
 
   /* transient commands */
-  final case class UpdateValueCmd(signalId: Int, value: SignalValue) extends Command
+  final case class UpdateValueCmd(signalId: String, value: SignalValue) extends Command
 
-  final case class SetValueCmd(signalId: Int, value: AnyVal) extends Command
+  final case class SetValueCmd(signalId: String, value: AnyVal) extends Command
 
-  final case class GetValueCmd(signalId: Int) extends Command
+  final case class GetValueCmd(signalId: String) extends Command
 
   /* events */
-  final case class CreateSignalEvt(name: String, driverId: Int, key: String) extends Event
+  final case class CreateSignalEvt(name: String, driverId: String, key: String) extends Event
 
   final case class RenameSignalEvt(newName: String) extends Event
 
-  final case class SelectDriverEvt(driverId: Int) extends Event
+  final case class SelectDriverEvt(driverId: String) extends Event
 
   final case class SelectKeyEvt(key: String) extends Event
 
   /* persistent objects */
-  final case class SignalPo(name: String, driverId: Int, key: String) extends Event
+  final case class SignalPo(name: String, driverId: String, key: String) extends Event
 }
 
-class Signal(val signalId: Int, val driverShard: ActorRef) extends PersistentActor {
+class Signal(val signalId: String, val driverShard: ActorRef) extends PersistentActor {
 
   val log = Logging(context.system.eventStream, "sharded-fsus")
   // configuration
   var signalName: Option[String] = None
-  var driverId: Option[Int] = None
+  var driverId: Option[String] = None
   var key: Option[String] = None
 
   // transient values
@@ -123,10 +116,10 @@ class Signal(val signalId: Int, val driverShard: ActorRef) extends PersistentAct
                 signalValue = Some(s)
                 sender() ! s
               case _ =>
-                sender() ! NotAvailable(signalId)
+                sender() ! NotAvailable
             }
           case _ =>
-            sender() ! NotAvailable(signalId)
+            sender() ! NotAvailable
         }
       }
     case x => log.info("COMMAND: {} {}", this, x)

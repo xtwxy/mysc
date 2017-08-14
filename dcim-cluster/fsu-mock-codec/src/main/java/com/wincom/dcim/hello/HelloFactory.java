@@ -1,13 +1,12 @@
 package com.wincom.dcim.hello;
 
-import java.util.Map;
-
-import com.wincom.dcim.driver.DriverCodecFactory;
-
 import akka.actor.Props;
+import com.wincom.dcim.fsu.FsuCodecFactory;
 import scala.Option;
 
-public class HelloFactory implements DriverCodecFactory {
+import java.util.Map;
+
+public class HelloFactory implements FsuCodecFactory {
 
 	@Override
 	public String modelName() {

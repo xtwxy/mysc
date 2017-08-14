@@ -1,13 +1,12 @@
 package com.wincom.dcim.test;
 
-import java.util.Map;
-
-import com.wincom.dcim.driver.DriverCodecFactory;
-
 import akka.actor.Props;
+import com.wincom.dcim.fsu.FsuCodecFactory;
 import scala.Option;
 
-public class TestFactory implements DriverCodecFactory {
+import java.util.Map;
+
+public class TestFactory implements FsuCodecFactory {
 
 	@Override
 	public String modelName() {
@@ -16,7 +15,7 @@ public class TestFactory implements DriverCodecFactory {
 
 	@Override
 	public Option<Props> create(Map<String, String> params) {
-		return Option.apply(null);
+		return null;
 	}
 
 }

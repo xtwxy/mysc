@@ -1,11 +1,11 @@
-package com.wincom.dcim.driver;
+package com.wincom.dcim.fsu;
 
 import java.util.Map;
 
-import scala.Option;
 import akka.actor.Props;
+import scala.Option;
 
-public interface DriverCodecFactory {
+public interface FsuCodecFactory {
 	String modelName();
 	Option<Props> create(Map<String, String> params);
 }

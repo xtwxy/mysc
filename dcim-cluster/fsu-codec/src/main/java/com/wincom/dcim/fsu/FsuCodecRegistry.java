@@ -1,4 +1,4 @@
-package com.wincom.dcim.driver;
+package com.wincom.dcim.fsu;
 
 import static java.lang.System.out;
 
@@ -16,16 +16,16 @@ import org.slf4j.LoggerFactory;
 import akka.actor.Props;
 import scala.Option;
 
-public class DriverCodecRegistry {
+public class FsuCodecRegistry {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
-	private Map<String, DriverCodecFactory> factories;
+	private Map<String, FsuCodecFactory> factories;
 
-	public DriverCodecRegistry() {
+	public FsuCodecRegistry() {
 		this.factories = new TreeMap<>();
 	}
 
 	public Option<Props> create(String name, Map<String, String> params) {
-		DriverCodecFactory factory = factories.get(name);
+		FsuCodecFactory factory = factories.get(name);
 		if (factory != null) {
 			return factory.create(params);
 		} else {
@@ -44,8 +44,8 @@ public class DriverCodecRegistry {
 					.addScanners(new SubTypesScanner(false))
 					.setUrls(ClasspathHelper.forClassLoader()));
 			
-			for (Class<? extends DriverCodecFactory> c : r.getSubTypesOf(DriverCodecFactory.class)) {
-				DriverCodecFactory f = c.newInstance();
+			for (Class<? extends FsuCodecFactory> c : r.getSubTypesOf(FsuCodecFactory.class)) {
+				FsuCodecFactory f = c.newInstance();
 				if (factories.containsKey(f.modelName())) {
 					log.warn("Duplicate DriverCodecFactory modelName '{}': {} and {}", f.modelName(), c,
 							factories.get(f.modelName()).getClass());
@@ -59,9 +59,9 @@ public class DriverCodecRegistry {
 	}
 
 	public static void main(String[] args) throws Exception {
-		DriverCodecRegistry registry = new DriverCodecRegistry();
+		FsuCodecRegistry registry = new FsuCodecRegistry();
 		registry.initialize();
-		for (Map.Entry<String, DriverCodecFactory> e : registry.factories.entrySet()) {
+		for (Map.Entry<String, FsuCodecFactory> e : registry.factories.entrySet()) {
 			out.println(String.format("DriverCodecFactory(%s, %s)", e.getKey(), e.getValue()));
 		}
 	}

@@ -1,6 +1,6 @@
 import sbtassembly.MergeStrategy
 
-name := "driver-codec"
+name := "fsu-codec"
 organization := "com.wincom.dcim"
 version := "1.0.0"
 scalaVersion := "2.11.11"
@@ -20,7 +20,6 @@ fork := true
 libraryDependencies ++= {
   val akkaVersion = "2.5.1"
   Seq(
-    "com.typesafe.akka"         %%  "akka-actor"                          % akkaVersion,
     "com.typesafe.akka"         %%  "akka-slf4j"                          % akkaVersion,
     "org.reflections"           %   "reflections"                         % "0.9.11",
     "joda-time"                 %   "joda-time"                           % "2.9.9"
@@ -33,7 +32,7 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
-mainClass in assembly := Some("com.wincom.dcim.driver.Main")
-assemblyJarName in assembly := "driver.jar"
+mainClass in assembly := Some("com.wincom.dcim.fsu.Main")
+assemblyJarName in assembly := "fsu.jar"
 
 
