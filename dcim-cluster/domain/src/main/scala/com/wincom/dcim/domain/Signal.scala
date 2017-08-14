@@ -65,7 +65,7 @@ object Signal {
 
 class Signal(val signalId: String, val driverShard: ActorRef) extends PersistentActor {
 
-  val log = Logging(context.system.eventStream, "sharded-fsus")
+  val log = Logging(context.system.eventStream, "sharded-signals")
   // configuration
   var signalName: Option[String] = None
   var driverId: Option[String] = None
@@ -74,7 +74,7 @@ class Signal(val signalId: String, val driverShard: ActorRef) extends Persistent
   // transient values
   var signalValue: Option[SignalValue] = None
 
-  override def persistenceId: String = s"${self.path.name}"
+  override def persistenceId: String = s"signal_${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
 
