@@ -42,7 +42,10 @@ jspm_packages
 
 .idea
 
+bin
 target
-/.project
-/.classpath
+.project
+.classpath
+.settings
 
+.cache-main

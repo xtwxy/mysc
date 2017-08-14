@@ -10,12 +10,12 @@ lazy val root = (project in file(".")).
     name := "dcim-cluster",
     libraryDependencies += scalaTest % Test
   )
-  .aggregate(domain, cluster, driver, driverMock)
+  .aggregate(domain, cluster, driverCodec, driverMockCodec)
 
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 
-lazy val domain = (project in file("domain"))
-lazy val cluster = (project in file("cluster")).dependsOn(driver)
-lazy val driver = (project in file("driver")).dependsOn(domain)
-lazy val driverMock = (project in file("driver-mock")).dependsOn(driver)
+lazy val domain = (project in file("domain")).dependsOn(driverCodec)
+lazy val cluster = (project in file("cluster")).dependsOn(domain, driverCodec)
+lazy val driverCodec = (project in file("driver-codec"))
+lazy val driverMockCodec = (project in file("driver-mock-codec")).dependsOn(driverCodec)

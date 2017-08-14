@@ -55,7 +55,7 @@ class FsuActor(val fsuId: Int) extends PersistentActor {
 
   private def updateState: (Command => Unit) = {
     case CreateFsu(fsuId, name) =>
-      log.info("UPDATE: persistenceId = {} fsuId = {} name = {}", persistenceId, fsuId, name)
+      log.info("UPDATE: persistenceId = {} fsuId = {} modelName = {}", persistenceId, fsuId, name)
       this.fsuName = name
   }
 
