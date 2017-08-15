@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.pattern.ask
 import akka.util.Timeout
-import com.wincom.dcim.domain.Driver.{Command, CreateDriverCmd, DriverVo}
+import com.wincom.dcim.domain.Driver._
 
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
@@ -23,36 +23,64 @@ class DriverService(val drivers: ActorRef,
 
 trait DriverRoutes extends DriverMarshaling {
   def drivers: ActorRef
+
   implicit def requestTimeout: Timeout
+
   implicit def executionContext: ExecutionContext
 
-  def routes = path("driver") {
+  def routes = path("driver" /) {
     post {
-      pathEnd {
-        entity(as[DriverVo]) { d =>
-          onSuccess(drivers.ask(
-            CreateDriverCmd(d.driverId, d.name, d.model, d.initParams, d.signalIdMap)).mapTo[Command]
-          ) {
-            case _ => complete(OK)
-          }
+      entity(as[DriverVo]) { d =>
+        onSuccess(drivers.ask(
+          CreateDriverCmd(d.driverId, d.name, d.model, d.initParams, d.signalIdMap)).mapTo[Command]
+        ) {
+          case _ => complete(OK)
         }
       }
     } ~
-    pathPrefix("" / Segment) {
-      driverId =>
-        pathEnd {
+      path(Segment /) {
+        driverId =>
           get {
             complete(driverId)
           } ~
-          put {
-            entity(as[DriverVo]) { d =>
-              complete(d)
+            put {
+              entity(as[DriverVo]) { d =>
+                complete(d)
+              }
+            } ~
+            delete {
+              complete(OK)
+            } ~
+          post {
+            path("rename") {
+              pathEnd {
+                entity(as[RenameDriverCmd]) { d =>
+                  complete(OK)
+                }
+              }
             }
-          } ~
-          delete {
-            complete(OK)
+            path("change-model") {
+              pathEnd {
+                entity(as[ChangeModelCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("save-snapshot") {
+              pathEnd {
+                entity(as[SaveSnapshotCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("map-signal-key-id") {
+              pathEnd {
+                entity(as[MapSignalKeyIdCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
           }
-        }
-    }
+      }
   }
 }

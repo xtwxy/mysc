@@ -61,11 +61,13 @@ object Driver {
   final case class SetSignalValueCmd(driverId: String, key: String, value: AnyVal) extends Command
 
   final case class SetSignalValuesCmd(driverId: String, values: Map[String, AnyVal]) extends Command
+
   final case class UpdateSignalValuesCmd(driverId: String, values: Seq[SignalValue]) extends Command
 
   final case class SendBytesCmd(driverId: String, bytes: Array[Byte]) extends Command
 
   final case class StartDriverCmd(driverId: String) extends Command
+
   final case class StopDriverCmd(driverId: String) extends Command
 
   /* events */
@@ -79,7 +81,6 @@ object Driver {
 
   /* persistent objects */
   final case class DriverPo(name: String, model: String, initParams: Map[String, String], signalIdMap: Map[String, String]) extends Serializable
-
 }
 
 class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverCodecRegistry) extends PersistentActor {
@@ -106,7 +107,7 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
       this.driverName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
-      for((k, v) <- idMap) this.signalIdMap.put(k, v)
+      for ((k, v) <- idMap) this.signalIdMap.put(k, v)
     case x => log.info("RECOVER: {} {}", this, x)
   }
 
@@ -120,7 +121,7 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
     case MapSignalKeyIdCmd(_, key, signalId) =>
       persist(MapSignalKeyIdEvt(key, signalId))(updateState)
     case SaveSnapshotCmd =>
-      if(isValid) {
+      if (isValid) {
         var idMap = HashMap[String, String]()
         this.signalIdMap.forEach((k, v) => idMap = idMap + (k -> v))
         saveSnapshot(DriverPo(driverName.get, modelName.get, initParams, idMap))
@@ -143,8 +144,8 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
       this.driverName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
-      for((k, v) <- idMap) this.signalIdMap.put(k, v)
-      if(!createCodec()) {
+      for ((k, v) <- idMap) this.signalIdMap.put(k, v)
+      if (!createCodec()) {
         context.stop(self)
       }
     case RenameDriverEvt(newName) =>
@@ -154,7 +155,7 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
       if (this.driverCodec.isDefined) {
         driverCodec.get ! StopDriverCmd(driverId);
       }
-      if(!createCodec()) {
+      if (!createCodec()) {
         context.stop(self)
       }
     case MapSignalKeyIdEvt(key, signalId) =>
@@ -165,11 +166,12 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
   private def isValid: Boolean = {
     if (driverName.isDefined && modelName.isDefined) true else false
   }
+
   private def createCodec(): Boolean = {
     val params: java.util.Map[String, String] = new java.util.HashMap()
-    for((k, v) <- this.initParams) params.put(k, v)
+    for ((k, v) <- this.initParams) params.put(k, v)
     val p = registry.create(this.modelName.get, params)
-    if(p.isDefined) {
+    if (p.isDefined) {
       this.driverCodec = Some(context.system.actorOf(p.get, s"${this.modelName.get}_${driverId}"))
       return true
     } else {
