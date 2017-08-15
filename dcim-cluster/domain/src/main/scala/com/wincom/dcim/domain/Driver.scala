@@ -61,7 +61,9 @@ object Driver {
   final case class SetSignalValueCmd(driverId: String, key: String, value: AnyVal) extends Command
 
   final case class SetSignalValuesCmd(driverId: String, values: Map[String, AnyVal]) extends Command
-  
+
+  final case class SendBytesCmd(driverId: String, bytes: Array[Byte]) extends Command
+
   final case class StartDriverCmd(driverId: String) extends Command
   final case class StopDriverCmd(driverId: String) extends Command
 
@@ -121,10 +123,14 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
       } else {
         log.warning("Save snapshot failed - Not a valid object")
       }
-    case GetSignalValueCmd(_, key) =>
-    case GetSignalValuesCmd(_, keys) =>
-    case SetSignalValueCmd(_, key, value) =>
-    case SetSignalValuesCmd(_, values) =>
+    case cmd: GetSignalValueCmd =>
+      driverCodec.get forward cmd
+    case cmd: GetSignalValuesCmd =>
+      driverCodec.get forward cmd
+    case cmd: SetSignalValueCmd =>
+      driverCodec.get forward cmd
+    case cmd: SetSignalValuesCmd =>
+      driverCodec.get forward cmd
     case x => log.info("COMMAND: {} {}", this, x)
   }
 

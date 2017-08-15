@@ -16,6 +16,7 @@ import akka.persistence.PersistentActor
 import akka.persistence.SnapshotOffer
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+import com.wincom.dcim.domain.Driver.SendBytesCmd
 
 import scala.util.Success
 
@@ -106,6 +107,8 @@ class Fsu(val fsuId: String, val registry: FsuCodecRegistry) extends PersistentA
         case _ =>
           sender() ! NotAvailable
       }
+    case cmd: SendBytesCmd =>
+      this.fsuCodec.get forward cmd
     case x => log.info("COMMAND: {} {}", this, x)
   }
 
