@@ -3,7 +3,7 @@ import sbtassembly.MergeStrategy
 name := "fsu-mock-codec"
 organization := "com.wincom.dcim"
 version := "1.0.0"
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.3"
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 

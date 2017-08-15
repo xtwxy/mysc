@@ -1,8 +1,5 @@
 package com.wincom.dcim.domain
 
-import java.util
-import java.util.Map
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
@@ -17,6 +14,9 @@ import akka.persistence.PersistentActor
 import akka.persistence.SnapshotOffer
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+import com.wincom.dcim.domain.Signal.SignalValue
+
+import scala.collection.immutable.HashMap
 
 
 /**
@@ -61,6 +61,7 @@ object Driver {
   final case class SetSignalValueCmd(driverId: String, key: String, value: AnyVal) extends Command
 
   final case class SetSignalValuesCmd(driverId: String, values: Map[String, AnyVal]) extends Command
+  final case class UpdateSignalValuesCmd(driverId: String, values: Seq[SignalValue]) extends Command
 
   final case class SendBytesCmd(driverId: String, bytes: Array[Byte]) extends Command
 
@@ -87,8 +88,9 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
 
   var driverName: Option[String] = None
   var modelName: Option[String] = None
-  val initParams: Map[String, String] = new util.HashMap()
+  var initParams: Map[String, String] = new HashMap()
   var driverCodec: Option[ActorRef] = None
+  // key => id
   val signalIdMap: BiMap[String, String] = create()
 
   override def persistenceId: String = s"driver_${self.path.name}"
@@ -103,8 +105,8 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
     case SnapshotOffer(_, DriverPo(name, model, params, idMap)) =>
       this.driverName = Some(name)
       this.modelName = Some(model)
-      this.initParams.putAll(params)
-      this.signalIdMap.putAll(idMap)
+      this.initParams = this.initParams ++ params
+      for((k, v) <- idMap) this.signalIdMap.put(k, v)
     case x => log.info("RECOVER: {} {}", this, x)
   }
 
@@ -119,7 +121,9 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
       persist(MapSignalKeyIdEvt(key, signalId))(updateState)
     case SaveSnapshotCmd =>
       if(isValid) {
-        saveSnapshot(DriverPo(driverName.get, modelName.get, initParams, signalIdMap))
+        var idMap = HashMap[String, String]()
+        this.signalIdMap.forEach((k, v) => idMap = idMap + (k -> v))
+        saveSnapshot(DriverPo(driverName.get, modelName.get, initParams, idMap))
       } else {
         log.warning("Save snapshot failed - Not a valid object")
       }
@@ -138,8 +142,8 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
     case CreateDriverEvt(name, model, params, idMap) =>
       this.driverName = Some(name)
       this.modelName = Some(model)
-      this.initParams.putAll(params)
-      this.signalIdMap.putAll(idMap)
+      this.initParams = this.initParams ++ params
+      for((k, v) <- idMap) this.signalIdMap.put(k, v)
       if(!createCodec()) {
         context.stop(self)
       }
@@ -162,7 +166,9 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
     if (driverName.isDefined && modelName.isDefined) true else false
   }
   private def createCodec(): Boolean = {
-    val p = registry.create(this.modelName.get, this.initParams)
+    val params: java.util.Map[String, String] = new java.util.HashMap()
+    for((k, v) <- this.initParams) params.put(k, v)
+    val p = registry.create(this.modelName.get, params)
     if(p.isDefined) {
       this.driverCodec = Some(context.system.actorOf(p.get, s"${this.modelName.get}_${driverId}"))
       return true

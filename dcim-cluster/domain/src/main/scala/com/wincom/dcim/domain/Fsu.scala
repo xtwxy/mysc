@@ -1,8 +1,5 @@
 package com.wincom.dcim.domain
 
-import java.util.HashMap
-import java.util.Map
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
@@ -63,7 +60,7 @@ class Fsu(val fsuId: String, val registry: FsuCodecRegistry) extends PersistentA
 
   var fsuName: Option[String] = None
   var modelName: Option[String] = None
-  val initParams: Map[String, String] = new HashMap()
+  val initParams: java.util.Map[String, String] = new java.util.HashMap()
   var fsuCodec: Option[ActorRef] = None
 
   override def persistenceId: String = s"fsu_${self.path.name}"
@@ -78,7 +75,7 @@ class Fsu(val fsuId: String, val registry: FsuCodecRegistry) extends PersistentA
     case SnapshotOffer(_, FsuPo(name, model, params)) =>
       this.fsuName = Some(name)
       this.modelName = Some(model)
-      this.initParams.putAll(params)
+      for((k, v) <- params) this.initParams.put(k, v)
       if(!createCodec()) {
         context.stop(self)
       }
@@ -116,7 +113,7 @@ class Fsu(val fsuId: String, val registry: FsuCodecRegistry) extends PersistentA
     case CreateFsuEvt(name, model, params) =>
       this.fsuName = Some(name)
       this.modelName = Some(model)
-      this.initParams.putAll(params)
+      for((k, v) <- params) this.initParams.put(k, v)
     case RenameFsuEvt(newName) =>
       this.fsuName = Some(newName)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)

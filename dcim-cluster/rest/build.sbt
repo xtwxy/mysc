@@ -1,6 +1,6 @@
 import sbtassembly.MergeStrategy
 
-name := "domain"
+name := "rest"
 organization := "com.wincom.dcim"
 version := "1.0.0"
 scalaVersion := "2.12.3"
@@ -19,12 +19,16 @@ fork := true
 
 libraryDependencies ++= {
   val akkaVersion = "2.5.1"
+  val akkaHttpVersion = "10.0.9"
+  val sprayVersion = "1.3.3"
+  val jodaTimeVersion = "2.9.9"
   Seq(
-    "com.typesafe.akka"         %%  "akka-actor"                          % akkaVersion,
-    "com.typesafe.akka"         %%  "akka-stream"                         % akkaVersion,
-    "com.typesafe.akka"         %%  "akka-persistence"                    % akkaVersion,
-    "com.typesafe.akka"         %%  "akka-http-core"                      % "10.0.9",
-    "joda-time"                 %   "joda-time"                           % "2.9.9"
+    "com.typesafe.akka"         %%  "akka-http"                           % akkaHttpVersion,
+    "com.typesafe.akka"         %%  "akka-http-core"                      % akkaHttpVersion,
+    "com.typesafe.akka"         %%  "akka-http-spray-json"                % akkaHttpVersion,
+    //"io.spray"                  %%  "spray-json"                          % sprayVersion,
+
+    "joda-time"                 %   "joda-time"                           % jodaTimeVersion
   )
 }
 assemblyMergeStrategy in assembly := {
