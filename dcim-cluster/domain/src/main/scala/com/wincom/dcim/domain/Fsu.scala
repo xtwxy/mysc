@@ -43,6 +43,7 @@ object Fsu {
   final case class RemoveParamsCmd(fsuId: String, params: Map[String, String]) extends Command
 
   final case class GetPortCmd(fsuId: String, params: Map[String, String]) extends Command
+  final case class SendBytesCmd(fsuId: String, bytes: Array[Byte]) extends Command
 
   /* events */
   final case class CreateFsuEvt(name: String, model: String, params: Map[String, String]) extends Event

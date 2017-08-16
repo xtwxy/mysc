@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
-import com.wincom.dcim.domain.Signal.{CreateSignalCmd, SignalVo, _}
+import com.wincom.dcim.domain.Signal.{CreateSignalCmd, _}
 
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
@@ -41,65 +41,60 @@ trait SignalRoutes extends SignalMarshaling {
         get {
           complete(OK)
         } ~
-          put {
-            entity(as[SignalVo]) { s =>
-              complete(OK)
-            }
-          } ~
           delete {
             complete(OK)
           } ~
-        post {
-          path("rename") {
-            pathEnd{
-              entity(as[RenameSignalCmd]) { s =>
-                complete(OK)
+          post {
+            path("rename") {
+              pathEnd {
+                entity(as[RenameSignalCmd]) { s =>
+                  complete(OK)
+                }
               }
-            }
-          }
-          path("select-driver") {
-            pathEnd {
-              entity(as[SelectDriverCmd]) { s =>
-                complete(OK)
+            } ~
+              path("select-driver") {
+                pathEnd {
+                  entity(as[SelectDriverCmd]) { s =>
+                    complete(OK)
+                  }
+                }
+              } ~
+              path("select-key") {
+                pathEnd {
+                  entity(as[SelectKeyCmd]) { s =>
+                    complete(OK)
+                  }
+                }
+              } ~
+              path("save-snapshot") {
+                pathEnd {
+                  entity(as[SaveSnapshotCmd]) { s =>
+                    complete(OK)
+                  }
+                }
+              } ~
+              path("update-value") {
+                pathEnd {
+                  entity(as[UpdateValueCmd]) { s =>
+                    complete(OK)
+                  }
+                }
+              } ~
+              path("set-value") {
+                pathEnd {
+                  entity(as[SetValueCmd]) { s =>
+                    complete(OK)
+                  }
+                }
+              } ~
+              path("get-value") {
+                pathEnd {
+                  entity(as[GetValueCmd]) { s =>
+                    complete(OK)
+                  }
+                }
               }
-            }
           }
-          path("select-key") {
-            pathEnd {
-              entity(as[SelectKeyCmd]) { s =>
-                complete(OK)
-              }
-            }
-          }
-          path("save-snapshot") {
-            pathEnd {
-              entity(as[SaveSnapshotCmd]) { s =>
-                complete(OK)
-              }
-            }
-          }
-          path("update-value") {
-            pathEnd {
-              entity(as[UpdateValueCmd]) { s =>
-                complete(OK)
-              }
-            }
-          }
-          path("set-value") {
-            pathEnd {
-              entity(as[SetValueCmd]) { s =>
-                complete(OK)
-              }
-            }
-          }
-          path("get-value") {
-            pathEnd {
-              entity(as[GetValueCmd]) { s =>
-                complete(OK)
-              }
-            }
-          }
-        }
       }
   }
 }
