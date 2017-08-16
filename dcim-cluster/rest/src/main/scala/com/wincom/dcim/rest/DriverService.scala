@@ -80,6 +80,62 @@ trait DriverRoutes extends DriverMarshaling {
                 }
               }
             }
+            path("get-signal-value") {
+              pathEnd {
+                entity(as[GetSignalValueCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("get-signal-values") {
+              pathEnd {
+                entity(as[GetSignalValuesCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("set-signal-value") {
+              pathEnd {
+                entity(as[SetSignalValueCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("set-signal-values") {
+              pathEnd {
+                entity(as[SetSignalValuesCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("update-signal-values") {
+              pathEnd {
+                entity(as[UpdateSignalValuesCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("send-bytes") {
+              pathEnd {
+                entity(as[SendBytesCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("start-driver") {
+              pathEnd {
+                entity(as[StartDriverCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
+            path("stop-driver") {
+              pathEnd {
+                entity(as[StopDriverCmd]) { d =>
+                  complete(OK)
+                }
+              }
+            }
           }
       }
   }

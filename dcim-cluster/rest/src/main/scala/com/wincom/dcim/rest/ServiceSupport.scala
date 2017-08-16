@@ -26,7 +26,7 @@ trait ServiceSupport extends RequestTimeout {
     implicit val ec = system.dispatcher  //bindAndHandle requires an implicit ExecutionContext
 
     val api1 = new DriverService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
-    val api2 = new DriverService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
+    val api2 = new SignalService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
     val api = api1 ~ api2
 
     implicit val materializer = ActorMaterializer()

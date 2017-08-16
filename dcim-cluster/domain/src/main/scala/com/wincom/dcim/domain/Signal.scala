@@ -46,7 +46,7 @@ object Signal {
   /* transient commands */
   final case class UpdateValueCmd(signalId: String, value: SignalValue) extends Command
 
-  final case class SetValueCmd(signalId: String, value: AnyVal) extends Command
+  final case class SetValueCmd(signalId: String, value: SignalValue) extends Command
 
   final case class GetValueCmd(signalId: String) extends Command
 
