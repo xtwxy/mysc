@@ -13,7 +13,7 @@ import akka.persistence.PersistentActor
 import akka.persistence.SnapshotOffer
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-import com.wincom.dcim.domain.Driver.SendBytesCmd
+import com.wincom.dcim.domain.Driver.{Command, SendBytesCmd}
 
 import scala.util.Success
 
@@ -44,6 +44,9 @@ object Fsu {
 
   final case class GetPortCmd(fsuId: String, params: Map[String, String]) extends Command
   final case class SendBytesCmd(fsuId: String, bytes: Array[Byte]) extends Command
+
+  final case class StartFsuCmd(fsuId: String) extends Command
+  final case class StopFsuCmd(fsuId: String) extends Command
 
   /* events */
   final case class CreateFsuEvt(name: String, model: String, params: Map[String, String]) extends Event

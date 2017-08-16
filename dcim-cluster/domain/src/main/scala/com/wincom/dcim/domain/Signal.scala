@@ -6,8 +6,8 @@ import akka.http.scaladsl.model.DateTime
 import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.util.Timeout
+import com.wincom.dcim.domain.Driver.Command
 import com.wincom.dcim.domain.Signal._
-
 import org.joda.time.Duration
 
 import scala.concurrent.ExecutionContext
@@ -19,6 +19,7 @@ import scala.util.Success
   */
 object Signal {
   def props(signalId: String, driverShard: ActorRef) = Props(new Signal(signalId, driverShard))
+
   def name(signalId: String) = s"signal_$signalId"
 
   sealed trait Command {
@@ -50,6 +51,10 @@ object Signal {
 
   final case class GetValueCmd(signalId: String) extends Command
 
+  final case class StartSignalCmd(signalId: String) extends Command
+
+  final case class StopSignalCmd(signalId: String) extends Command
+
   /* events */
   final case class CreateSignalEvt(name: String, driverId: String, key: String) extends Event
 
@@ -61,6 +66,7 @@ object Signal {
 
   /* persistent objects */
   final case class SignalPo(name: String, driverId: String, key: String) extends Event
+
 }
 
 class Signal(val signalId: String, val driverShard: ActorRef) extends PersistentActor {

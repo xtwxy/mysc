@@ -17,7 +17,10 @@ import scala.util.{Failure, Success}
   * Created by wangxy on 17-8-15.
   */
 trait ServiceSupport extends RequestTimeout {
-  def startService(drivers: ActorRef)(implicit system: ActorSystem) = {
+  def startService(fsus: ActorRef,
+                   drivers: ActorRef,
+                   signals: ActorRef
+                  )(implicit system: ActorSystem) = {
     val config = system.settings.config
     val settings = Settings(system)
     val host = settings.http.host
@@ -25,9 +28,10 @@ trait ServiceSupport extends RequestTimeout {
 
     implicit val ec = system.dispatcher  //bindAndHandle requires an implicit ExecutionContext
 
-    val api1 = new DriverService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
-    val api2 = new SignalService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
-    val api = api1 ~ api2
+    val fsuApi = new FsuService(fsus, system, requestTimeout(config)).routes // the RestApi provides a Route
+    val driverApi = new DriverService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
+    val signalApi = new SignalService(signals, system, requestTimeout(config)).routes // the RestApi provides a Route
+    val api = fsuApi ~ driverApi ~ signalApi
 
     implicit val materializer = ActorMaterializer()
     val bindingFuture: Future[ServerBinding] =

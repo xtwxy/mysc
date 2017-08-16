@@ -1,0 +1,40 @@
+package com.wincom.dcim.sharded
+
+import akka.actor.{Props, ReceiveTimeout}
+import akka.cluster.sharding.ShardRegion
+import akka.cluster.sharding.ShardRegion.Passivate
+import com.wincom.dcim.domain.{Fsu, Settings}
+import com.wincom.dcim.domain.Fsu._
+import com.wincom.dcim.fsu.FsuCodecRegistry
+
+/**
+  * Created by wangxy on 17-8-16.
+  */
+object ShardedFsu {
+  def props(fsuId: String, registry: FsuCodecRegistry) = Props(new ShardedFsu(fsuId, registry))
+  def name(fsuId: String) = s"fsu_$fsuId"
+
+  var shardName: String = "fsu-shards"
+  var numberOfShards = 100
+
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case cmd: Command =>
+      (cmd.fsuId.toString, cmd)
+  }
+  val extractShardId: ShardRegion.ExtractShardId = {
+    case cmd: Command =>
+      (cmd.fsuId.hashCode % numberOfShards).toString
+  }
+}
+
+class ShardedFsu(fsuId: String, registry: FsuCodecRegistry) extends Fsu(fsuId, registry) {
+  val settings = Settings(context.system)
+  context.setReceiveTimeout(settings.passivateTimeout)
+
+  override def unhandled(message: Any): Unit = message match {
+    case ReceiveTimeout =>
+      context.parent ! Passivate(stopMessage = Fsu.StopFsuCmd)
+    case StopFsuCmd =>
+      context.stop(self)
+  }
+}
