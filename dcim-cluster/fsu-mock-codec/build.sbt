@@ -32,6 +32,6 @@ assemblyMergeStrategy in assembly := {
 }
 
 mainClass in assembly := Some("com.wincom.dcim.fsu.Main")
-assemblyJarName in assembly := "fsu-mock.jar"
+assemblyJarName in assembly := "fsu-mock-codec.jar"
 
 

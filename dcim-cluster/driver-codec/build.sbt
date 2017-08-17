@@ -34,6 +34,6 @@ assemblyMergeStrategy in assembly := {
 }
 
 mainClass in assembly := Some("com.wincom.dcim.driver.Main")
-assemblyJarName in assembly := "driver.jar"
+assemblyJarName in assembly := "driver-codec.jar"
 
 
