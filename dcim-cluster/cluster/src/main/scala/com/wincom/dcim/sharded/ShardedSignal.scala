@@ -10,7 +10,7 @@ import com.wincom.dcim.domain.{Settings, Signal}
   * Created by wangxy on 17-8-16.
   */
 object ShardedSignal {
-  def props(signalId: String, fsuShard: ActorRef) = Props(new ShardedSignal(signalId, fsuShard))
+  def props(driverShard: () => ActorRef) = Props(new ShardedSignal(driverShard))
   def name(signalId: String) = s"signal_$signalId"
 
   val shardName: String = "signal-shards"
@@ -26,9 +26,9 @@ object ShardedSignal {
   }
 }
 
-class ShardedSignal(signalId: String, signalShard: ActorRef) extends Signal(signalId, signalShard) {
+class ShardedSignal(driverShard: () => ActorRef) extends Signal(driverShard) {
   val settings = Settings(context.system)
-  context.setReceiveTimeout(settings.passivateTimeout)
+  context.setReceiveTimeout(settings.actor.passivateTimeout)
 
   override def unhandled(message: Any): Unit = message match {
     case ReceiveTimeout =>

@@ -1,5 +1,7 @@
 package com.wincom.dcim.domain
 
+import java.util
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
@@ -33,7 +35,7 @@ object Fsu {
   sealed trait Event
 
   /* value objects */
-  final case class FsuVo(id: String, name: String, model: String, params: Map[String, String]) extends Serializable
+  final case class FsuVo(fsuId: String, name: String, model: String, params: Map[String, String]) extends Serializable
 
   /* commands */
   final case class CreateFsuCmd(fsuId: String, name: String, model: String, params: Map[String, String]) extends Command
@@ -45,6 +47,7 @@ object Fsu {
   final case class GetPortCmd(fsuId: String, params: Map[String, String]) extends Command
   final case class SendBytesCmd(fsuId: String, bytes: Array[Byte]) extends Command
 
+  final case class RetrieveFsuCmd(fsuId: String) extends Command
   final case class StartFsuCmd(fsuId: String) extends Command
   final case class StopFsuCmd(fsuId: String) extends Command
 
@@ -64,10 +67,10 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
 
   var fsuName: Option[String] = None
   var modelName: Option[String] = None
-  val initParams: java.util.Map[String, String] = new java.util.HashMap()
+  var initParams: collection.mutable.Map[String, String] = collection.mutable.HashMap()
   var fsuCodec: Option[ActorRef] = None
 
-  def fsuId: String = s"fsu_${self.path.name}"
+  def fsuId: String = s"${self.path.name}"
   override def persistenceId: String = s"fsu_${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
@@ -111,6 +114,11 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       }
     case cmd: SendBytesCmd =>
       this.fsuCodec.get forward cmd
+    case RetrieveFsuCmd =>
+      sender() ! FsuVo(fsuId, fsuName.get, modelName.get, initParams.toMap)
+    case StartFsuCmd =>
+    case StopFsuCmd =>
+      context.stop(self)
     case x => log.info("COMMAND: {} {}", this, x)
   }
 
@@ -118,14 +126,16 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case CreateFsuEvt(name, model, params) =>
       this.fsuName = Some(name)
       this.modelName = Some(model)
-      for((k, v) <- params) this.initParams.put(k, v)
+      this.initParams = this.initParams ++ params
     case RenameFsuEvt(newName) =>
       this.fsuName = Some(newName)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 
   private def createCodec(): Boolean = {
-    val p = registry.create(this.modelName.get, this.initParams)
+    val params = new util.HashMap[String, String]()
+    for((k, v) <- initParams) params.put(k, v)
+    val p = registry.create(this.modelName.get, params)
     if(p.isDefined) {
       this.fsuCodec = Some(context.system.actorOf(p.get, s"${this.modelName.get}_${fsuId}"))
       return true

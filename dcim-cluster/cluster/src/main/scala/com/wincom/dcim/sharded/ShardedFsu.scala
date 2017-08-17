@@ -3,8 +3,8 @@ package com.wincom.dcim.sharded
 import akka.actor.{Props, ReceiveTimeout}
 import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.Passivate
-import com.wincom.dcim.domain.{Fsu, Settings}
 import com.wincom.dcim.domain.Fsu._
+import com.wincom.dcim.domain.{Fsu, Settings}
 import com.wincom.dcim.fsu.FsuCodecRegistry
 
 /**
@@ -29,7 +29,7 @@ object ShardedFsu {
 
 class ShardedFsu(registry: FsuCodecRegistry) extends Fsu(registry) {
   val settings = Settings(context.system)
-  context.setReceiveTimeout(settings.passivateTimeout)
+  context.setReceiveTimeout(settings.actor.passivateTimeout)
 
   override def unhandled(message: Any): Unit = message match {
     case ReceiveTimeout =>

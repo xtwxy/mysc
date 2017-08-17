@@ -19,7 +19,11 @@ object Settings extends ExtensionKey[Settings]
 class Settings(config: Config) extends Extension {
   def this(system: ExtendedActorSystem) = this(system.settings.config)
 
-  val passivateTimeout = Duration(config.getString("passivate-timeout"))
+  object actor {
+    val passivateTimeout = Duration(config.getString("passivate-timeout"))
+    val numberOfShards = config.getInt("number-of-shards")
+  }
+
   object http {
     val host = config.getString("http.host")
     val port = config.getInt("http.port")

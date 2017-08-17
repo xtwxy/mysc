@@ -6,7 +6,6 @@ import akka.http.scaladsl.model.DateTime
 import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.util.Timeout
-import com.wincom.dcim.domain.Driver.Command
 import com.wincom.dcim.domain.Signal._
 import org.joda.time.Duration
 
@@ -18,7 +17,7 @@ import scala.util.Success
   * Created by wangxy on 17-8-14.
   */
 object Signal {
-  def props(signalId: String, driverShard: ActorRef) = Props(new Signal(signalId, driverShard))
+  def props(driverShard: () => ActorRef) = Props(new Signal(driverShard))
 
   def name(signalId: String) = s"signal_$signalId"
 
@@ -69,7 +68,7 @@ object Signal {
 
 }
 
-class Signal(val signalId: String, val driverShard: ActorRef) extends PersistentActor {
+class Signal(driverShard: () => ActorRef) extends PersistentActor {
 
   val log = Logging(context.system.eventStream, "sharded-signals")
   // configuration
@@ -80,6 +79,7 @@ class Signal(val signalId: String, val driverShard: ActorRef) extends Persistent
   // transient values
   var signalValue: Option[SignalValue] = None
 
+  val signalId: String = s"signal_${self.path.name}"
   override def persistenceId: String = s"signal_${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
@@ -110,13 +110,13 @@ class Signal(val signalId: String, val driverShard: ActorRef) extends Persistent
     case UpdateValueCmd(_, value) =>
       signalValue = Some(value)
     case cmd: SetValueCmd =>
-      driverShard forward cmd
+      driverShard() forward cmd
     case cmd: GetValueCmd =>
       if (available) {
         sender() ! signalValue
       } else {
-        driverShard.ask(cmd).mapTo[Command].onComplete {
-          case f: Success[Command] =>
+        driverShard().ask(cmd).mapTo[SignalValue].onComplete {
+          case f: Success[SignalValue] =>
             f.value match {
               case s: SignalValue =>
                 signalValue = Some(s)

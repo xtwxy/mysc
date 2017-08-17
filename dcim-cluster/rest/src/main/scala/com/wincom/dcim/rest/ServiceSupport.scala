@@ -4,6 +4,8 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
+import akka.http.scaladsl.server.Directives.{complete, get, path}
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
@@ -32,16 +34,15 @@ trait ServiceSupport extends RequestTimeout {
     val driverApi = new DriverService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
     val signalApi = new SignalService(signals, system, requestTimeout(config)).routes // the RestApi provides a Route
     val api = fsuApi ~ driverApi ~ signalApi
-
     implicit val materializer = ActorMaterializer()
     val bindingFuture: Future[ServerBinding] =
       Http().bindAndHandle(api, host, port)
 
-    val log =  Logging(system.eventStream, "shoppers")
+    val log =  Logging(system.eventStream, "dcim-cluster")
 
     bindingFuture.onComplete {
       case s: Success[ServerBinding] =>
-        log.info(s"Shoppers API bound to ${s.value.localAddress} ")
+        log.info(s"dcim clust API bound to ${s.value.localAddress} ")
       case f: Failure[ServerBinding] =>
         log.error(f.exception, "Failed to bind to {}:{}!", host, port)
         system.terminate()

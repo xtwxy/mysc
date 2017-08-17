@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, Props}
 import akka.cluster.sharding.ShardRegion
 import akka.event.Logging
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.wincom.dcim.rest.Settings
+import com.wincom.dcim.domain.Settings
 import com.wincom.dcim.sharded.DeviceActor._
 
 object DeviceActor {
@@ -75,7 +75,7 @@ class DeviceActor(val deviceId: Int, val signalShard: ActorRef) extends Persiste
 
   override def persistenceId: String = s"${self.path.name}"
 
-  context.setReceiveTimeout(Settings(context.system).passivateTimeout)
+  context.setReceiveTimeout(Settings(context.system).actor.passivateTimeout)
 
   def receiveRecover = {
     case evt: Event =>

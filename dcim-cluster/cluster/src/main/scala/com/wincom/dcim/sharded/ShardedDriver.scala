@@ -9,7 +9,7 @@ import com.wincom.dcim.driver.DriverCodecRegistry
 
 object ShardedDriver {
 
-  def props(driverId: String, fsuShard: ActorRef, registry: DriverCodecRegistry) = Props(new ShardedDriver(driverId, fsuShard, registry))
+  def props(registry: DriverCodecRegistry) = Props(new ShardedDriver(registry))
   def name(driverId: String) = s"driver_$driverId"
 
   val shardName: String = "driver-shards"
@@ -25,9 +25,9 @@ object ShardedDriver {
   }
 }
 
-class ShardedDriver(driverId: String, fsuShard: ActorRef, registry: DriverCodecRegistry) extends Driver(driverId, fsuShard, registry) {
+class ShardedDriver(registry: DriverCodecRegistry) extends Driver(registry) {
   val settings = Settings(context.system)
-  context.setReceiveTimeout(settings.passivateTimeout)
+  context.setReceiveTimeout(settings.actor.passivateTimeout)
 
   override def unhandled(message: Any): Unit = message match {
     case ReceiveTimeout =>

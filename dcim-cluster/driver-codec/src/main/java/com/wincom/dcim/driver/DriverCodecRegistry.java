@@ -32,7 +32,7 @@ public class DriverCodecRegistry {
         }
     }
 
-    public void initialize() {
+    public DriverCodecRegistry initialize() {
         try {
             FilterBuilder filter = new FilterBuilder()
                     .include("com\\.wincom.*");
@@ -55,6 +55,7 @@ public class DriverCodecRegistry {
         } catch (Exception ex) {
             log.error("DriverCodecFactory initializing failed: {}", ex);
         }
+        return this;
     }
 
     public static void main(String[] args) throws Exception {

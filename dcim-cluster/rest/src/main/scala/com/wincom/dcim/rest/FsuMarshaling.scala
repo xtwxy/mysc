@@ -19,6 +19,10 @@ trait FsuMarshaling extends DefaultJsonProtocol {
 
   implicit val getPortCmdFormat = jsonFormat2(GetPortCmd)
   implicit val sendBytesCmdFormat = jsonFormat2(SendBytesCmd)
+
+  implicit val retrieveFsuCmdFormat = jsonFormat1(RetrieveFsuCmd)
+  implicit val startFsuCmdFormat = jsonFormat1(StartFsuCmd)
+  implicit val stopFsuCmdFormat = jsonFormat1(StopFsuCmd)
 }
 
 object FsuMarshaling extends FsuMarshaling

@@ -1,6 +1,7 @@
 package com.wincom.dcim.sharded
 
 import akka.actor.{Actor, ActorInitializationException, DeathPactException, OneForOneStrategy, Props, SupervisorStrategy}
+import com.wincom.dcim.domain.Fsu
 
 
 class SuppervisedFsu extends Actor {
@@ -10,7 +11,7 @@ class SuppervisedFsu extends Actor {
     case _: DeathPactException ⇒ SupervisorStrategy.Restart
     case _: Exception ⇒ SupervisorStrategy.Restart
   }
-  val fsuActor = context.actorOf(Props[FsuActor], s"${self.path.name}")
+  val fsuActor = context.actorOf(Props[Fsu], s"${self.path.name}")
 
   def receive = {
     case msg ⇒ fsuActor forward msg

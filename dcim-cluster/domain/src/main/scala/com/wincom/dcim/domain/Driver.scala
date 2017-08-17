@@ -25,7 +25,7 @@ import scala.collection.immutable.HashMap
 
 object Driver {
 
-  def props(driverId: String, fsuShard: ActorRef, registry: DriverCodecRegistry) = Props(new Driver(driverId, fsuShard, registry))
+  def props(registry: DriverCodecRegistry) = Props(new Driver(registry))
 
   def name(driverId: String) = s"driver_$driverId"
 
@@ -83,7 +83,7 @@ object Driver {
   final case class DriverPo(name: String, model: String, initParams: Map[String, String], signalIdMap: Map[String, String]) extends Serializable
 }
 
-class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverCodecRegistry) extends PersistentActor {
+class Driver(val registry: DriverCodecRegistry) extends PersistentActor {
 
   val log = Logging(context.system.eventStream, "sharded-drivers")
 
@@ -94,6 +94,7 @@ class Driver(val driverId: String, val fsuShard: ActorRef, val registry: DriverC
   // key => id
   val signalIdMap: BiMap[String, String] = create()
 
+  def driverId: String = s"driver_${self.path.name}"
   override def persistenceId: String = s"driver_${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
