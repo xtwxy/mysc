@@ -14,18 +14,23 @@ final case object NotExist extends Serializable
 
 final case object AlreadyExists extends Serializable
 
-object Settings extends ExtensionKey[Settings]
+object Settings {
+  def apply(config: Config): Settings = new Settings(config)
+
+  def apply(system: ActorSystem): Settings = new Settings(system)
+}
 
 class Settings(config: Config) extends Extension {
-  def this(system: ExtendedActorSystem) = this(system.settings.config)
+  def this(system: ActorSystem) = this(system.settings.config)
 
   object actor {
-    val passivateTimeout = Duration(config.getString("passivate-timeout"))
-    val numberOfShards = config.getInt("number-of-shards")
+    val passivateTimeout: Duration = Duration(config.getString("passivate-timeout"))
+    val numberOfShards: Int = config.getInt("number-of-shards")
   }
 
   object http {
-    val host = config.getString("http.host")
-    val port = config.getInt("http.port")
+    val host: String = config.getString("http.host")
+    val port: Int = config.getInt("http.port")
   }
+
 }

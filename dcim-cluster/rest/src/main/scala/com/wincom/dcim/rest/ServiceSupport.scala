@@ -22,7 +22,7 @@ trait ServiceSupport extends RequestTimeout {
   def startService(fsus: ActorRef,
                    drivers: ActorRef,
                    signals: ActorRef
-                  )(implicit system: ActorSystem) = {
+                  )(implicit system: ActorSystem): Unit = {
     val config = system.settings.config
     val settings = Settings(system)
     val host = settings.http.host
@@ -42,7 +42,7 @@ trait ServiceSupport extends RequestTimeout {
 
     bindingFuture.onComplete {
       case s: Success[ServerBinding] =>
-        log.info(s"dcim clust API bound to ${s.value.localAddress} ")
+        log.info(s"dcim cluster API bound to ${s.value.localAddress} ")
       case f: Failure[ServerBinding] =>
         log.error(f.exception, "Failed to bind to {}:{}!", host, port)
         system.terminate()

@@ -1,6 +1,6 @@
 package com.wincom.dcim.sharded
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.event.Logging
 import com.wincom.dcim.domain.Driver.Command
@@ -9,15 +9,17 @@ import com.wincom.dcim.driver.DriverCodecRegistry
 
 object ShardedDrivers {
   def props = Props(new ShardedDrivers)
+
   def name = "sharded-drivers"
 }
+
 class ShardedDrivers extends Actor {
   val settings = Settings(context.system)
   context.setReceiveTimeout(settings.actor.passivateTimeout)
   ShardedDriver.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedDrivers.name)
-  val registry = (new DriverCodecRegistry).initialize()
+  val registry: DriverCodecRegistry = (new DriverCodecRegistry).initialize()
 
   ClusterSharding(context.system).start(
     ShardedDriver.shardName,
@@ -27,7 +29,7 @@ class ShardedDrivers extends Actor {
     ShardedDriver.extractShardId
   )
 
-  def shardedDriver = {
+  def shardedDriver: ActorRef = {
     ClusterSharding(context.system).shardRegion(ShardedDriver.shardName)
   }
 

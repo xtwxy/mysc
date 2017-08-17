@@ -20,7 +20,7 @@ trait SignalMarshaling extends DefaultJsonProtocol {
 
   implicit val updateValueCmdFormat = jsonFormat2(UpdateValueCmd)
   implicit val setValueCmdFormat = jsonFormat2(SetValueCmd)
-  implicit val getValuecmdFormat = jsonFormat1(GetValueCmd)
+  implicit val getValueCmdFormat = jsonFormat1(GetValueCmd)
 }
 
 object SignalMarshaling extends SignalMarshaling

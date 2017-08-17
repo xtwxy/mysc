@@ -10,7 +10,8 @@ import com.wincom.dcim.driver.DriverCodecRegistry
 object ShardedDriver {
 
   def props(registry: DriverCodecRegistry) = Props(new ShardedDriver(registry))
-  def name(driverId: String) = driverId.toString
+
+  def name(driverId: String): String = driverId.toString
 
   val shardName: String = "driver-shards"
   var numberOfShards = 100

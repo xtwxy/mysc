@@ -86,7 +86,7 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
 
   implicit def executionContext: ExecutionContext = context.dispatcher
 
-  def receiveRecover = {
+  def receiveRecover: PartialFunction[Any, Unit] = {
     case evt: Event =>
       updateState(evt)
     case SnapshotOffer(_, SignalPo(name, driverId, key)) =>
@@ -96,7 +96,7 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
     case x => log.info("RECOVER: {} {}", this, x)
   }
 
-  def receiveCommand = {
+  def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateSignalCmd(_, driverId, signalName, key) =>
       persist(CreateSignalEvt(driverId, signalName, key))(updateState)
     case RenameSignalCmd(_, newName) =>

@@ -4,11 +4,12 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives.{path, _}
+import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import com.wincom.dcim.domain.Fsu._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 /**
   * Created by wangxy on 17-8-16.
@@ -17,7 +18,7 @@ class FsuService(val fsus: ActorRef,
                  val system: ActorSystem,
                  val requestTimeout: Timeout
                 ) extends FsuRoutes {
-  val executionContext = system.dispatcher
+  val executionContext: ExecutionContextExecutor = system.dispatcher
 }
 
 trait FsuRoutes extends FsuMarshaling {
@@ -27,7 +28,7 @@ trait FsuRoutes extends FsuMarshaling {
 
   implicit def executionContext: ExecutionContext
 
-  def routes =
+  def routes: Route =
     path("fsu") {
       get {
         complete(CreateFsuCmd("id-1", "name", "model", Map("key" -> "value")))

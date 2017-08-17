@@ -13,12 +13,12 @@ object DeviceActor {
     case cmd: Command => (cmd.deviceId.toString, cmd)
   }
   val extractShardId: ShardRegion.ExtractShardId = {
-    case cmd: Command => (cmd.deviceId % numberOfShards).toString()
+    case cmd: Command => (cmd.deviceId % numberOfShards).toString
   }
 
   def props(deviceId: Int, signalShard: ActorRef) = Props(new DeviceActor(deviceId, signalShard))
 
-  def name(deviceId: Int) = deviceId.toString()
+  def name(deviceId: Int): String = deviceId.toString
 
   trait Command {
     def deviceId: Int
@@ -77,7 +77,7 @@ class DeviceActor(val deviceId: Int, val signalShard: ActorRef) extends Persiste
 
   context.setReceiveTimeout(Settings(context.system).actor.passivateTimeout)
 
-  def receiveRecover = {
+  def receiveRecover: PartialFunction[Any, Unit] = {
     case evt: Event =>
       updateState(evt)
     case SnapshotOffer(_, Device(deviceId, deviceType, deviceName, signals)) =>
@@ -87,7 +87,7 @@ class DeviceActor(val deviceId: Int, val signalShard: ActorRef) extends Persiste
     case x => log.info("RECOVER: {} {}", this, x)
   }
 
-  def receiveCommand = {
+  def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateDeviceCmd(deviceId, deviceType, deviceName, signalIds) =>
       persist(CreateDeviceEvt(deviceId, deviceType, deviceName, signalIds))(updateState)
     case GetDeviceCmd =>

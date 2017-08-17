@@ -16,8 +16,8 @@ import java.util.TreeMap;
 import static java.lang.System.out;
 
 public class DriverCodecRegistry {
-    private Logger log = LoggerFactory.getLogger(this.getClass());
-    private Map<String, DriverCodecFactory> factories;
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private final Map<String, DriverCodecFactory> factories;
 
     public DriverCodecRegistry() {
         this.factories = new TreeMap<>();

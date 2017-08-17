@@ -11,6 +11,7 @@ import com.wincom.dcim.domain.Signal.Command
   */
 object ShardedSignals {
   def props(shardedDriver: () => ActorRef) = Props(new ShardedSignals(shardedDriver))
+
   def name = "sharded-signals"
 }
 
@@ -28,7 +29,7 @@ class ShardedSignals(shardedDriver: () => ActorRef) extends Actor {
     ShardedSignal.extractEntityId,
     ShardedSignal.extractShardId)
 
-  def shardedSignal = {
+  def shardedSignal: ActorRef = {
     ClusterSharding(context.system).shardRegion(ShardedSignal.shardName)
   }
 

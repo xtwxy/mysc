@@ -101,7 +101,7 @@ class Driver(val registry: DriverCodecRegistry) extends PersistentActor {
 
   implicit def executionContext: ExecutionContext = context.dispatcher
 
-  def receiveRecover = {
+  def receiveRecover: PartialFunction[Any, Unit] = {
     case evt: Event =>
       updateState(evt)
     case SnapshotOffer(_, DriverPo(name, model, params, idMap)) =>
@@ -112,7 +112,7 @@ class Driver(val registry: DriverCodecRegistry) extends PersistentActor {
     case x => log.info("RECOVER: {} {}", this, x)
   }
 
-  def receiveCommand = {
+  def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateDriverCmd(_, name, model, params, idMap) =>
       persist(CreateDriverEvt(name, model, params, idMap))(updateState)
     case RenameDriverCmd(_, newName) =>
@@ -154,7 +154,7 @@ class Driver(val registry: DriverCodecRegistry) extends PersistentActor {
     case ChangeModelEvt(newModel) =>
       this.modelName = Some(newModel)
       if (this.driverCodec.isDefined) {
-        driverCodec.get ! StopDriverCmd(driverId);
+        driverCodec.get ! StopDriverCmd(driverId)
       }
       if (!createCodec()) {
         context.stop(self)
@@ -173,10 +173,10 @@ class Driver(val registry: DriverCodecRegistry) extends PersistentActor {
     for ((k, v) <- this.initParams) params.put(k, v)
     val p = registry.create(this.modelName.get, params)
     if (p.isDefined) {
-      this.driverCodec = Some(context.system.actorOf(p.get, s"${this.modelName.get}_${driverId}"))
-      return true
+      this.driverCodec = Some(context.system.actorOf(p.get, s"$this.modelName.get_$driverId"))
+      true
     } else {
-      return false
+      false
     }
   }
 }

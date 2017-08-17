@@ -17,8 +17,8 @@ import akka.actor.Props;
 import scala.Option;
 
 public class FsuCodecRegistry {
-	private Logger log = LoggerFactory.getLogger(this.getClass());
-	private Map<String, FsuCodecFactory> factories;
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	private final Map<String, FsuCodecFactory> factories;
 
 	public FsuCodecRegistry() {
 		this.factories = new TreeMap<>();

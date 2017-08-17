@@ -137,10 +137,10 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     for((k, v) <- initParams) params.put(k, v)
     val p = registry.create(this.modelName.get, params)
     if(p.isDefined) {
-      this.fsuCodec = Some(context.system.actorOf(p.get, s"${this.modelName.get}_${fsuId}"))
-      return true
+      this.fsuCodec = Some(context.system.actorOf(p.get, s"$this.modelName.get_$fsuId"))
+      true
     } else {
-      return false
+      false
     }
   }
 }

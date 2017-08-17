@@ -4,11 +4,12 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import com.wincom.dcim.domain.Driver._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.language.postfixOps
 
 /**
@@ -18,7 +19,7 @@ class DriverService(val drivers: ActorRef,
                     val system: ActorSystem,
                     val requestTimeout: Timeout
                    ) extends DriverRoutes {
-  val executionContext = system.dispatcher
+  val executionContext: ExecutionContextExecutor = system.dispatcher
 }
 
 trait DriverRoutes extends DriverMarshaling {
@@ -28,7 +29,7 @@ trait DriverRoutes extends DriverMarshaling {
 
   implicit def executionContext: ExecutionContext
 
-  def routes = path("driver" /) {
+  def routes: Route = path("driver" /) {
     post {
       entity(as[DriverVo]) { d =>
         onSuccess(drivers.ask(

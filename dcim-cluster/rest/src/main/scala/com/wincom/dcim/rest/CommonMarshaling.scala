@@ -6,30 +6,30 @@ import spray.json.{JsBoolean, JsNumber, JsObject, JsString, JsValue, RootJsonFor
   * Created by wangxy on 17-8-15.
   */
 object AnyValFormat extends RootJsonFormat[AnyVal] {
-  override def write(obj: AnyVal) = {
+  override def write(obj: AnyVal): JsObject = {
     obj match {
       case x: Boolean =>
         JsObject(("type", JsString("Bool")), ("value", JsString(x.toString)))
       case x: Double =>
         JsObject(("type", JsString("Double")), ("value", JsString(x.toString)))
       case x =>
-        JsObject(("type", JsString("Unknow")), ("value", JsString(x.toString)))
+        JsObject(("type", JsString("Unknown")), ("value", JsString(x.toString)))
     }
   }
 
   override def read(json: JsValue): AnyVal = {
     json match {
       case JsObject(fields) =>
-        fields.get("type").get match {
+        fields("type") match {
           case JsString("Bool") =>
-            fields.get("value").get match {
+            fields("value") match {
               case JsString(x) => x.toBoolean
               case JsBoolean(x) => x
               case x =>
                 throw new IllegalArgumentException("Unknown type: '%s'".format(x))
             }
           case JsString("Double") =>
-            fields.get("value").get match {
+            fields("value") match {
               case JsString(x) => x.toDouble
               case JsNumber(x) => x.doubleValue
               case x =>

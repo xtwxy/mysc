@@ -1,6 +1,6 @@
 package com.wincom.dcim.sharded
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.event.Logging
 import com.wincom.dcim.domain.Fsu.Command
@@ -9,6 +9,7 @@ import com.wincom.dcim.fsu.FsuCodecRegistry
 
 object ShardedFsus {
   def props = Props(new ShardedFsus)
+
   def name = "sharded-fsus"
 }
 
@@ -19,7 +20,7 @@ class ShardedFsus extends Actor {
   ShardedFsu.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedFsus.name)
-  val registry = (new FsuCodecRegistry).initialize()
+  val registry: FsuCodecRegistry = (new FsuCodecRegistry).initialize()
   ClusterSharding(context.system).start(
     ShardedFsu.shardName,
     ShardedFsu.props(registry),
@@ -27,7 +28,7 @@ class ShardedFsus extends Actor {
     ShardedFsu.extractEntityId,
     ShardedFsu.extractShardId)
 
-  def shardedFsu = {
+  def shardedFsu: ActorRef = {
     ClusterSharding(context.system).shardRegion(ShardedFsu.shardName)
   }
 
