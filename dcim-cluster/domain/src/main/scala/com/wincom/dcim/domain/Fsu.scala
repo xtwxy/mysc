@@ -22,7 +22,7 @@ import scala.util.Success
   */
 object Fsu {
 
-  def props(fsuId: String, registry: FsuCodecRegistry) = Props(new Fsu(fsuId, registry))
+  def props(registry: FsuCodecRegistry) = Props(new Fsu(registry))
 
   def name(fsuId: String) = s"fsu_$fsuId"
 
@@ -59,7 +59,7 @@ object Fsu {
   final case class FsuPo(name: String, model: String, params: Map[String, String]) extends Serializable
 }
 
-class Fsu(val fsuId: String, val registry: FsuCodecRegistry) extends PersistentActor {
+class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-fsus")
 
   var fsuName: Option[String] = None
@@ -67,6 +67,7 @@ class Fsu(val fsuId: String, val registry: FsuCodecRegistry) extends PersistentA
   val initParams: java.util.Map[String, String] = new java.util.HashMap()
   var fsuCodec: Option[ActorRef] = None
 
+  def fsuId: String = s"fsu_${self.path.name}"
   override def persistenceId: String = s"fsu_${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)

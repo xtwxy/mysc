@@ -1,80 +1,38 @@
 package com.wincom.dcim.sharded
 
-import akka.actor.{Props, ReceiveTimeout}
+import akka.actor.{Actor, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.event.Logging
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import com.wincom.dcim.fsu.{FsuCodecFactory, FsuCodecRegistry}
 import com.wincom.dcim.rest.Settings
 import com.wincom.dcim.sharded.FsuActor._
 
-import scala.collection.immutable.Set
-
 object ShardedFsus {
   def props = Props(new ShardedFsus)
-
   def name = "sharded-fsus"
 }
 
-class ShardedFsus extends PersistentActor {
+class ShardedFsus extends Actor {
 
   val settings = Settings(context.system)
   context.setReceiveTimeout(settings.passivateTimeout)
-  FsuActor.numberOfShards = settings.numberOfShards
+  ShardedFsu.numberOfShards = settings.numberOfShards
 
   val log = Logging(context.system.eventStream, "sharded-fsus")
-
+  val registry = (new FsuCodecRegistry).initialize()
   ClusterSharding(context.system).start(
-    ShardedFsus.name,
-    Props(new SuppervisedFsu),
+    ShardedFsu.shardName,
+    ShardedFsu.props(registry),
     ClusterShardingSettings(context.system),
-    FsuActor.extractEntityId,
-    FsuActor.extractShardId)
-  var config = Set[Int]()
-  var isDirty = false
-
-  override def persistenceId: String = s"${self.path.name}"
-
-  def receiveRecover = {
-    case cmd@CreateFsu(fsuId, fsuName) =>
-      updateState(cmd)
-      shardedFsu ! Ping(fsuId)
-    case SnapshotOffer(_, FsuIds(ids)) =>
-      config = ids
-      log.info("RECOVER: {} {}", this, ids)
-    case x => log.info("RECOVER: {} {}", this, x)
-  }
-
-  def receiveCommand = {
-    case cmd@CreateFsu(fsuId, fsuName) =>
-      persist(cmd)(updateState)
-      isDirty = true
-      shardedFsu forward cmd
-    case x: ReceiveTimeout =>
-      log.info("COMMAND: {} {}", this, x)
-      if (isDirty) {
-        saveSnapshot(FsuIds(config))
-        isDirty = false
-      }
-      for (fsuId <- (config)) {
-        log.info("PING: {} {}", this, fsuId)
-        shardedFsu ! Ping(fsuId)
-      }
-    case x => {
-      log.info("{}: forwarding message '{}' to {}", this, x, shardedFsu)
-      shardedFsu forward (x)
-    }
-  }
+    ShardedFsu.extractEntityId,
+    ShardedFsu.extractShardId)
 
   def shardedFsu = {
-    ClusterSharding(context.system).shardRegion(ShardedFsus.name)
+    ClusterSharding(context.system).shardRegion(ShardedFsu.shardName)
   }
 
-  private def updateState: (Command => Unit) = {
-    case CreateFsu(fsuId, fsuName) =>
-      if (!config(fsuId)) {
-        config += fsuId
-      }
+  override def receive: Receive = {
+    case cmd: Command =>
+      shardedFsu forward cmd
   }
-
-  case class FsuIds(ids: Set[Int])
 }

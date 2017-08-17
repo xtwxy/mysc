@@ -33,7 +33,7 @@ public class FsuCodecRegistry {
 		}
 	}
 
-	public void initialize() {
+	public FsuCodecRegistry initialize() {
 		try {
 			FilterBuilder filter = new FilterBuilder()
 					.include("com\\.wincom.*");
@@ -56,6 +56,7 @@ public class FsuCodecRegistry {
 		} catch (Exception ex) {
 			log.error("DriverCodecFactory initializing failed: {}", ex);
 		}
+		return this;
 	}
 
 	public static void main(String[] args) throws Exception {

@@ -11,7 +11,7 @@ import com.wincom.dcim.fsu.FsuCodecRegistry
   * Created by wangxy on 17-8-16.
   */
 object ShardedFsu {
-  def props(fsuId: String, registry: FsuCodecRegistry) = Props(new ShardedFsu(fsuId, registry))
+  def props(registry: FsuCodecRegistry) = Props(new ShardedFsu(registry))
   def name(fsuId: String) = s"fsu_$fsuId"
 
   var shardName: String = "fsu-shards"
@@ -19,7 +19,7 @@ object ShardedFsu {
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case cmd: Command =>
-      (cmd.fsuId.toString, cmd)
+      (s"fsu_$cmd.fsuId", cmd)
   }
   val extractShardId: ShardRegion.ExtractShardId = {
     case cmd: Command =>
@@ -27,7 +27,7 @@ object ShardedFsu {
   }
 }
 
-class ShardedFsu(fsuId: String, registry: FsuCodecRegistry) extends Fsu(fsuId, registry) {
+class ShardedFsu(registry: FsuCodecRegistry) extends Fsu(registry) {
   val settings = Settings(context.system)
   context.setReceiveTimeout(settings.passivateTimeout)
 
