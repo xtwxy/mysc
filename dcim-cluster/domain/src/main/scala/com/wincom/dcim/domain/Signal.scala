@@ -19,7 +19,7 @@ import scala.util.Success
 object Signal {
   def props(driverShard: () => ActorRef) = Props(new Signal(driverShard))
 
-  def name(signalId: String) = s"signal_$signalId"
+  def name(signalId: String) = s"$signalId"
 
   sealed trait Command {
     def signalId: String
@@ -79,8 +79,8 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
   // transient values
   var signalValue: Option[SignalValue] = None
 
-  val signalId: String = s"signal_${self.path.name}"
-  override def persistenceId: String = s"signal_${self.path.name}"
+  val signalId: String = s"${self.path.name}"
+  override def persistenceId: String = s"${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
 

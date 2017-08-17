@@ -12,14 +12,14 @@ import com.wincom.dcim.fsu.FsuCodecRegistry
   */
 object ShardedFsu {
   def props(registry: FsuCodecRegistry) = Props(new ShardedFsu(registry))
-  def name(fsuId: String) = s"fsu_$fsuId"
+  def name(fsuId: String) = fsuId.toString
 
   var shardName: String = "fsu-shards"
   var numberOfShards = 100
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case cmd: Command =>
-      (s"fsu_$cmd.fsuId", cmd)
+      (cmd.fsuId.toString, cmd)
   }
   val extractShardId: ShardRegion.ExtractShardId = {
     case cmd: Command =>

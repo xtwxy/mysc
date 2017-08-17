@@ -26,7 +26,7 @@ object Fsu {
 
   def props(registry: FsuCodecRegistry) = Props(new Fsu(registry))
 
-  def name(fsuId: String) = s"fsu_$fsuId"
+  def name(fsuId: String) = s"$fsuId"
 
   sealed trait Command {
     def fsuId: String
@@ -71,7 +71,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
   var fsuCodec: Option[ActorRef] = None
 
   def fsuId: String = s"${self.path.name}"
-  override def persistenceId: String = s"fsu_${self.path.name}"
+  override def persistenceId: String = s"${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
 

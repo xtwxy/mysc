@@ -11,7 +11,7 @@ import com.wincom.dcim.domain.{Settings, Signal}
   */
 object ShardedSignal {
   def props(driverShard: () => ActorRef) = Props(new ShardedSignal(driverShard))
-  def name(signalId: String) = s"signal_$signalId"
+  def name(signalId: String) = signalId.toString
 
   val shardName: String = "signal-shards"
   var numberOfShards = 100

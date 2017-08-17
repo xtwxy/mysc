@@ -27,7 +27,7 @@ object Driver {
 
   def props(registry: DriverCodecRegistry) = Props(new Driver(registry))
 
-  def name(driverId: String) = s"driver_$driverId"
+  def name(driverId: String) = s"$driverId"
 
   sealed trait Command {
     def driverId: String
@@ -94,8 +94,8 @@ class Driver(val registry: DriverCodecRegistry) extends PersistentActor {
   // key => id
   val signalIdMap: BiMap[String, String] = create()
 
-  def driverId: String = s"driver_${self.path.name}"
-  override def persistenceId: String = s"driver_${self.path.name}"
+  def driverId: String = s"${self.path.name}"
+  override def persistenceId: String = s"${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
 
