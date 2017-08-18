@@ -16,13 +16,13 @@ class Settings(config: Config) extends Extension {
   def this(system: ActorSystem) = this(system.settings.config)
 
   object actor {
-    val passivateTimeout: Duration = Duration(config.getString("passivate-timeout"))
-    val numberOfShards: Int = config.getInt("number-of-shards")
+    val passivateTimeout: Duration = Duration(config.getString("akka.actor.passivate-timeout"))
+    val numberOfShards: Int = config.getInt("akka.actor.number-of-shards")
   }
 
   object http {
-    val host: String = config.getString("http.host")
-    val port: Int = config.getInt("http.port")
+    val host: String = config.getString("akka.http.server.host")
+    val port: Int = config.getInt("akka.http.server.port")
   }
 
 }
