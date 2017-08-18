@@ -6,14 +6,6 @@ import com.typesafe.config.Config
 
 import scala.concurrent.duration.Duration
 
-final case object Ok extends Serializable
-
-final case object NotAvailable extends Serializable
-
-final case object NotExist extends Serializable
-
-final case object AlreadyExists extends Serializable
-
 object Settings {
   def apply(config: Config): Settings = new Settings(config)
 

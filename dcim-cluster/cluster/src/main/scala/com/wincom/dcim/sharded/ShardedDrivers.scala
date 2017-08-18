@@ -15,7 +15,6 @@ object ShardedDrivers {
 
 class ShardedDrivers extends Actor {
   val settings = Settings(context.system)
-  context.setReceiveTimeout(settings.actor.passivateTimeout)
   ShardedDriver.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedDrivers.name)

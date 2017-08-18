@@ -37,5 +37,6 @@ class ShardedFsu(registry: FsuCodecRegistry) extends Fsu(registry) {
       context.parent ! Passivate(stopMessage = Fsu.StopFsuCmd)
     case StopFsuCmd =>
       context.stop(self)
+    case x => log.info("unhandled COMMAND: {} {}", this, x)
   }
 }

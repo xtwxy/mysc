@@ -29,38 +29,29 @@ trait FsuRoutes extends FsuMarshaling {
   implicit def executionContext: ExecutionContext
 
   def routes: Route =
-    path("fsu") {
+    pathPrefix("fsu") {
       get {
-        complete(CreateFsuCmd("id-1", "name", "model", Map("key" -> "value")))
-      } ~
-        post {
-          entity(as[CreateFsuCmd]) { f =>
-            onSuccess(fsus.ask(
-              CreateFsuCmd(f.fsuId, f.name, f.model, f.params)
-            ).mapTo[Command]) {
-              case _ => complete(Created)
-            }
-          }
-        }
-    } ~
-      path("fsu" / Segment) { fsuId =>
-        get {
+        path(Segment) { fsuId =>
           pathEnd {
             onSuccess(fsus.ask(
               RetrieveFsuCmd(fsuId)
-            ).mapTo[FsuVo]) { f =>
-              complete(f)
+            ).mapTo[Command]) {
+              case v: FsuVo =>
+                complete(v)
+              case _ =>
+                complete(NotFound)
             }
           }
-        } ~
-          delete {
-            pathEnd {
-               fsus ! StopFsuCmd(fsuId)
-                complete(NoContent)
+        }
+      } ~
+        post {
+          path("create-fsu") {
+            entity(as[CreateFsuCmd]) { f =>
+              fsus ! f
+              complete(Created)
             }
           } ~
-          post {
-            path("rename") {
+            path("rename-fsu") {
               pathEnd {
                 entity(as[RenameFsuCmd]) { f =>
                   fsus ! f
@@ -68,49 +59,78 @@ trait FsuRoutes extends FsuMarshaling {
                 }
               }
             } ~
-              path("change-model") {
-                pathEnd {
-                  entity(as[ChangeModelCmd]) { f =>
-                    fsus ! f
-                    complete(NoContent)
-                  }
+            path("change-model") {
+              pathEnd {
+                entity(as[ChangeModelCmd]) { f =>
+                  fsus ! f
+                  complete(NoContent)
                 }
-              } ~
-              path("add-params") {
-                pathEnd {
-                  entity(as[AddParamsCmd]) { f =>
-                    fsus ! f
-                    complete(NoContent)
-                  }
+              }
+            } ~
+            path("add-params") {
+              pathEnd {
+                entity(as[AddParamsCmd]) { f =>
+                  fsus ! f
+                  complete(NoContent)
                 }
-              } ~
-              path("remove-params") {
-                pathEnd {
-                  entity(as[RemoveParamsCmd]) { f =>
-                    fsus ! f
-                    complete(NoContent)
-                  }
+              }
+            } ~
+            path("remove-params") {
+              pathEnd {
+                entity(as[RemoveParamsCmd]) { f =>
+                  fsus ! f
+                  complete(NoContent)
                 }
-              } ~
-              path("get-port") {
-                pathEnd {
-                  entity(as[GetPortCmd]) { f =>
-                    onSuccess(fsus.ask(
-                      RetrieveFsuCmd(fsuId)
-                    ).mapTo[ActorRef]) { f =>
-                      complete(OK)
-                    }
-                  }
-                }
-              } ~
-              path("send-bytes") {
-                pathEnd {
-                  entity(as[SendBytesCmd]) { f =>
-                    fsus ! f
-                    complete(NoContent)
+              }
+            } ~
+            path("get-port") {
+              pathEnd {
+                entity(as[GetPortCmd]) { f =>
+                  onSuccess(fsus.ask(f).mapTo[Any]) {
+                    case v: ActorRef =>
+                      complete(v.toString)
+                    case _ =>
+                      complete(NotFound)
                   }
                 }
               }
-          }
-      }
+            } ~
+            path("send-bytes") {
+              pathEnd {
+                entity(as[SendBytesCmd]) { f =>
+                  fsus ! f
+                  complete(NoContent)
+                }
+              }
+            } ~
+            path("retrieve-fsu") {
+              pathEnd {
+                entity(as[RetrieveFsuCmd]) { f =>
+                  onSuccess(fsus.ask(f).mapTo[Command]) {
+                    case v: FsuVo =>
+                      complete(v)
+                    case _ =>
+                      complete(NotFound)
+                  }
+                }
+              }
+            } ~
+            path("start-fsu") {
+              pathEnd {
+                entity(as[StartFsuCmd]) { f =>
+                  fsus ! f
+                  complete(NoContent)
+                }
+              }
+            } ~
+            path("stop-fsu") {
+              pathEnd {
+                entity(as[StopFsuCmd]) { f =>
+                  fsus ! f
+                  complete(NoContent)
+                }
+              }
+            }
+        }
+    }
 }

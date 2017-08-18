@@ -42,6 +42,14 @@ object Driver {
                             initParams: Map[String, String],
                             signalIdMap: Map[String, String]) extends Serializable
 
+  final case class Ok(driverId: String) extends Command
+
+  final case class NotAvailable(driverId: String) extends Command
+
+  final case class NotExist(driverId: String) extends Command
+
+  final case class AlreadyExists(driverId: String) extends Command
+
   /* commands */
   final case class CreateDriverCmd(driverId: String, name: String, model: String, initParams: Map[String, String], signalIdMap: Map[String, String]) extends Command
 

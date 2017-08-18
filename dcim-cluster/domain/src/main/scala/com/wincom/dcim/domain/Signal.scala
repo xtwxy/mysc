@@ -32,6 +32,14 @@ object Signal {
 
   final case class SignalValue(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
+  final case class Ok(signalId: String) extends Command
+
+  final case class NotAvailable(signalId: String) extends Command
+
+  final case class NotExist(signalId: String) extends Command
+
+  final case class AlreadyExists(signalId: String) extends Command
+
   /* commands */
   final case class CreateSignalCmd(signalId: String, name: String, driverId: String, key: String) extends Command
 

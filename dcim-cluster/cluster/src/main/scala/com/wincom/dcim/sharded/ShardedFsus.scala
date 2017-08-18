@@ -16,7 +16,6 @@ object ShardedFsus {
 class ShardedFsus extends Actor {
 
   val settings = Settings(context.system)
-  context.setReceiveTimeout(settings.actor.passivateTimeout)
   ShardedFsu.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedFsus.name)
@@ -34,6 +33,8 @@ class ShardedFsus extends Actor {
 
   override def receive: Receive = {
     case cmd: Command =>
+      log.info("forwarded to: {} {}", shardedFsu, cmd)
       shardedFsu forward cmd
+    case x => log.info("COMMAND: {} {}", this, x)
   }
 }
