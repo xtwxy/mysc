@@ -13,6 +13,7 @@ import akka.event.Logging
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+import com.wincom.dcim.domain.Driver.DriverPo
 
 import scala.util.Success
 
@@ -46,6 +47,7 @@ object Fsu {
   final case class CreateFsuCmd(fsuId: String, name: String, model: String, params: Map[String, String]) extends Command
   final case class RenameFsuCmd(fsuId: String, newName: String) extends Command
   final case class ChangeModelCmd(fsuId: String, newModel: String) extends Command
+  final case class SaveSnapshotCmd(fsuId: String) extends Command
   final case class AddParamsCmd(fsuId: String, params: Map[String, String]) extends Command
   final case class RemoveParamsCmd(fsuId: String, params: Map[String, String]) extends Command
 
@@ -105,6 +107,8 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       persist(RenameFsuEvt(newName))(updateState)
     case ChangeModelCmd(_, newModel) =>
       persist(ChangeModelEvt(newModel))(updateState)
+    case SaveSnapshotCmd(_) =>
+      if(valid()) saveSnapshot(FsuPo(fsuName.get, modelName.get, initParams.toMap))
     case AddParamsCmd(_, params) =>
       persist(AddParamsEvt(params))(updateState)
     case RemoveParamsCmd(_, params) =>

@@ -58,6 +58,8 @@ object Driver {
   final case class ChangeModelCmd(driverId: String, newModel: String) extends Command
 
   final case class SaveSnapshotCmd(driverId: String) extends Command
+  final case class AddParamsCmd(driverId: String, params: Map[String, String]) extends Command
+  final case class RemoveParamsCmd(driverId: String, params: Map[String, String]) extends Command
 
   final case class MapSignalKeyIdCmd(driverId: String, key: String, signalId: String) extends Command
 
@@ -84,6 +86,8 @@ object Driver {
   final case class RenameDriverEvt(newName: String) extends Event
 
   final case class ChangeModelEvt(newModel: String) extends Event
+  final case class AddParamsEvt(driverId: String, params: Map[String, String]) extends Event
+  final case class RemoveParamsEvt(driverId: String, params: Map[String, String]) extends Event
 
   final case class MapSignalKeyIdEvt(key: String, signalId: String) extends Event
 
