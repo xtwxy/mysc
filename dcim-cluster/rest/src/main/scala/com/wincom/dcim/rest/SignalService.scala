@@ -28,72 +28,113 @@ trait SignalRoutes extends SignalMarshaling {
 
   implicit def executionContext: ExecutionContext
 
-  def routes = path("signal" /) {
-    post {
-      entity(as[CreateSignalCmd]) { s =>
-        onSuccess(signals.ask(
-          CreateSignalCmd(s.signalId, s.name, s.driverId, s.key)).mapTo[Command]) {
-          case _ => complete(OK)
+  def routes = pathPrefix("signal") {
+    get {
+      path(Segment) { signalId =>
+        pathEnd {
+          onSuccess(signals.ask(
+            RetrieveSignalCmd(signalId)
+          ).mapTo[Command]) {
+            case v: SignalVo => complete(v)
+            case _ => complete(NotFound)
+          }
         }
       }
     } ~
-      path(Segment /) { signalId =>
-        get {
-          complete(OK)
+      post {
+        path("create-signal") {
+          pathEnd {
+            entity(as[CreateSignalCmd]) { v =>
+              signals ! v
+              complete(Created)
+            }
+          }
         } ~
-          delete {
-            complete(OK)
+          path("rename-signal") {
+            pathEnd {
+              entity(as[RenameSignalCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
           } ~
-          post {
-            path("rename") {
-              pathEnd {
-                entity(as[RenameSignalCmd]) { s =>
-                  complete(OK)
+          path("select-driver") {
+            pathEnd {
+              entity(as[SelectDriverCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
+          } ~
+          path("select-key") {
+            pathEnd {
+              entity(as[SelectKeyCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
+          } ~
+          path("retrieve-signal") {
+            pathEnd {
+              entity(as[RetrieveSignalCmd]) { x =>
+                onSuccess(signals.ask(x).mapTo[Command]) {
+                  case v: SignalVo => complete(v)
+                  case _ => complete(NotFound)
                 }
               }
-            } ~
-              path("select-driver") {
-                pathEnd {
-                  entity(as[SelectDriverCmd]) { s =>
-                    complete(OK)
-                  }
-                }
-              } ~
-              path("select-key") {
-                pathEnd {
-                  entity(as[SelectKeyCmd]) { s =>
-                    complete(OK)
-                  }
-                }
-              } ~
-              path("save-snapshot") {
-                pathEnd {
-                  entity(as[SaveSnapshotCmd]) { s =>
-                    complete(OK)
-                  }
-                }
-              } ~
-              path("update-value") {
-                pathEnd {
-                  entity(as[UpdateValueCmd]) { s =>
-                    complete(OK)
-                  }
-                }
-              } ~
-              path("set-value") {
-                pathEnd {
-                  entity(as[SetValueCmd]) { s =>
-                    complete(OK)
-                  }
-                }
-              } ~
-              path("get-value") {
-                pathEnd {
-                  entity(as[GetValueCmd]) { s =>
-                    complete(OK)
-                  }
+            }
+          } ~
+          path("save-snapshot") {
+            pathEnd {
+              entity(as[SaveSnapshotCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
+          } ~
+          path("update-value") {
+            pathEnd {
+              entity(as[UpdateValueCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
+          } ~
+          path("set-value") {
+            pathEnd {
+              entity(as[SetValueCmd]) { x =>
+                onSuccess(signals.ask(x).mapTo[Command]) {
+                  case v: Ok => complete(v)
+                  case _ => complete(NotFound)
                 }
               }
+            }
+          } ~
+          path("get-value") {
+            pathEnd {
+              entity(as[GetValueCmd]) { x =>
+                onSuccess(signals.ask(x).mapTo[Command]) {
+                  case v: SignalValueVo => complete(v)
+                  case _ => complete(NotFound)
+                }
+              }
+            }
+          } ~
+          path("start-signal") {
+            pathEnd {
+              entity(as[StartSignalCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
+          } ~
+          path("stop-signal") {
+            pathEnd {
+              entity(as[StopSignalCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
           }
       }
   }

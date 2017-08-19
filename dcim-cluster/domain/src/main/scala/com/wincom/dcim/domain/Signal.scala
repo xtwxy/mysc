@@ -49,6 +49,7 @@ object Signal {
 
   final case class SelectKeyCmd(signalId: String, key: String) extends Command
 
+  final case class RetrieveSignalCmd(signalId: String) extends Command
   final case class SaveSnapshotCmd(signalId: String) extends Command
 
   /* transient commands */
