@@ -28,9 +28,9 @@ object Signal {
   sealed trait Event extends Serializable
 
   /* value objects */
-  final case class SignalVo(signalId: String, name: String, driverId: String, key: String) extends Serializable
+  final case class SignalVo(signalId: String, name: String, driverId: String, key: String) extends Command
 
-  final case class SignalValue(signalId: String, ts: DateTime, value: AnyVal) extends Command
+  final case class SignalValueVo(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
   final case class Ok(signalId: String) extends Command
 
@@ -52,9 +52,9 @@ object Signal {
   final case class SaveSnapshotCmd(signalId: String) extends Command
 
   /* transient commands */
-  final case class UpdateValueCmd(signalId: String, value: SignalValue) extends Command
+  final case class UpdateValueCmd(signalId: String, value: SignalValueVo) extends Command
 
-  final case class SetValueCmd(signalId: String, value: SignalValue) extends Command
+  final case class SetValueCmd(signalId: String, value: SignalValueVo) extends Command
 
   final case class GetValueCmd(signalId: String) extends Command
 
@@ -85,7 +85,7 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
   var key: Option[String] = None
 
   // transient values
-  var signalValue: Option[SignalValue] = None
+  var signalValue: Option[SignalValueVo] = None
 
   val signalId: String = s"${self.path.name}"
   override def persistenceId: String = s"${self.path.name}"
@@ -123,10 +123,10 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
       if (available) {
         sender() ! signalValue
       } else {
-        driverShard().ask(cmd).mapTo[SignalValue].onComplete {
-          case f: Success[SignalValue] =>
+        driverShard().ask(cmd).mapTo[SignalValueVo].onComplete {
+          case f: Success[SignalValueVo] =>
             f.value match {
-              case s: SignalValue =>
+              case s: SignalValueVo =>
                 signalValue = Some(s)
                 sender() ! s
               case _ =>

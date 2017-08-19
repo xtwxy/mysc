@@ -1,22 +1,21 @@
 package com.wincom.dcim.domain
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
+import java.io.Serializable
+
+import akka.actor.{ActorRef, Props}
+import akka.event.Logging
+import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.util.Timeout
+import akka.util.Timeout.durationToTimeout
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap.create
 import com.wincom.dcim.domain.Driver._
+import com.wincom.dcim.domain.Signal.SignalValueVo
 import com.wincom.dcim.driver.DriverCodecRegistry
-import akka.actor.ActorRef
-import akka.actor.Props
-import akka.event.Logging
-import akka.persistence.PersistentActor
-import akka.persistence.SnapshotOffer
-import akka.util.Timeout
-import akka.util.Timeout.durationToTimeout
-import com.wincom.dcim.domain.Signal.SignalValue
 
 import scala.collection.immutable.HashMap
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
 
 /**
@@ -40,7 +39,9 @@ object Driver {
                             name: String,
                             model: String,
                             initParams: Map[String, String],
-                            signalIdMap: Map[String, String]) extends Serializable
+                            signalIdMap: Map[String, String]) extends Command
+
+  final case class SignalValuesVo(driverId: String, signalValues: Seq[SignalValueVo]) extends Command
 
   final case class Ok(driverId: String) extends Command
 
@@ -71,10 +72,13 @@ object Driver {
   final case class SetSignalValueCmd(driverId: String, key: String, value: AnyVal) extends Command
 
   final case class SetSignalValuesCmd(driverId: String, values: Map[String, AnyVal]) extends Command
+  final case class SetSignalValuesRsp(driverId: String, values: Map[String, String]) extends Command
 
-  final case class UpdateSignalValuesCmd(driverId: String, values: Seq[SignalValue]) extends Command
+  final case class UpdateSignalValuesCmd(driverId: String, values: Seq[SignalValueVo]) extends Command
 
   final case class SendBytesCmd(driverId: String, bytes: Array[Byte]) extends Command
+
+  final case class RetrieveDriverCmd(driverId: String) extends Command
 
   final case class StartDriverCmd(driverId: String) extends Command
 
