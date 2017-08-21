@@ -18,7 +18,7 @@ class ShardedDrivers extends Actor {
   ShardedDriver.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedDrivers.name)
-  val registry: DriverCodecRegistry = (new DriverCodecRegistry).initialize()
+  val registry: DriverCodecRegistry = (new DriverCodecRegistry(log)).initialize()
 
   def shardedSignal: () => ActorRef = {
     () => ClusterSharding(context.system).shardRegion(ShardedSignal.shardName)

@@ -19,7 +19,7 @@ class ShardedFsus extends Actor {
   ShardedFsu.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedFsus.name)
-  val registry: FsuCodecRegistry = (new FsuCodecRegistry).initialize()
+  val registry: FsuCodecRegistry = (new FsuCodecRegistry(log)).initialize()
 
   ClusterSharding(context.system).start(
     ShardedFsu.shardName,

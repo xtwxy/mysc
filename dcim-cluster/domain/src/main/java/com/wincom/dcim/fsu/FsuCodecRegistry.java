@@ -1,26 +1,23 @@
 package com.wincom.dcim.fsu;
 
-import static java.lang.System.out;
-
-import java.util.Map;
-import java.util.TreeMap;
-
+import akka.actor.Props;
+import akka.event.LoggingAdapter;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import akka.actor.Props;
 import scala.Option;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 public class FsuCodecRegistry {
-	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	private final LoggingAdapter log;
 	private final Map<String, FsuCodecFactory> factories;
 
-	public FsuCodecRegistry() {
+	public FsuCodecRegistry(LoggingAdapter log) {
+		this.log = log;
 		this.factories = new TreeMap<>();
 	}
 
@@ -47,7 +44,7 @@ public class FsuCodecRegistry {
 			for (Class<? extends FsuCodecFactory> c : r.getSubTypesOf(FsuCodecFactory.class)) {
 				FsuCodecFactory f = c.newInstance();
 				if (factories.containsKey(f.modelName())) {
-					log.warn("Duplicate DriverCodecFactory modelName '{}': {} and {}", f.modelName(), c,
+					log.warning("Duplicate DriverCodecFactory modelName '{}': {} and {}", f.modelName(), c,
 							factories.get(f.modelName()).getClass());
 				} else {
 					factories.put(f.modelName(), f);
@@ -57,13 +54,5 @@ public class FsuCodecRegistry {
 			log.error("DriverCodecFactory initializing failed: {}", ex);
 		}
 		return this;
-	}
-
-	public static void main(String[] args) throws Exception {
-		FsuCodecRegistry registry = new FsuCodecRegistry();
-		registry.initialize();
-		for (Map.Entry<String, FsuCodecFactory> e : registry.factories.entrySet()) {
-			out.println(String.format("DriverCodecFactory(%s, %s)", e.getKey(), e.getValue()));
-		}
 	}
 }
