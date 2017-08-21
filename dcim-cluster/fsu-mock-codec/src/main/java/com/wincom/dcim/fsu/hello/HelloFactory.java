@@ -1,4 +1,4 @@
-package com.wincom.dcim.hello;
+package com.wincom.dcim.fsu.hello;
 
 import akka.actor.Props;
 import com.wincom.dcim.fsu.FsuCodecFactory;

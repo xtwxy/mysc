@@ -1,16 +1,19 @@
 package com.wincom.dcim.rest
 
 import com.wincom.dcim.domain.Driver._
-import com.wincom.dcim.domain.Signal.SignalValueVo
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 /**
   * Created by wangxy on 17-8-15.
   */
 trait DriverMarshaling extends DefaultJsonProtocol {
+  implicit val anyValFormat: AnyValFormat.type = AnyValFormat
+  implicit val dateTimeFormat: DateTimeFormat.type = DateTimeFormat
+
   implicit val okFormat: RootJsonFormat[Ok] = jsonFormat1(Ok)
   implicit val driverVoFormat: RootJsonFormat[DriverVo] = jsonFormat5(DriverVo)
-  implicit val signalValueVoFormat: RootJsonFormat[SignalValueVo] = jsonFormat3(SignalValueVo)
+  implicit val signalValueFormat: RootJsonFormat[SignalValue] = jsonFormat3(SignalValue)
+  implicit val signalValueVoFormat: RootJsonFormat[SignalValueVo] = jsonFormat4(SignalValueVo)
   implicit val signalValuesVoFormat: RootJsonFormat[SignalValuesVo] = jsonFormat2(SignalValuesVo)
 
   implicit val renameDriverCmdFormat: RootJsonFormat[RenameDriverCmd] = jsonFormat2(RenameDriverCmd)
@@ -24,12 +27,10 @@ trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val getSignalValueCmdFormat: RootJsonFormat[GetSignalValueCmd] = jsonFormat2(GetSignalValueCmd)
   implicit val getSignalValuesCmdFormat: RootJsonFormat[GetSignalValuesCmd] = jsonFormat2(GetSignalValuesCmd)
 
-  implicit val anyValFormat: AnyValFormat.type = AnyValFormat
   implicit val setSignalValueCmdFormat: RootJsonFormat[SetSignalValueCmd] = jsonFormat3(SetSignalValueCmd)
   implicit val setSignalValuesCmdFormat: RootJsonFormat[SetSignalValuesCmd] = jsonFormat2(SetSignalValuesCmd)
   implicit val setSignalValuesRspFormat: RootJsonFormat[SetSignalValuesRsp] = jsonFormat2(SetSignalValuesRsp)
 
-  implicit val dateTimeFormat: DateTimeFormat.type = DateTimeFormat
   implicit val updateSignalValuesCmdFormat: RootJsonFormat[UpdateSignalValuesCmd] = jsonFormat2(UpdateSignalValuesCmd)
 
   implicit val sendBytesCmdFormat: RootJsonFormat[SendBytesCmd] = jsonFormat2(SendBytesCmd)

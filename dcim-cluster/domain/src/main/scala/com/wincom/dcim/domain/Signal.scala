@@ -53,7 +53,7 @@ object Signal {
   final case class SaveSnapshotCmd(signalId: String) extends Command
 
   /* transient commands */
-  final case class UpdateValueCmd(signalId: String, value: SignalValueVo) extends Command
+  final case class UpdateValueCmd(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
   final case class SetValueCmd(signalId: String, value: SignalValueVo) extends Command
 
@@ -116,8 +116,8 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
       if (initialized) {
         saveSnapshot(SignalPo(signalName.get, driverId.get, key.get))
       }
-    case UpdateValueCmd(_, value) =>
-      signalValue = Some(value)
+    case UpdateValueCmd(id, ts, value) =>
+      signalValue = Some(SignalValueVo(id, ts, value))
     case cmd: SetValueCmd =>
       driverShard() forward cmd
     case cmd: GetValueCmd =>

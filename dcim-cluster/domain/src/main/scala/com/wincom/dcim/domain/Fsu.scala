@@ -1,20 +1,17 @@
 package com.wincom.dcim.domain
 
-import java.util
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
-import com.wincom.dcim.domain.Fsu._
-import com.wincom.dcim.fsu.FsuCodecRegistry
 import akka.actor.{ActorRef, Props, ReceiveTimeout}
-import akka.pattern.ask
 import akka.event.Logging
+import akka.pattern.ask
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-import com.wincom.dcim.domain.Driver.DriverPo
+import com.wincom.dcim.domain.Fsu._
+import com.wincom.dcim.fsu.FsuCodecRegistry
 
+import scala.collection.convert.ImplicitConversions._
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 import scala.util.Success
 
 /**
@@ -93,7 +90,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       for((k, v) <- params) this.initParams.put(k, v)
     case x: RecoveryCompleted =>
       log.info("RECOVERY Completed: {} {}", this, x)
-      if(!valid() || !createCodec()) {
+      if(!isValid() || !createCodec()) {
         log.warning("Cannot create FSU Codec.")
       }
     case x => log.info("RECOVER: {} {}", this, x)
@@ -108,13 +105,13 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case ChangeModelCmd(_, newModel) =>
       persist(ChangeModelEvt(newModel))(updateState)
     case SaveSnapshotCmd(_) =>
-      if(valid()) saveSnapshot(FsuPo(fsuName.get, modelName.get, initParams.toMap))
+      if(isValid()) saveSnapshot(FsuPo(fsuName.get, modelName.get, initParams.toMap))
     case AddParamsCmd(_, params) =>
       persist(AddParamsEvt(params))(updateState)
     case RemoveParamsCmd(_, params) =>
       persist(RemoveParamsEvt(params))(updateState)
     case cmd: GetPortCmd =>
-      if(!valid()) {
+      if(!isValid()) {
         sender() ! NotExist(fsuId)
       } else {
         this.fsuCodec.get.ask(cmd).mapTo[ActorRef].onComplete {
@@ -131,7 +128,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
         log.warning("Message CANNOT be delivered because codec not started: {} {}", this, cmd)
       }
     case RetrieveFsuCmd(_) =>
-      if(!valid()) {
+      if(!isValid()) {
         sender() ! NotExist(fsuId)
       } else {
         sender() ! FsuVo(fsuId, fsuName.get, modelName.get, initParams.toMap)
@@ -160,18 +157,6 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 
-  private def createCodec(): Boolean = {
-    val params = new util.HashMap[String, String]()
-    for((k, v) <- initParams) params.put(k, v)
-    val p = registry.create(this.modelName.get, params)
-    if(p.isDefined) {
-      log.warning("{}: {}", this.modelName.get, p.get)
-      this.fsuCodec = Some(context.system.actorOf(p.get, s"${this.modelName.get}_${fsuId}"))
-      true
-    } else {
-      false
-    }
-  }
   private def stop() = {
     log.info("Stopping: {}", this)
     if(fsuCodec.isDefined) {
@@ -180,7 +165,19 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     }
     context.stop(self)
   }
-  private def valid(): Boolean = {
+
+  private def isValid(): Boolean = {
     fsuName.isDefined && modelName.isDefined
+  }
+
+  private def createCodec(): Boolean = {
+    val p = registry.create(this.modelName.get, this.initParams)
+    if(p.isDefined) {
+      log.warning("{}: {}", this.modelName.get, p.get)
+      this.fsuCodec = Some(context.system.actorOf(p.get, s"${this.modelName.get}_${fsuId}"))
+      true
+    } else {
+      false
+    }
   }
 }

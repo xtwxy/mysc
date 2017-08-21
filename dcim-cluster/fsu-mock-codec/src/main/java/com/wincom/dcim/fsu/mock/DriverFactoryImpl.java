@@ -1,12 +1,13 @@
-package com.wincom.dcim.driver.mock;
-
-import akka.actor.Props;
-import com.wincom.dcim.driver.DriverCodecFactory;
-import scala.Option;
+package com.wincom.dcim.fsu.mock;
 
 import java.util.Map;
 
-public class DriverFactoryImpl implements DriverCodecFactory {
+import com.wincom.dcim.fsu.FsuCodecFactory;
+
+import akka.actor.Props;
+import scala.Option;
+
+public class DriverFactoryImpl implements FsuCodecFactory {
 	
 	@Override
 	public String modelName() {

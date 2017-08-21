@@ -8,7 +8,7 @@ object Main extends App with ServiceSupport {
 
   val shardedFsus = system.actorOf(ShardedFsus.props, ShardedFsus.name)
   val shardedDrivers = system.actorOf(ShardedDrivers.props, ShardedDrivers.name)
-  val shardedSignals = system.actorOf(ShardedSignals.props(() => shardedDrivers), ShardedSignals.name)
+  val shardedSignals = system.actorOf(ShardedSignals.props, ShardedSignals.name)
 
   startService(
     shardedFsus,

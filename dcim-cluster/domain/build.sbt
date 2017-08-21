@@ -24,7 +24,9 @@ libraryDependencies ++= {
     "com.typesafe.akka"         %%  "akka-stream"                         % akkaVersion,
     "com.typesafe.akka"         %%  "akka-persistence"                    % akkaVersion,
     "com.typesafe.akka"         %%  "akka-http-core"                      % "10.0.9",
-    "joda-time"                 %   "joda-time"                           % "2.9.9"
+    "org.reflections"           %   "reflections"                         % "0.9.11",
+    "joda-time"                 %   "joda-time"                           % "2.9.9",
+    "org.slf4j"                 %   "slf4j-simple"                        % "1.7.12"       % "compile"
   )
 }
 assemblyMergeStrategy in assembly := {

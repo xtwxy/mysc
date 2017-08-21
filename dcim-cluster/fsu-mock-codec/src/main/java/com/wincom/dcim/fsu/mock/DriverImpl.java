@@ -1,4 +1,4 @@
-package com.wincom.dcim.driver.mock;
+package com.wincom.dcim.fsu.mock;
 
 import akka.actor.AbstractActor;
 import akka.event.Logging;

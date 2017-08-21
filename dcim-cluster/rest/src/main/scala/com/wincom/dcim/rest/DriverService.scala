@@ -8,7 +8,6 @@ import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
 import com.wincom.dcim.domain.Driver._
-import com.wincom.dcim.domain.Signal.SignalValueVo
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.language.postfixOps
@@ -103,7 +102,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("get-signal-value") {
             pathEnd {
               entity(as[GetSignalValueCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[AnyRef]) {
+                onSuccess(drivers.ask(x).mapTo[Command]) {
                   case v: SignalValueVo =>
                     complete(v)
                   case _ =>
@@ -127,7 +126,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("set-signal-value") {
             pathEnd {
               entity(as[SetSignalValueCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[AnyRef]) {
+                onSuccess(drivers.ask(x).mapTo[Command]) {
                   case v: Ok =>
                     complete(v)
                   case _ =>

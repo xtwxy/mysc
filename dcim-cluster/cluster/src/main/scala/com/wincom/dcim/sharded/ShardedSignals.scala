@@ -10,16 +10,20 @@ import com.wincom.dcim.domain.Signal.Command
   * Created by wangxy on 17-8-17.
   */
 object ShardedSignals {
-  def props(shardedDriver: () => ActorRef) = Props(new ShardedSignals(shardedDriver))
+  def props = Props(new ShardedSignals)
 
   def name = "sharded-signals"
 }
 
-class ShardedSignals(shardedDriver: () => ActorRef) extends Actor {
+class ShardedSignals extends Actor {
   val settings = Settings(context.system)
   ShardedSignal.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedSignals.name)
+
+  val shardedDriver: () => ActorRef = {
+    () => ClusterSharding(context.system).shardRegion(ShardedSignal.shardName)
+  }
 
   ClusterSharding(context.system).start(
     ShardedSignal.shardName,

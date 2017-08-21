@@ -9,7 +9,7 @@ import com.wincom.dcim.driver.DriverCodecRegistry
 
 object ShardedDriver {
 
-  def props(registry: DriverCodecRegistry) = Props(new ShardedDriver(registry))
+  def props(shardedSignal: () => ActorRef, registry: DriverCodecRegistry) = Props(new ShardedDriver(shardedSignal, registry))
 
   def name(driverId: String): String = driverId.toString
 
@@ -26,7 +26,7 @@ object ShardedDriver {
   }
 }
 
-class ShardedDriver(registry: DriverCodecRegistry) extends Driver(registry) {
+class ShardedDriver(shardedSignal: () => ActorRef, registry: DriverCodecRegistry) extends Driver(shardedSignal, registry) {
   val settings = Settings(context.system)
   context.setReceiveTimeout(settings.actor.passivateTimeout)
 
@@ -35,5 +35,6 @@ class ShardedDriver(registry: DriverCodecRegistry) extends Driver(registry) {
       context.parent ! Passivate(stopMessage = Driver.StopDriverCmd)
     case StopDriverCmd =>
       context.stop(self)
+    case x => log.info("unhandled COMMAND: {} {}", this, x)
   }
 }
