@@ -35,7 +35,7 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
-mainClass in assembly := Some("com.wincom.dcim.driver.Main")
+mainClass in assembly := Some("com.wincom.dcim.sharded.Main")
 assemblyJarName in assembly := "domain.jar"
 
 
