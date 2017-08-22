@@ -1,0 +1,36 @@
+get-signal-values:
+request:
+{"driverId":"drv-2000","keys":["sys.cpu.load"]}
+response:
+{"driverId":"drv-2000","signalValues":[{"key":"sys.cpu.load","ts":"2017-08-22T03:09:07","value":{"type":"Double","value":"0.8187496038141685"}}]}
+
+
+set-signal-values:
+request:
+{"driverId":"drv-2000","values":{"sys.cpu.load":{"type":"Double","value":"12.34"}}}
+response:
+{"driverId":"drv-2000","results":{"sys.cpu.load":"OK"}}
+
+update-signal-values:
+request:
+{"driverId":"drv-2000","values":[{"key":"sys.cpu.load","ts":"2017-08-22T03:09:07","value":{"type":"Double","value":"0.8187496038141685"}}]}
+response:
+[204 No Content]
+
+retrieve-driver:
+request:
+{"driverId":"drv-2000"}
+response:
+{"name":"my-drv","model":"Hello","signalIdMap":{"key":"value","sys.cpu.load":"201101107788"},"initParams":{"fsuId":"fsu-2000","port":"1"},"driverId":"drv-2000"}
+
+start-driver:
+request:
+{"driverId":"drv-2000"}
+response:
+[204 No Content]
+
+stop-driver:
+request:
+{"driverId":"drv-2000"}
+response:
+[204 No Content]
