@@ -28,6 +28,7 @@ trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val getSignalValuesCmdFormat: RootJsonFormat[GetSignalValuesCmd] = jsonFormat2(GetSignalValuesCmd)
 
   implicit val setSignalValueCmdFormat: RootJsonFormat[SetSignalValueCmd] = jsonFormat3(SetSignalValueCmd)
+  implicit val setSignalValueRspFormat: RootJsonFormat[SetSignalValueRsp] = jsonFormat2(SetSignalValueRsp)
   implicit val setSignalValuesCmdFormat: RootJsonFormat[SetSignalValuesCmd] = jsonFormat2(SetSignalValuesCmd)
   implicit val setSignalValuesRspFormat: RootJsonFormat[SetSignalValuesRsp] = jsonFormat2(SetSignalValuesRsp)
 

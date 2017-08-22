@@ -74,11 +74,12 @@ object Driver {
   final case class GetSignalValuesCmd(driverId: String, keys: Set[String]) extends Command
 
   final case class SetSignalValueCmd(driverId: String, key: String, value: AnyVal) extends Command
+  final case class SetSignalValueRsp(driverId: String, result: String) extends Command
 
   final case class SetSignalValuesCmd(driverId: String, values: Map[String, AnyVal]) extends Command
-  final case class SetSignalValuesRsp(driverId: String, values: Map[String, String]) extends Command
+  final case class SetSignalValuesRsp(driverId: String, results: Map[String, String]) extends Command
 
-  final case class UpdateSignalValuesCmd(driverId: String, values: Seq[SignalValueVo]) extends Command
+  final case class UpdateSignalValuesCmd(driverId: String, values: Seq[SignalValue]) extends Command
 
   final case class SendBytesCmd(driverId: String, bytes: Array[Byte]) extends Command
 

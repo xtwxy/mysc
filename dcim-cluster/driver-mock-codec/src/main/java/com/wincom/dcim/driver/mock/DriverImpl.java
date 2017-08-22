@@ -5,9 +5,11 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.http.scaladsl.model.DateTime;
 import com.wincom.dcim.domain.Driver.*;
+import com.wincom.dcim.util.CollectionCoverter;
 import scala.collection.JavaConverters;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,9 +47,42 @@ public class DriverImpl extends AbstractActor {
 						);
 					}
 					getSender().tell(
-							new SignalValuesVo(o.driverId(), JavaConverters.asScalaBuffer(values).toSeq()),
+							new SignalValuesVo(
+									o.driverId(),
+									JavaConverters.asScalaBuffer(values).toSeq()
+							),
 							getSelf()
 					);
+				})
+				.match(SetSignalValueCmd.class, o -> {
+					getSender().tell(
+							new SetSignalValueRsp(
+									o.driverId(),
+									"OK"
+							),
+							getSelf()
+					);
+				})
+				.match(SetSignalValuesCmd.class, o -> {
+					Map<String, String> results = new HashMap<>();
+					for(String key : JavaConverters.asJavaIterable(o.values().keys())) {
+						results.put(key,"OK");
+					}
+					getSender().tell(
+							new SetSignalValuesRsp(
+									o.driverId(),
+									CollectionCoverter.toImmutableMap(results)
+							),
+							getSelf()
+					);
+				})
+				.match(SendBytesCmd.class, o -> {
+					StringBuilder sb = new StringBuilder();
+					sb.append("bytes: ");
+					for(byte b : o.bytes()) {
+						sb.append(String.format("%02x ", 0xff & b));
+					}
+					log.info(sb.toString());
 				})
 				.matchAny(o -> {
 					log.info("received: {}, type: {}", o, o.getClass().getName());
