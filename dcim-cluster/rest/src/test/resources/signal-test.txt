@@ -1,0 +1,54 @@
+create-signal:
+request:
+{"signalId":"sig-2000","name":"my-signal","driverId":"drv-2000","key":"sys.cpu.load"}
+response:
+[HTTP/1.1 201 Created]
+
+retrieve-signal:
+request:
+{"signalId":"sig-2000"}
+response:
+{"signalId":"sig-2000","name":"my-signal","driverId":"drv-2000","key":"sys.cpu.load"}
+
+rename-signal:
+request:
+{"signalId":"sig-2000","newName":"wangxy-signal"}
+response:
+[HTTP/1.1 204 No Content]
+
+select-driver:
+request:
+{"signalId":"sig-2000","driverId":"drv-2000"}
+response:
+[HTTP/1.1 204 No Content]
+
+select-key:
+request:
+{"signalId":"sig-2000","key":"sys.cpu0.load"}
+response:
+[HTTP/1.1 204 No Content]
+
+get-value:
+request:
+{"signalId":"sig-2000"}
+response:
+{"signalId":"sig-2000","ts":"2017-08-22T07:29:54","value":{"type":"Double","value":"1997.71"}}
+
+save-snapshot:
+request:
+{"signalId":"sig-2000"}
+response:
+[HTTP/1.1 204 No Content]
+
+update-value:
+request:
+{"signalId":"sig-2000","ts":"2017-08-22T07:37:41","value":{"type":"Double","value":"1997.71"}}
+response:
+[HTTP/1.1 204 No Content]
+
+set-value:
+request:
+{"signalId":"sig-2000","value":{"type":"Double","value":"2997.71"}}
+response:
+{"signalId":"sig-2000","result":"OK"}
+
