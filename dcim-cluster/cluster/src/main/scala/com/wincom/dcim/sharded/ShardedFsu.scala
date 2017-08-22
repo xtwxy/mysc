@@ -6,6 +6,7 @@ import akka.cluster.sharding.ShardRegion.Passivate
 import com.wincom.dcim.domain.Fsu._
 import com.wincom.dcim.domain.{Fsu, Settings}
 import com.wincom.dcim.fsu.FsuCodecRegistry
+import scala.math.Numeric.IntIsIntegral._
 
 /**
   * Created by wangxy on 17-8-16.
@@ -24,7 +25,7 @@ object ShardedFsu {
   }
   val extractShardId: ShardRegion.ExtractShardId = {
     case cmd: Command =>
-      (cmd.fsuId.hashCode % numberOfShards).toString
+      (abs(cmd.fsuId.hashCode) % numberOfShards).toString
   }
 }
 

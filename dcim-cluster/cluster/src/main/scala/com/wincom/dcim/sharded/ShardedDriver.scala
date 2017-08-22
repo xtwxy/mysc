@@ -6,6 +6,7 @@ import akka.cluster.sharding.ShardRegion.Passivate
 import com.wincom.dcim.domain.Driver._
 import com.wincom.dcim.domain.{Driver, Settings}
 import com.wincom.dcim.driver.DriverCodecRegistry
+import scala.math.Numeric.IntIsIntegral._
 
 object ShardedDriver {
 
@@ -22,7 +23,7 @@ object ShardedDriver {
   }
   val extractShardId: ShardRegion.ExtractShardId = {
     case cmd: Command =>
-      (cmd.driverId.hashCode % numberOfShards).toString
+      (abs(cmd.driverId.hashCode) % numberOfShards).toString
   }
 }
 
