@@ -127,7 +127,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[SetSignalValueCmd]) { x =>
                 onSuccess(drivers.ask(x).mapTo[Command]) {
-                  case v: Ok =>
+                  case v: SetSignalValueRsp =>
                     complete(v)
                   case _ =>
                     complete(NotFound)
