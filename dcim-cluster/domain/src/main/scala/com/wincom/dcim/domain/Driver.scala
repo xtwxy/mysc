@@ -74,7 +74,7 @@ object Driver {
   final case class GetSignalValuesCmd(driverId: String, keys: Set[String]) extends Command
 
   final case class SetSignalValueCmd(driverId: String, key: String, value: AnyVal) extends Command
-  final case class SetSignalValueRsp(driverId: String, result: String) extends Command
+  final case class SetSignalValueRsp(driverId: String, key: String, result: String) extends Command
 
   final case class SetSignalValuesCmd(driverId: String, values: Map[String, AnyVal]) extends Command
   final case class SetSignalValuesRsp(driverId: String, results: Map[String, String]) extends Command
@@ -159,9 +159,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       persist(MapSignalKeyIdEvt(key, signalId))(updateState)
 
     case cmd: GetSignalValueCmd =>
-      log.warning("GetSignalValueCmd: {}", cmd)
       driverCodec.get forward cmd
-      log.warning("GetSignalValueCmd: response sent.", cmd)
     case cmd: GetSignalValuesCmd =>
       driverCodec.get forward cmd
     case cmd: SetSignalValueCmd =>
@@ -175,7 +173,6 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     case cmd: SendBytesCmd =>
       driverCodec.get forward cmd
     case RetrieveDriverCmd(_) =>
-      log.info("RetrieveDriverCmd: {} {}", this, sender())
       if(isValid) {
         sender() ! DriverVo(driverId, driverName.get, modelName.get, initParams.toMap, signalIdMap.toMap)
       } else {

@@ -34,7 +34,6 @@ class ShardedFsus extends Actor {
 
   override def receive: Receive = {
     case cmd: Command =>
-      log.info("forwarded to: {} {}", shardedFsu, cmd)
       shardedFsu forward cmd
     case x => log.info("COMMAND: {} {}", this, x)
   }

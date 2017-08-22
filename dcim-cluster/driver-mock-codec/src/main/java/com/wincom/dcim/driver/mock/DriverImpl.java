@@ -4,7 +4,7 @@ import akka.actor.AbstractActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.http.scaladsl.model.DateTime;
-import com.wincom.dcim.domain.Driver.*;
+import com.wincom.dcim.domain.*;
 import com.wincom.dcim.util.CollectionCoverter;
 import scala.collection.JavaConverters;
 
@@ -24,10 +24,10 @@ public class DriverImpl extends AbstractActor {
 	@Override
 	public Receive createReceive() {
 		return receiveBuilder()
-				.match(GetSignalValueCmd.class, o -> {
+				.match(Driver.GetSignalValueCmd.class, o -> {
 					log.info("sender(): {}, msg: {}", sender(), o);
 					getSender().tell(
-							new SignalValueVo(
+							new Driver.SignalValueVo(
 									o.driverId(),
 									o.key(),
 									DateTime.apply(System.currentTimeMillis()),
@@ -36,10 +36,10 @@ public class DriverImpl extends AbstractActor {
 							getSelf()
 					);
 				})
-				.match(GetSignalValuesCmd.class, o -> {
-					List<SignalValue> values = new ArrayList<>();
+				.match(Driver.GetSignalValuesCmd.class, o -> {
+					List<Driver.SignalValue> values = new ArrayList<>();
 					for(String key : JavaConverters.asJavaIterable(o.keys())) {
-						values.add(new SignalValue(
+						values.add(new Driver.SignalValue(
 								key,
 								DateTime.apply(System.currentTimeMillis()),
 								Double.valueOf(Math.random())
@@ -47,42 +47,53 @@ public class DriverImpl extends AbstractActor {
 						);
 					}
 					getSender().tell(
-							new SignalValuesVo(
+							new Driver.SignalValuesVo(
 									o.driverId(),
 									JavaConverters.asScalaBuffer(values).toSeq()
 							),
 							getSelf()
 					);
 				})
-				.match(SetSignalValueCmd.class, o -> {
+				.match(Driver.SetSignalValueCmd.class, o -> {
 					getSender().tell(
-							new SetSignalValueRsp(
+							new Driver.SetSignalValueRsp(
 									o.driverId(),
+									o.key(),
 									"OK"
 							),
 							getSelf()
 					);
 				})
-				.match(SetSignalValuesCmd.class, o -> {
+				.match(Driver.SetSignalValuesCmd.class, o -> {
 					Map<String, String> results = new HashMap<>();
 					for(String key : JavaConverters.asJavaIterable(o.values().keys())) {
 						results.put(key,"OK");
 					}
 					getSender().tell(
-							new SetSignalValuesRsp(
+							new Driver.SetSignalValuesRsp(
 									o.driverId(),
 									CollectionCoverter.toImmutableMap(results)
 							),
 							getSelf()
 					);
 				})
-				.match(SendBytesCmd.class, o -> {
+				.match(Driver.SendBytesCmd.class, o -> {
 					StringBuilder sb = new StringBuilder();
 					sb.append("bytes: ");
 					for(byte b : o.bytes()) {
 						sb.append(String.format("%02x ", 0xff & b));
 					}
 					log.info(sb.toString());
+				})
+				.match(Signal.GetValueCmd.class, o -> {
+					getSender().tell(
+							new Signal.SignalValueVo(
+								o.signalId(),
+								DateTime.apply(System.currentTimeMillis()),
+								Double.valueOf(Math.random())
+							),
+							getSelf()
+						);
 				})
 				.matchAny(o -> {
 					log.info("received: {}, type: {}", o, o.getClass().getName());

@@ -38,7 +38,6 @@ class ShardedDrivers extends Actor {
 
   override def receive: Receive = {
     case cmd: Command =>
-      log.info("forwarded to: {} {}", shardedDriver, cmd)
       shardedDriver forward cmd
     case x => log.info("COMMAND: {} {}", this, x)
   }

@@ -1,6 +1,6 @@
 package com.wincom.dcim.domain
 
-import akka.actor.{ActorRef, Props}
+import akka.actor.{ActorRef, Props, ReceiveTimeout}
 import akka.event.Logging
 import akka.http.scaladsl.model.DateTime
 import akka.pattern.ask
@@ -55,7 +55,8 @@ object Signal {
   /* transient commands */
   final case class UpdateValueCmd(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
-  final case class SetValueCmd(signalId: String, value: SignalValueVo) extends Command
+  final case class SetValueCmd(signalId: String, value: AnyVal) extends Command
+  final case class SetValueRsp(signalId: String, result: String) extends Command
 
   final case class GetValueCmd(signalId: String) extends Command
 
@@ -86,7 +87,8 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
   var key: Option[String] = None
 
   // transient values
-  var signalValue: Option[SignalValueVo] = None
+  var value: Option[AnyVal] = None
+  var valueTs: Option[DateTime] = None
 
   val signalId: String = s"${self.path.name}"
   override def persistenceId: String = s"${self.path.name}"
@@ -112,31 +114,62 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
       persist(RenameSignalEvt(newName))(updateState)
     case SelectDriverCmd(_, driverId) =>
       persist(SelectDriverEvt(driverId))(updateState)
-    case SaveSnapshotCmd =>
-      if (initialized) {
+    case SelectKeyCmd(_, key) =>
+      persist(SelectKeyEvt(key))(updateState)
+    case RetrieveSignalCmd(_) =>
+      if (isValid) {
+        sender() ! SignalVo(signalId, signalName.get, driverId.get, key.get)
+      } else {
+        sender() ! NotAvailable(signalId)
+      }
+    case SaveSnapshotCmd(_) =>
+      if (isValid) {
         saveSnapshot(SignalPo(signalName.get, driverId.get, key.get))
       }
-    case UpdateValueCmd(id, ts, value) =>
-      signalValue = Some(SignalValueVo(id, ts, value))
-    case cmd: SetValueCmd =>
-      driverShard() forward cmd
-    case cmd: GetValueCmd =>
-      if (available) {
-        sender() ! signalValue
+    case UpdateValueCmd(_, ts, v) =>
+      this.valueTs = Some(ts)
+      this.value = Some(v)
+    case SetValueCmd(_, v) =>
+      val theSender = sender()
+      driverShard().ask(Driver.SetSignalValueCmd(this.driverId.get, this.key.get, v)).mapTo[Driver.Command].onComplete {
+        case f: Success[Driver.Command] =>
+          f.value match {
+            case Driver.SetSignalValueRsp(_, _, result) =>
+              theSender ! SetValueRsp(signalId, result)
+            case _ =>
+              theSender ! NotAvailable(signalId)
+          }
+        case _ =>
+          theSender ! NotAvailable(signalId)
+      }
+    case GetValueCmd(_) =>
+      val theSender = sender()
+      if (available()) {
+        sender() ! SignalValueVo(signalId, this.valueTs.get, this.value.get)
       } else {
-        driverShard().ask(cmd).mapTo[SignalValueVo].onComplete {
-          case f: Success[SignalValueVo] =>
+        driverShard().ask(Driver.GetSignalValueCmd(driverId.get, key.get)).mapTo[Driver.Command].onComplete {
+          case f: Success[Driver.Command] =>
             f.value match {
-              case s: SignalValueVo =>
-                signalValue = Some(s)
-                sender() ! s
+              case Driver.SignalValueVo(driverId, key, ts, v) =>
+                if(this.driverId.get.equals(driverId) && this.key.get.equals(key)) {
+                  this.value = Some(v)
+                  this.valueTs = Some(ts)
+                  theSender ! SignalValueVo(signalId, ts, v)
+                } else {
+                  theSender ! NotAvailable(signalId)
+                }
               case _ =>
-                sender() ! NotAvailable
+                theSender ! NotAvailable(signalId)
             }
           case _ =>
-            sender() ! NotAvailable
+            theSender ! NotAvailable(signalId)
         }
       }
+    case StartSignalCmd(_) =>
+    case StopSignalCmd(_) =>
+      context.stop(self)
+    case _: ReceiveTimeout =>
+      context.stop(self)
     case x => log.info("COMMAND: {} {}", this, x)
   }
 
@@ -154,11 +187,16 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
     case x => log.info("EVENT: {} {}", this, x)
   }
 
-  private def initialized: Boolean = (driverId.isDefined && signalName.isDefined)
+  private def isValid(): Boolean = {
+    if (signalName.isDefined && driverId.isDefined && key.isDefined) true else false
+  }
 
-  private def available: Boolean = {
-    if (signalValue.isDefined) {
-      Duration.millis(DateTime.now.clicks - signalValue.get.ts.clicks).isShorterThan(Duration.standardMinutes(1))
+  private def available(): Boolean = {
+    if (isValid() && value.isDefined && valueTs.isDefined) {
+      val d = Duration.millis(DateTime.now.clicks - valueTs.get.clicks)
+      val r = Duration.standardMinutes(1)
+      val a = d.isShorterThan(r)
+      return a
     } else {
       false
     }

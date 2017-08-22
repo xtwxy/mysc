@@ -22,7 +22,7 @@ class ShardedSignals extends Actor {
   val log = Logging(context.system.eventStream, ShardedSignals.name)
 
   val shardedDriver: () => ActorRef = {
-    () => ClusterSharding(context.system).shardRegion(ShardedSignal.shardName)
+    () => ClusterSharding(context.system).shardRegion(ShardedDriver.shardName)
   }
 
   ClusterSharding(context.system).start(
@@ -38,6 +38,8 @@ class ShardedSignals extends Actor {
 
   override def receive: Receive = {
     case cmd: Command =>
+      log.info("forwarded to: {} {}", shardedDriver, cmd)
       shardedSignal forward cmd
+    case x => log.info("COMMAND: {} {}", this, x)
   }
 }

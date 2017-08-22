@@ -111,14 +111,15 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case RemoveParamsCmd(_, params) =>
       persist(RemoveParamsEvt(params))(updateState)
     case cmd: GetPortCmd =>
+      val theSender = sender()
       if(!isValid()) {
-        sender() ! NotExist(fsuId)
+        theSender ! NotExist(fsuId)
       } else {
         this.fsuCodec.get.ask(cmd).mapTo[ActorRef].onComplete {
           case f: Success[ActorRef] =>
-            sender() ! f.value
+            theSender ! f.value
           case _ =>
-            sender() ! NotAvailable(fsuId)
+            theSender ! NotAvailable(fsuId)
         }
       }
     case cmd: SendBytesCmd =>

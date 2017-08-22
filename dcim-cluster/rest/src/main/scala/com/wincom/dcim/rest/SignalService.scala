@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
-import com.wincom.dcim.domain.Signal.{CreateSignalCmd, _}
+import com.wincom.dcim.domain.Signal._
 
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
@@ -104,7 +104,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[SetValueCmd]) { x =>
                 onSuccess(signals.ask(x).mapTo[Command]) {
-                  case v: Ok => complete(v)
+                  case v: SetValueRsp => complete(v)
                   case _ => complete(NotFound)
                 }
               }
