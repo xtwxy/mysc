@@ -6,10 +6,18 @@ import java.util._
   */
 class LinerFuncImpl(val params: Map[String, String]) extends SignalTransFunc {
 
-  override def transform(input: Any): Any = {
+  override def transform(input: AnyVal): AnyVal = {
     input match {
       case x: Boolean => !x
       case x: Double => x * 2;
+      case x => x
+    }
+  }
+
+  override def inverse(input: AnyVal): AnyVal = {
+    input match {
+      case x: Boolean => !x
+      case x: Double => x / 2;
       case x => x
     }
   }

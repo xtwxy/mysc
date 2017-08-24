@@ -5,7 +5,8 @@ import java.util.{Map, Set};
   * Created by wangxy on 17-8-24.
   */
 trait SignalTransFunc {
-  def transform(input: Any): Any
+  def transform(input: AnyVal): AnyVal
+  def inverse(input: AnyVal): AnyVal
 }
 
 trait SignalTransFuncFactory {

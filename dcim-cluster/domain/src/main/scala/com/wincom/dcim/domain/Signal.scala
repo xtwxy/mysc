@@ -142,7 +142,11 @@ class Signal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) ext
       this.value = Some(v)
     case SetValueCmd(_, v) =>
       val theSender = sender()
-      driverShard().ask(Driver.SetSignalValueCmd(this.driverId.get, this.key.get, v)).mapTo[Driver.Command].onComplete {
+      var x = v
+      for(f <- funcs) {
+        x = f.inverse(x)
+      }
+      driverShard().ask(Driver.SetSignalValueCmd(this.driverId.get, this.key.get, x)).mapTo[Driver.Command].onComplete {
         case f: Success[Driver.Command] =>
           f.value match {
             case Driver.SetSignalValueRsp(_, _, result) =>
@@ -163,9 +167,13 @@ class Signal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) ext
             f.value match {
               case Driver.SignalValueVo(driverId, key, ts, v) =>
                 if(this.driverId.get.equals(driverId) && this.key.get.equals(key)) {
-                  this.value = Some(v)
+                  var x = v
+                  for(f <- this.funcs) {
+                    x = f.transform(x)
+                  }
+                  this.value = Some(x)
                   this.valueTs = Some(ts)
-                  theSender ! SignalValueVo(signalId, ts, v)
+                  theSender ! SignalValueVo(signalId, ts, x)
                 } else {
                   theSender ! NotAvailable(signalId)
                 }

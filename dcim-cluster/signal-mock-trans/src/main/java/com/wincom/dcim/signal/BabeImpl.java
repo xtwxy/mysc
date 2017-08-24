@@ -20,4 +20,14 @@ public class BabeImpl implements SignalTransFunc {
         }
         return input;
     }
+
+    @Override
+    public Object inverse(Object input) {
+        if(input instanceof Boolean) {
+            return !((Boolean)input);
+        } else if(input instanceof Double) {
+            return ((Double)input) / 10;
+        }
+        return input;
+    }
 }
