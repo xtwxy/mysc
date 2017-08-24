@@ -4,13 +4,23 @@ import akka.actor.Props;
 import com.wincom.dcim.fsu.FsuCodecFactory;
 import scala.Option;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class HelloFactory implements FsuCodecFactory {
 
 	@Override
 	public String modelName() {
 		return "Hello";
+	}
+
+	@Override
+	public Set<String> paramNames() {
+		Set<String> s = new HashSet<>();
+		s.add("a");
+		s.add("b");
+		return s;
 	}
 
 	@Override

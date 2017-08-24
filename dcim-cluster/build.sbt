@@ -23,7 +23,8 @@ parallelExecution in Test := false
 fork := true
 
 lazy val domain = (project in file("domain"))
-lazy val cluster = (project in file("cluster")).dependsOn(domain, rest, fsuMockCodec, driverMockCodec)
+lazy val cluster = (project in file("cluster")).dependsOn(domain, rest, fsuMockCodec, driverMockCodec, signalTransformMock)
+lazy val signalTransformMock = (project in file("signal-mock-trans")).dependsOn(domain)
 lazy val driverMockCodec = (project in file("driver-mock-codec")).dependsOn(domain)
 lazy val fsuMockCodec = (project in file("fsu-mock-codec")).dependsOn(domain)
 lazy val rest = (project in file("rest")).dependsOn(domain)

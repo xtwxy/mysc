@@ -5,6 +5,7 @@ import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.event.Logging
 import com.wincom.dcim.domain.Settings
 import com.wincom.dcim.domain.Signal.Command
+import com.wincom.dcim.signal.SignalTransFuncRegistry
 
 /**
   * Created by wangxy on 17-8-17.
@@ -20,6 +21,7 @@ class ShardedSignals extends Actor {
   ShardedSignal.numberOfShards = settings.actor.numberOfShards
 
   val log = Logging(context.system.eventStream, ShardedSignals.name)
+  val registry: SignalTransFuncRegistry = (new SignalTransFuncRegistry(log)).initialize()
 
   val shardedDriver: () => ActorRef = {
     () => ClusterSharding(context.system).shardRegion(ShardedDriver.shardName)
@@ -27,7 +29,7 @@ class ShardedSignals extends Actor {
 
   ClusterSharding(context.system).start(
     ShardedSignal.shardName,
-    ShardedSignal.props(shardedDriver),
+    ShardedSignal.props(shardedDriver, registry),
     ClusterShardingSettings(context.system),
     ShardedSignal.extractEntityId,
     ShardedSignal.extractShardId)

@@ -1,6 +1,8 @@
 package com.wincom.dcim.fsu.mock;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.wincom.dcim.fsu.FsuCodecFactory;
 
@@ -12,6 +14,14 @@ public class DriverFactoryImpl implements FsuCodecFactory {
 	@Override
 	public String modelName() {
 		return "driver-mock1";
+	}
+
+	@Override
+	public Set<String> paramNames() {
+		Set<String> s = new HashSet<>();
+		s.add("a");
+		s.add("b");
+		return s;
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.util.Timeout
 import com.wincom.dcim.domain.Signal._
+import com.wincom.dcim.signal.{SignalTransFunc, SignalTransFuncRegistry}
 import org.joda.time.Duration
 
 import scala.concurrent.ExecutionContext
@@ -17,7 +18,7 @@ import scala.util.Success
   * Created by wangxy on 17-8-14.
   */
 object Signal {
-  def props(driverShard: () => ActorRef) = Props(new Signal(driverShard))
+  def props(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) = Props(new Signal(driverShard, registry))
 
   def name(signalId: String) = s"$signalId"
 
@@ -28,7 +29,8 @@ object Signal {
   sealed trait Event extends Serializable
 
   /* value objects */
-  final case class SignalVo(signalId: String, name: String, driverId: String, key: String) extends Command
+  final case class TransFunVo(funcName: String, params: Map[String, String]) extends Serializable
+  final case class SignalVo(signalId: String, name: String, driverId: String, key: String, trans: Seq[TransFunVo]) extends Command
 
   final case class SignalValueVo(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
@@ -74,19 +76,22 @@ object Signal {
   final case class SelectKeyEvt(key: String) extends Event
 
   /* persistent objects */
-  final case class SignalPo(name: String, driverId: String, key: String) extends Event
+  final case class TransFunPo(funcName: String, params: Map[String, String]) extends Serializable
+  final case class SignalPo(name: String, driverId: String, key: String, trans: Seq[TransFunPo]) extends Event
 
 }
 
-class Signal(driverShard: () => ActorRef) extends PersistentActor {
+class Signal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) extends PersistentActor {
 
   val log = Logging(context.system.eventStream, "sharded-signals")
   // configuration
   var signalName: Option[String] = None
   var driverId: Option[String] = None
   var key: Option[String] = None
+  var trans: collection.mutable.Seq[TransFunVo] = collection.mutable.ArraySeq()
 
   // transient values
+  var funcs: collection.mutable.Seq[SignalTransFunc] = collection.mutable.ArraySeq()
   var value: Option[AnyVal] = None
   var valueTs: Option[DateTime] = None
 
@@ -100,10 +105,11 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
   def receiveRecover: PartialFunction[Any, Unit] = {
     case evt: Event =>
       updateState(evt)
-    case SnapshotOffer(_, SignalPo(name, driverId, key)) =>
+    case SnapshotOffer(_, SignalPo(name, driverId, key, tf)) =>
       this.driverId = Some(driverId)
       this.signalName = Some(name)
       this.key = Some(key)
+      tf.foreach(x => this.trans = this.trans :+ TransFunVo(x.funcName, x.params))
     case x => log.info("RECOVER: {} {}", this, x)
   }
 
@@ -118,13 +124,13 @@ class Signal(driverShard: () => ActorRef) extends PersistentActor {
       persist(SelectKeyEvt(key))(updateState)
     case RetrieveSignalCmd(_) =>
       if (isValid) {
-        sender() ! SignalVo(signalId, signalName.get, driverId.get, key.get)
+        sender() ! SignalVo(signalId, signalName.get, driverId.get, key.get, trans)
       } else {
         sender() ! NotAvailable(signalId)
       }
     case SaveSnapshotCmd(_) =>
       if (isValid) {
-        saveSnapshot(SignalPo(signalName.get, driverId.get, key.get))
+        saveSnapshot(SignalPo(signalName.get, driverId.get, key.get, for(x <- trans) yield TransFunPo(x.funcName, x.params)))
       }
     case UpdateValueCmd(_, ts, v) =>
       this.valueTs = Some(ts)

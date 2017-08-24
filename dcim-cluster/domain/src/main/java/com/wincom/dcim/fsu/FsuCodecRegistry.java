@@ -2,6 +2,7 @@ package com.wincom.dcim.fsu;
 
 import akka.actor.Props;
 import akka.event.LoggingAdapter;
+import com.wincom.dcim.driver.DriverCodecFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -9,7 +10,9 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import scala.Option;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class FsuCodecRegistry {
@@ -19,6 +22,19 @@ public class FsuCodecRegistry {
 	public FsuCodecRegistry(LoggingAdapter log) {
 		this.log = log;
 		this.factories = new TreeMap<>();
+	}
+
+	Set<String> names() {
+		return factories.keySet();
+	}
+
+	Set<String> paramNames(String name) {
+		FsuCodecFactory factory = factories.get(name);
+		if (factory != null) {
+			return factory.paramNames();
+		} else {
+			return new HashSet<>();
+		}
 	}
 
 	public Option<Props> create(String name, Map<String, String> params) {

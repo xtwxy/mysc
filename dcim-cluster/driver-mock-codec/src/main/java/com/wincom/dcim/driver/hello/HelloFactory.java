@@ -1,6 +1,8 @@
 package com.wincom.dcim.driver.hello;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.wincom.dcim.driver.DriverCodecFactory;
 
@@ -13,6 +15,14 @@ public class HelloFactory implements DriverCodecFactory {
 	@Override
 	public String modelName() {
 		return "Hello";
+	}
+
+	@Override
+	public Set<String> paramNames() {
+		Set<String> s = new HashSet<>();
+		s.add("a");
+		s.add("b");
+		return s;
 	}
 
 	@Override
