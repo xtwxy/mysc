@@ -55,6 +55,11 @@ object Fsu {
   final case class StartFsuCmd(fsuId: String) extends Command
   final case class StopFsuCmd(fsuId: String) extends Command
 
+  final case class GetSupportedModelsCmd(fsuId: String) extends Command
+  final case class GetSupportedModelsRsp(fsuId: String, modelNames: Set[String]) extends Command
+  final case class GetModelParamsCmd(fsuId: String, modelName: String) extends Command
+  final case class GetModelParamsRsp(fsuId: String, paramNames: Set[String]) extends Command
+
   /* events */
   final case class CreateFsuEvt(name: String, model: String, params: Map[String, String]) extends Event
   final case class RenameFsuEvt(newName: String) extends Event
@@ -137,6 +142,10 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case StartFsuCmd(_) =>
     case StopFsuCmd(_) =>
       stop()
+    case GetSupportedModelsCmd(_) =>
+      sender() ! GetSupportedModelsRsp(fsuId, registry.names.toSet)
+    case GetModelParamsCmd(_, model) =>
+      sender() ! GetSupportedModelsRsp(fsuId, registry.paramNames(model).toSet)
     case _: ReceiveTimeout =>
       stop()
     case x => log.info("default COMMAND: {} {}", this, x)

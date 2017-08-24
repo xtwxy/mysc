@@ -39,6 +39,11 @@ trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val retrieveDriverCmdFormat: RootJsonFormat[RetrieveDriverCmd] = jsonFormat1(RetrieveDriverCmd)
   implicit val startDriverCmdFormat: RootJsonFormat[StartDriverCmd] = jsonFormat1(StartDriverCmd)
   implicit val stopDriverCmdFormat: RootJsonFormat[StopDriverCmd] = jsonFormat1(StopDriverCmd)
+
+  implicit val getSupportedModelsCmdFormat: RootJsonFormat[GetSupportedModelsCmd] = jsonFormat1(GetSupportedModelsCmd)
+  implicit val getSupportedModelsRspFormat: RootJsonFormat[GetSupportedModelsRsp] = jsonFormat2(GetSupportedModelsRsp)
+  implicit val getSupportedParamsCmdFormat: RootJsonFormat[GetModelParamsCmd] = jsonFormat2(GetModelParamsCmd)
+  implicit val getSupportedParamsRspFormat: RootJsonFormat[GetModelParamsRsp] = jsonFormat2(GetModelParamsRsp)
 }
 
 object DriverMarshaling extends DriverMarshaling

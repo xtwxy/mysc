@@ -190,6 +190,26 @@ trait DriverRoutes extends DriverMarshaling {
                 complete(NoContent)
               }
             }
+          } ~
+          path("get-supported-models") {
+            pathEnd {
+              entity(as[GetSupportedModelsCmd]) { x =>
+                onSuccess(drivers.ask(x).mapTo[Command]) {
+                  case v: GetSupportedModelsRsp => complete(v)
+                  case _ => complete(NotFound)
+                }
+              }
+            }
+          } ~
+          path("get-model-params") {
+            pathEnd {
+              entity(as[GetModelParamsCmd]) { x =>
+                onSuccess(drivers.ask(x).mapTo[Command]) {
+                  case v: GetModelParamsRsp => complete(v)
+                  case _ => complete(NotFound)
+                }
+              }
+            }
           }
       }
   }

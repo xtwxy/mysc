@@ -30,6 +30,11 @@ trait SignalMarshaling extends DefaultJsonProtocol {
 
   implicit val startSignalCmdFormat = jsonFormat1(StartSignalCmd)
   implicit val stopSignalCmdFormat = jsonFormat1(StopSignalCmd)
+
+  implicit val getSupportedFuncsCmdFormat: RootJsonFormat[GetSupportedFuncsCmd] = jsonFormat1(GetSupportedFuncsCmd)
+  implicit val getSupportedFuncsRspFormat: RootJsonFormat[GetSupportedFuncsRsp] = jsonFormat2(GetSupportedFuncsRsp)
+  implicit val getSupportedParamsCmdFormat: RootJsonFormat[GetFuncParamsCmd] = jsonFormat2(GetFuncParamsCmd)
+  implicit val getSupportedParamsRspFormat: RootJsonFormat[GetFuncParamsRsp] = jsonFormat2(GetFuncParamsRsp)
 }
 
 object SignalMarshaling extends SignalMarshaling

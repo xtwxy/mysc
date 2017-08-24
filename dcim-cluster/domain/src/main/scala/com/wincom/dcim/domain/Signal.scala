@@ -10,6 +10,7 @@ import com.wincom.dcim.domain.Signal._
 import com.wincom.dcim.signal.{SignalTransFunc, SignalTransFuncRegistry}
 import org.joda.time.Duration
 
+import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{FiniteDuration, SECONDS}
 import scala.util.Success
@@ -66,6 +67,10 @@ object Signal {
 
   final case class StopSignalCmd(signalId: String) extends Command
 
+  final case class GetSupportedFuncsCmd(signalId: String) extends Command
+  final case class GetSupportedFuncsRsp(signalId: String, funcNames: Set[String]) extends Command
+  final case class GetFuncParamsCmd(signalId: String, funcName: String) extends Command
+  final case class GetFuncParamsRsp(signalId: String, paramNames: Set[String]) extends Command
   /* events */
   final case class CreateSignalEvt(name: String, driverId: String, key: String) extends Event
 
@@ -174,6 +179,10 @@ class Signal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) ext
     case StartSignalCmd(_) =>
     case StopSignalCmd(_) =>
       context.stop(self)
+    case GetSupportedFuncsCmd(_) =>
+      sender() ! GetSupportedFuncsRsp(signalId, registry.names.toSet)
+    case GetFuncParamsCmd(_, model) =>
+      sender() ! GetFuncParamsRsp(signalId, registry.paramNames(model).toSet)
     case _: ReceiveTimeout =>
       context.stop(self)
     case x => log.info("COMMAND: {} {}", this, x)

@@ -11,7 +11,7 @@ import akka.util.Timeout.durationToTimeout
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap.create
 import com.wincom.dcim.domain.Driver._
-import com.wincom.dcim.domain.Signal.{UpdateValueCmd}
+import com.wincom.dcim.domain.Signal.UpdateValueCmd
 import com.wincom.dcim.driver.DriverCodecRegistry
 
 import scala.collection.convert.ImplicitConversions._
@@ -88,6 +88,11 @@ object Driver {
   final case class StartDriverCmd(driverId: String) extends Command
 
   final case class StopDriverCmd(driverId: String) extends Command
+
+  final case class GetSupportedModelsCmd(driverId: String) extends Command
+  final case class GetSupportedModelsRsp(driverId: String, modelNames: Set[String]) extends Command
+  final case class GetModelParamsCmd(driverId: String, modelName: String) extends Command
+  final case class GetModelParamsRsp(driverId: String, paramNames: Set[String]) extends Command
 
   /* events */
   final case class CreateDriverEvt(name: String, model: String, initParams: Map[String, String], signalIdMap: Map[String, String]) extends Event
@@ -181,6 +186,10 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     case StartDriverCmd(_) =>
     case StopDriverCmd(_) =>
       stop()
+    case GetSupportedModelsCmd(_) =>
+      sender() ! GetSupportedModelsRsp(driverId, registry.names.toSet)
+    case GetModelParamsCmd(_, model) =>
+      sender() ! GetSupportedModelsRsp(driverId, registry.paramNames(model).toSet)
     case _: ReceiveTimeout =>
       stop()
     case x => log.info("COMMAND: {} {}", this, x)

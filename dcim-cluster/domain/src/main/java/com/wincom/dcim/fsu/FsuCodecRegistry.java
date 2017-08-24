@@ -24,11 +24,11 @@ public class FsuCodecRegistry {
 		this.factories = new TreeMap<>();
 	}
 
-	Set<String> names() {
+	public Set<String> names() {
 		return factories.keySet();
 	}
 
-	Set<String> paramNames(String name) {
+	public Set<String> paramNames(String name) {
 		FsuCodecFactory factory = factories.get(name);
 		if (factory != null) {
 			return factory.paramNames();

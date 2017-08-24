@@ -135,6 +135,26 @@ trait SignalRoutes extends SignalMarshaling {
                 complete(NoContent)
               }
             }
+          } ~
+          path("get-supported-funcs") {
+            pathEnd {
+              entity(as[GetSupportedFuncsCmd]) { x =>
+                onSuccess(signals.ask(x).mapTo[Command]) {
+                  case v: GetSupportedFuncsRsp => complete(v)
+                  case _ => complete(NotFound)
+                }
+              }
+            }
+          } ~
+          path("get-func-params") {
+            pathEnd {
+              entity(as[GetFuncParamsCmd]) { x =>
+                onSuccess(signals.ask(x).mapTo[Command]) {
+                  case v: GetFuncParamsRsp => complete(v)
+                  case _ => complete(NotFound)
+                }
+              }
+            }
           }
       }
   }

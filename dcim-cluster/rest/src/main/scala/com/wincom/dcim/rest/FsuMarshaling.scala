@@ -23,6 +23,11 @@ trait FsuMarshaling extends DefaultJsonProtocol {
   implicit val retrieveFsuCmdFormat: RootJsonFormat[RetrieveFsuCmd] = jsonFormat1(RetrieveFsuCmd)
   implicit val startFsuCmdFormat: RootJsonFormat[StartFsuCmd] = jsonFormat1(StartFsuCmd)
   implicit val stopFsuCmdFormat: RootJsonFormat[StopFsuCmd] = jsonFormat1(StopFsuCmd)
+
+  implicit val getSupportedModelsCmdFormat: RootJsonFormat[GetSupportedModelsCmd] = jsonFormat1(GetSupportedModelsCmd)
+  implicit val getSupportedModelsRspFormat: RootJsonFormat[GetSupportedModelsRsp] = jsonFormat2(GetSupportedModelsRsp)
+  implicit val getSupportedParamsCmdFormat: RootJsonFormat[GetModelParamsCmd] = jsonFormat2(GetModelParamsCmd)
+  implicit val getSupportedParamsRspFormat: RootJsonFormat[GetModelParamsRsp] = jsonFormat2(GetModelParamsRsp)
 }
 
 object FsuMarshaling extends FsuMarshaling
