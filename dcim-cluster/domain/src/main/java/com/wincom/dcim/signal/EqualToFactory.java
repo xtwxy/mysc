@@ -18,7 +18,7 @@ public class EqualToFactory implements UnaryFunctionFactory {
     }
     @Override
     public String name() {
-        return "greater-than";
+        return EqualTo.class.getSimpleName();
     }
 
     @Override

@@ -89,6 +89,14 @@ trait SignalRoutes extends SignalMarshaling {
               }
             }
           } ~
+          path("update-funcs") {
+            pathEnd {
+              entity(as[UpdateFuncsCmd]) { v =>
+                signals ! v
+                complete(NoContent)
+              }
+            }
+          } ~
           path("retrieve-signal") {
             pathEnd {
               entity(as[RetrieveSignalCmd]) { x =>

@@ -18,7 +18,7 @@ public class GreaterThanFactory implements UnaryFunctionFactory {
     }
     @Override
     public String name() {
-        return "greater-than";
+        return GreaterThan.class.getSimpleName();
     }
 
     @Override

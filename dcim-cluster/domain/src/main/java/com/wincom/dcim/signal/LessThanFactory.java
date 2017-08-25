@@ -18,7 +18,7 @@ public class LessThanFactory implements UnaryFunctionFactory {
     }
     @Override
     public String name() {
-        return "less-than";
+        return LessThan.class.getSimpleName();
     }
 
     @Override

@@ -18,7 +18,7 @@ public class LinearFactory implements UnaryFunctionFactory {
 
     @Override
     public String name() {
-        return "linear";
+        return Linear.class.getSimpleName();
     }
 
     @Override

@@ -72,22 +72,22 @@ public class FunctionRegistry {
                             .addScanners(new SubTypesScanner(false))
                             .setUrls(ClasspathHelper.forClassLoader()));
 
-            for (Class<? extends FunctionFactory> c : r.getSubTypesOf(FunctionFactory.class)) {
-                FunctionFactory f = c.newInstance();
-                if(f instanceof UnaryFunctionFactory) {
-                    if (unaryFactories.containsKey(f.name())) {
-                        log.warning("Duplicate SignalTransformerFactory name '{}': {} and {}", f.name(), c,
-                                unaryFactories.get(f.name()).getClass());
-                    } else {
-                        unaryFactories.put(f.name(), (UnaryFunctionFactory)f);
-                    }
-                } else if(f instanceof BinaryFunctionFactory) {
-                    if (binaryFactories.containsKey(f.name())) {
-                        log.warning("Duplicate SignalTransformerFactory name '{}': {} and {}", f.name(), c,
-                                binaryFactories.get(f.name()).getClass());
-                    } else {
-                        binaryFactories.put(f.name(), (BinaryFunctionFactory)f);
-                    }
+            for (Class<? extends UnaryFunctionFactory> c : r.getSubTypesOf(UnaryFunctionFactory.class)) {
+                UnaryFunctionFactory f = c.newInstance();
+                if (unaryFactories.containsKey(f.name())) {
+                    log.warning("Duplicate SignalTransformerFactory name '{}': {} and {}", f.name(), c,
+                            unaryFactories.get(f.name()).getClass());
+                } else {
+                    unaryFactories.put(f.name(), f);
+                }
+            }
+            for (Class<? extends BinaryFunctionFactory> c : r.getSubTypesOf(BinaryFunctionFactory.class)) {
+                BinaryFunctionFactory f = c.newInstance();
+                if (binaryFactories.containsKey(f.name())) {
+                    log.warning("Duplicate SignalTransformerFactory name '{}': {} and {}", f.name(), c,
+                            binaryFactories.get(f.name()).getClass());
+                } else {
+                    binaryFactories.put(f.name(), f);
                 }
             }
         } catch (Exception ex) {
