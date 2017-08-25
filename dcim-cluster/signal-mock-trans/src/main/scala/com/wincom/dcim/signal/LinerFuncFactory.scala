@@ -4,7 +4,7 @@ import java.util._
 /**
   * Created by wangxy on 17-8-24.
   */
-class LinerFuncImpl(val params: Map[String, String]) extends SignalTransFunc {
+class LinerFuncImpl(val params: Map[String, String]) extends UnaryFunction {
 
   override def transform(input: AnyVal): AnyVal = {
     input match {
@@ -23,10 +23,10 @@ class LinerFuncImpl(val params: Map[String, String]) extends SignalTransFunc {
   }
 }
 
-class LinerFuncFactory extends SignalTransFuncFactory {
+class LinerFuncFactory extends UnaryFunctionFactory {
   override def name(): String = "cafe-signal"
 
-  override def create(params: Map[String, String]): Option[SignalTransFunc] = {
+  override def create(params: Map[String, String]): Option[UnaryFunction] = {
     Some(new LinerFuncImpl(params));
   }
 

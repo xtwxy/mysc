@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  * Created by wangxy on 17-8-24.
  */
-public class BabeFactory implements SignalTransFuncFactory {
+public class BabeFactory implements UnaryFunctionFactory {
     @Override
     public String name() {
         return "babe-signal";
@@ -24,7 +24,7 @@ public class BabeFactory implements SignalTransFuncFactory {
     }
 
     @Override
-    public Option<SignalTransFunc> create(Map<String, String> params) {
+    public Option<UnaryFunction> create(Map<String, String> params) {
         return Option.apply(new BabeImpl(params));
     }
 }

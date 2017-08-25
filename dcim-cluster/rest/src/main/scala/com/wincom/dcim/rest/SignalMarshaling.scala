@@ -11,14 +11,15 @@ trait SignalMarshaling extends DefaultJsonProtocol {
   implicit val anyValFormat = AnyValFormat
 
   implicit val transVoFormat = jsonFormat2(TransFunVo)
-  implicit val signalVoFormat = jsonFormat5(SignalVo)
+  implicit val signalVoFormat = jsonFormat6(SignalVo)
   implicit val signalValueFormat = jsonFormat3(SignalValueVo)
 
   implicit val okFormat: RootJsonFormat[Ok] = jsonFormat1(Ok)
 
-  implicit val createSignalCmdFormat = jsonFormat4(CreateSignalCmd)
+  implicit val createSignalCmdFormat = jsonFormat5(CreateSignalCmd)
   implicit val renameSignalCmdFormat = jsonFormat2(RenameSignalCmd)
   implicit val selectDriverCmdFormat = jsonFormat2(SelectDriverCmd)
+  implicit val selectTypeCmdFormat = jsonFormat2(SelectTypeCmd)
   implicit val selectKeyCmdFormat = jsonFormat2(SelectKeyCmd)
   implicit val retrieveSignalCmdFormat = jsonFormat1(RetrieveSignalCmd)
   implicit val saveSnapshotCmdFormat = jsonFormat1(SaveSnapshotCmd)

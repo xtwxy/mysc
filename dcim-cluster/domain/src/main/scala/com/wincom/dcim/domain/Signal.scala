@@ -7,7 +7,7 @@ import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.util.Timeout
 import com.wincom.dcim.domain.Signal._
-import com.wincom.dcim.signal.{SignalTransFunc, SignalTransFuncRegistry}
+import com.wincom.dcim.signal.{UnaryFunction, FunctionRegistry}
 import org.joda.time.Duration
 
 import scala.collection.convert.ImplicitConversions._
@@ -19,7 +19,7 @@ import scala.util.Success
   * Created by wangxy on 17-8-14.
   */
 object Signal {
-  def props(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) = Props(new Signal(driverShard, registry))
+  def props(driverShard: () => ActorRef, registry: FunctionRegistry) = Props(new Signal(driverShard, registry))
 
   def name(signalId: String) = s"$signalId"
 
@@ -31,7 +31,7 @@ object Signal {
 
   /* value objects */
   final case class TransFunVo(funcName: String, params: Map[String, String]) extends Serializable
-  final case class SignalVo(signalId: String, name: String, driverId: String, key: String, trans: Seq[TransFunVo]) extends Command
+  final case class SignalVo(signalId: String, name: String, t: String, driverId: String, key: String, trans: Seq[TransFunVo]) extends Command
 
   final case class SignalValueVo(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
@@ -44,11 +44,12 @@ object Signal {
   final case class AlreadyExists(signalId: String) extends Command
 
   /* commands */
-  final case class CreateSignalCmd(signalId: String, name: String, driverId: String, key: String) extends Command
+  final case class CreateSignalCmd(signalId: String, name: String, t:String, driverId: String, key: String) extends Command
 
   final case class RenameSignalCmd(signalId: String, newName: String) extends Command
 
   final case class SelectDriverCmd(signalId: String, driverId: String) extends Command
+  final case class SelectTypeCmd(signalId: String, newType: String) extends Command
 
   final case class SelectKeyCmd(signalId: String, key: String) extends Command
 
@@ -72,31 +73,33 @@ object Signal {
   final case class GetFuncParamsCmd(signalId: String, funcName: String) extends Command
   final case class GetFuncParamsRsp(signalId: String, paramNames: Set[String]) extends Command
   /* events */
-  final case class CreateSignalEvt(name: String, driverId: String, key: String) extends Event
+  final case class CreateSignalEvt(name: String, t: String, driverId: String, key: String) extends Event
 
   final case class RenameSignalEvt(newName: String) extends Event
 
   final case class SelectDriverEvt(driverId: String) extends Event
+  final case class SelectTypeEvt(newType: String) extends Event
 
   final case class SelectKeyEvt(key: String) extends Event
 
   /* persistent objects */
   final case class TransFunPo(funcName: String, params: Map[String, String]) extends Serializable
-  final case class SignalPo(name: String, driverId: String, key: String, trans: Seq[TransFunPo]) extends Event
+  final case class SignalPo(name: String, t: String, driverId: String, key: String, trans: Seq[TransFunPo]) extends Event
 
 }
 
-class Signal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) extends PersistentActor {
+class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends PersistentActor {
 
   val log = Logging(context.system.eventStream, "sharded-signals")
   // configuration
   var signalName: Option[String] = None
+  var signalType: Option[String] = None
   var driverId: Option[String] = None
   var key: Option[String] = None
   var trans: collection.mutable.Seq[TransFunVo] = collection.mutable.ArraySeq()
 
   // transient values
-  var funcs: collection.mutable.Seq[SignalTransFunc] = collection.mutable.ArraySeq()
+  var funcs: collection.mutable.Seq[UnaryFunction] = collection.mutable.ArraySeq()
   var value: Option[AnyVal] = None
   var valueTs: Option[DateTime] = None
 
@@ -110,32 +113,39 @@ class Signal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) ext
   def receiveRecover: PartialFunction[Any, Unit] = {
     case evt: Event =>
       updateState(evt)
-    case SnapshotOffer(_, SignalPo(name, driverId, key, tf)) =>
+    case SnapshotOffer(_, SignalPo(name, t, driverId, key, tf)) =>
       this.driverId = Some(driverId)
       this.signalName = Some(name)
       this.key = Some(key)
+      this.signalType = Some(t)
       tf.foreach(x => this.trans = this.trans :+ TransFunVo(x.funcName, x.params))
     case x => log.info("RECOVER: {} {}", this, x)
   }
 
   def receiveCommand: PartialFunction[Any, Unit] = {
-    case CreateSignalCmd(_, driverId, signalName, key) =>
-      persist(CreateSignalEvt(driverId, signalName, key))(updateState)
+    case CreateSignalCmd(_, name, t, driverId, key) =>
+      if(t matches("AI|DI|SI|AO|DO|SO")) {
+        persist(CreateSignalEvt(name, t, driverId, key))(updateState)
+      } else {
+        log.warning("Signal Type is invalid: ({},{},{},{})", driverId, signalName, t, key)
+      }
     case RenameSignalCmd(_, newName) =>
       persist(RenameSignalEvt(newName))(updateState)
     case SelectDriverCmd(_, driverId) =>
       persist(SelectDriverEvt(driverId))(updateState)
+    case SelectTypeCmd(_, newType) =>
+      persist(SelectTypeEvt(newType))(updateState)
     case SelectKeyCmd(_, key) =>
       persist(SelectKeyEvt(key))(updateState)
     case RetrieveSignalCmd(_) =>
       if (isValid) {
-        sender() ! SignalVo(signalId, signalName.get, driverId.get, key.get, trans)
+        sender() ! SignalVo(signalId, signalName.get, signalType.get, driverId.get, key.get, trans)
       } else {
         sender() ! NotAvailable(signalId)
       }
     case SaveSnapshotCmd(_) =>
       if (isValid) {
-        saveSnapshot(SignalPo(signalName.get, driverId.get, key.get, for(x <- trans) yield TransFunPo(x.funcName, x.params)))
+        saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for(x <- trans) yield TransFunPo(x.funcName, x.params)))
       }
     case UpdateValueCmd(_, ts, v) =>
       this.valueTs = Some(ts)
@@ -197,14 +207,17 @@ class Signal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) ext
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateSignalEvt(name, driverId, key) =>
+    case CreateSignalEvt(name, t, driverId, key) =>
       this.signalName = Some(name)
       this.driverId = Some(driverId)
       this.key = Some(key)
+      this.signalType = Some(t)
     case RenameSignalEvt(newName) =>
       this.signalName = Some(newName)
     case SelectDriverEvt(driverId) =>
       this.driverId = Some(driverId)
+    case SelectTypeEvt(newType) =>
+      this.signalType = Some(newType)
     case SelectKeyEvt(key) =>
       this.key = Some(key)
     case x => log.info("EVENT: {} {}", this, x)

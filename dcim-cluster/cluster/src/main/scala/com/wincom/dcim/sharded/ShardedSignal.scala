@@ -5,7 +5,7 @@ import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.Passivate
 import com.wincom.dcim.domain.Signal.{Command, StopSignalCmd}
 import com.wincom.dcim.domain.{Settings, Signal}
-import com.wincom.dcim.signal.SignalTransFuncRegistry
+import com.wincom.dcim.signal.FunctionRegistry
 
 import scala.math.Numeric.IntIsIntegral._
 
@@ -13,7 +13,7 @@ import scala.math.Numeric.IntIsIntegral._
   * Created by wangxy on 17-8-16.
   */
 object ShardedSignal {
-  def props(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) = Props(new ShardedSignal(driverShard, registry))
+  def props(driverShard: () => ActorRef, registry: FunctionRegistry) = Props(new ShardedSignal(driverShard, registry))
 
   def name(signalId: String): String = signalId.toString
 
@@ -30,7 +30,7 @@ object ShardedSignal {
   }
 }
 
-class ShardedSignal(driverShard: () => ActorRef, registry: SignalTransFuncRegistry) extends Signal(driverShard, registry) {
+class ShardedSignal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Signal(driverShard, registry) {
   val settings = Settings(context.system)
   context.setReceiveTimeout(settings.actor.passivateTimeout)
 

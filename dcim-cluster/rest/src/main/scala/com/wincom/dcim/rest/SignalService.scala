@@ -3,6 +3,7 @@ package com.wincom.dcim.rest
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -28,7 +29,17 @@ trait SignalRoutes extends SignalMarshaling {
 
   implicit def executionContext: ExecutionContext
 
-  def routes = pathPrefix("signal") {
+  private def validateSignalType(t: String): Boolean = {
+    t matches("AI|DI|SI|AO|DO|SO")
+  }
+  val tests =
+    path("hello") {
+      get {
+        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Say hello to akka-http</h1>"))
+      }
+    }
+
+  def routes = tests ~ pathPrefix("signal") {
     get {
       path(Segment) { signalId =>
         pathEnd {
@@ -45,8 +56,12 @@ trait SignalRoutes extends SignalMarshaling {
         path("create-signal") {
           pathEnd {
             entity(as[CreateSignalCmd]) { v =>
-              signals ! v
-              complete(Created)
+              if(validateSignalType(v.t)) {
+                signals ! v
+                complete(Created)
+              } else {
+                complete(BadRequest)
+              }
             }
           }
         } ~
