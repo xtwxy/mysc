@@ -1,6 +1,6 @@
 create-signal:
 request:
-{"signalId":"sig-2000","name":"my-signal","driverId":"drv-2000","key":"sys.cpu.load"}
+{"signalId":"sig-2000","name":"my-signal","t":"AI","driverId":"drv-2000","key":"sys.cpu.load","funcs":[{"name":"linear", "params":{"slope":"1","intercept":"0"}}]}
 response:
 [HTTP/1.1 201 Created]
 
@@ -8,7 +8,7 @@ retrieve-signal:
 request:
 {"signalId":"sig-2000"}
 response:
-{"signalId":"sig-2000","name":"my-signal","driverId":"drv-2000","key":"sys.cpu.load"}
+{"name":"my-signal","funcs":[{"name":"linear","params":{"slope":"1","intercept":"0"}}],"signalId":"sig-2000","t":"AI","key":"sys.cpu.load","driverId":"drv-2000"}
 
 rename-signal:
 request:
