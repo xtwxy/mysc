@@ -7,7 +7,7 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
   * Created by wangxy on 17-8-16.
   */
 trait SignalMarshaling extends DefaultJsonProtocol {
-  implicit val dateTimeFormat = DateTimeFormat
+  implicit val dateTimeFormat = DateTimeJsonFormat
   implicit val anyValFormat = AnyValFormat
 
   implicit val transVoFormat = jsonFormat2(TransFuncVo)

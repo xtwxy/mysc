@@ -1,6 +1,8 @@
 package com.wincom.dcim.rest
 
 import akka.http.scaladsl.model.DateTime
+import com.wincom.dcim.util.DateFormat
+import org.joda.time.format.DateTimeFormat
 import spray.json.{JsBoolean, JsNumber, JsObject, JsString, JsValue, RootJsonFormat}
 /**
   * Created by wangxy on 17-8-15.
@@ -44,17 +46,18 @@ object AnyValFormat extends RootJsonFormat[AnyVal] {
   }
 }
 
-object DateTimeFormat extends RootJsonFormat[DateTime] {
+object DateTimeJsonFormat extends RootJsonFormat[DateTime] {
   override def read(json: JsValue): DateTime = {
     json match {
       case JsString(value) =>
-        DateTime.fromIsoDateTimeString(value).get
+        val d = DateTimeFormat.forPattern(DateFormat.DATETIME_PATTERN).parseDateTime(value)
+        DateTime(d.getMillis)
       case x =>
         throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
     }
   }
 
   override def write(obj: DateTime): JsValue = {
-    JsString(Symbol(obj.toIsoDateTimeString()))
+    JsString(Symbol(DateTimeFormat.forPattern(DateFormat.DATETIME_PATTERN).print(obj.)))
   }
 }

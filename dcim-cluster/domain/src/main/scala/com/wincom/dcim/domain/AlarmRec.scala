@@ -16,26 +16,26 @@ import scala.collection.mutable
 object AlarmRec {
   def props(signalShard: () => ActorRef, registry: FunctionRegistry) = Props(new AlarmRec(signalShard, registry))
 
-  def name(alarmId: String) = s"$alarmId"
+  def name(alarmRecId: String) = s"$alarmRecId"
 
   sealed trait Command {
-    def alarmId: String
+    def alarmRecId: String
   }
 
   sealed trait Event extends Serializable
 
   final case class ThresholdFuncVo(name: String, params: Map[String, String]) extends Serializable
 
-  final case class RaiseAlarmCmd(alarmId: String, ts: DateTime, level:Int, signalValue: SignalValueVo, desc: String)
-  final case class TransitAlarmCmd(alarmId: String, ts: DateTime, level:Int, signalValue: SignalValueVo, desc: String)
-  final case class EndAlarmCmd(alarmId: String, ts: DateTime, signalId: String, desc: String)
+  final case class RaiseAlarmCmd(alarmRecId: String, ts: DateTime, level:Int, signalValue: SignalValueVo, desc: String)
+  final case class TransitAlarmCmd(alarmRecId: String, ts: DateTime, level:Int, signalValue: SignalValueVo, desc: String)
+  final case class EndAlarmCmd(alarmRecId: String, ts: DateTime, signalValue: SignalValueVo, desc: String)
 
 }
 
 class AlarmRec(signalShard: () => ActorRef, registry: FunctionRegistry) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
-  val alarmId = s"${self.path.name}"
+  val alarmRecId = s"${self.path.name}"
   var alarmName: Option[String] = None
   var alarmLevel: Option[Int] = None
   var signalId: Option[String] = None

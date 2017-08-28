@@ -8,7 +8,7 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
   */
 trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val anyValFormat: AnyValFormat.type = AnyValFormat
-  implicit val dateTimeFormat: DateTimeFormat.type = DateTimeFormat
+  implicit val dateTimeFormat: DateTimeJsonFormat.type = DateTimeJsonFormat
 
   implicit val okFormat: RootJsonFormat[Ok] = jsonFormat1(Ok)
   implicit val driverVoFormat: RootJsonFormat[DriverVo] = jsonFormat5(DriverVo)

@@ -207,7 +207,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       sender() ! GetFuncParamsRsp(signalId, registry.paramNames(model).toSet)
     case _: ReceiveTimeout =>
       context.stop(self)
-    case x => log.info("COMMAND: {} {}", this, x)
+    case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
   private def updateState: (Event => Unit) = {

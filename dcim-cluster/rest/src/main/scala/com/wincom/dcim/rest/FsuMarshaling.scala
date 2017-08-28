@@ -8,7 +8,7 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
   */
 trait FsuMarshaling extends DefaultJsonProtocol {
   implicit val anyValFormat: AnyValFormat.type = AnyValFormat
-  implicit val dateTimeFormat: DateTimeFormat.type = DateTimeFormat
+  implicit val dateTimeFormat: DateTimeJsonFormat.type = DateTimeJsonFormat
 
   implicit val fsuVoFormat: RootJsonFormat[FsuVo] = jsonFormat4(FsuVo)
   implicit val createFsuCmdFormat: RootJsonFormat[CreateFsuCmd] = jsonFormat4(CreateFsuCmd)

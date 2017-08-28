@@ -25,4 +25,7 @@ class Settings(config: Config) extends Extension {
     val port: Int = config.getInt("akka.http.server.port")
   }
 
+  object alarm {
+    val evalPeriod: Duration = Duration(config.getString("akka.alarm.eval-period"))
+  }
 }
