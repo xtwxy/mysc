@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.Math.*;
+
 /**
  * Created by wangxy on 17-8-25.
  */
@@ -15,6 +17,7 @@ public class EqualToFactory implements UnaryFunctionFactory {
     public EqualToFactory() {
         params = new HashSet<>();
         params.add("reference");
+        params.add("delta");
     }
     @Override
     public String name() {
@@ -29,20 +32,23 @@ public class EqualToFactory implements UnaryFunctionFactory {
     @Override
     public Option<UnaryFunction> create(Map<String, String> params) {
         double reference = Double.parseDouble(params.get("reference"));
-        return Option.apply(new EqualTo(reference));
+        double delta = Double.parseDouble(params.get("delta"));
+        return Option.apply(new EqualTo(reference, abs(delta)));
     }
 
     class EqualTo implements UnaryFunction {
         private final double reference;
-        public EqualTo(double reference) {
+        private final double delta;
+        public EqualTo(double reference, double delta) {
             this.reference = reference;
+            this.delta = delta;
         }
 
         @Override
         public Object transform(Object input) {
             if(input instanceof Double) {
                 Double x = (Double) input;
-                return (x == reference);
+                return abs(x - reference) < delta;
             }
             return input;
         }
