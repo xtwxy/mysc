@@ -10,7 +10,7 @@ trait SignalMarshaling extends DefaultJsonProtocol {
   implicit val dateTimeFormat = DateTimeFormat
   implicit val anyValFormat = AnyValFormat
 
-  implicit val transVoFormat = jsonFormat2(TransFunVo)
+  implicit val transVoFormat = jsonFormat2(TransFuncVo)
   implicit val signalVoFormat = jsonFormat6(SignalVo)
   implicit val signalValueFormat = jsonFormat3(SignalValueVo)
 

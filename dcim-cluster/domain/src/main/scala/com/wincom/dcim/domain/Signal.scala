@@ -32,8 +32,8 @@ object Signal {
   sealed trait Event extends Serializable
 
   /* value objects */
-  final case class TransFunVo(name: String, params: Map[String, String]) extends Serializable
-  final case class SignalVo(signalId: String, name: String, t: String, driverId: String, key: String, funcs: Seq[TransFunVo]) extends Command
+  final case class TransFuncVo(name: String, params: Map[String, String]) extends Serializable
+  final case class SignalVo(signalId: String, name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncVo]) extends Command
 
   final case class SignalValueVo(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
@@ -46,7 +46,7 @@ object Signal {
   final case class AlreadyExists(signalId: String) extends Command
 
   /* commands */
-  final case class CreateSignalCmd(signalId: String, name: String, t:String, driverId: String, key: String, funcs: Seq[TransFunVo]) extends Command
+  final case class CreateSignalCmd(signalId: String, name: String, t:String, driverId: String, key: String, funcs: Seq[TransFuncVo]) extends Command
 
   final case class RenameSignalCmd(signalId: String, newName: String) extends Command
 
@@ -54,7 +54,7 @@ object Signal {
   final case class SelectTypeCmd(signalId: String, newType: String) extends Command
 
   final case class SelectKeyCmd(signalId: String, key: String) extends Command
-  final case class UpdateFuncsCmd(signalId: String, funcs: Seq[TransFunVo]) extends Command
+  final case class UpdateFuncsCmd(signalId: String, funcs: Seq[TransFuncVo]) extends Command
 
   final case class RetrieveSignalCmd(signalId: String) extends Command
   final case class SaveSnapshotCmd(signalId: String) extends Command
@@ -77,7 +77,7 @@ object Signal {
   final case class GetFuncParamsRsp(signalId: String, paramNames: Set[String]) extends Command
 
   /* events */
-  final case class CreateSignalEvt(name: String, t: String, driverId: String, key: String, funcs: Seq[TransFunPo]) extends Event
+  final case class CreateSignalEvt(name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncPo]) extends Event
 
   final case class RenameSignalEvt(newName: String) extends Event
 
@@ -85,11 +85,11 @@ object Signal {
   final case class SelectTypeEvt(newType: String) extends Event
 
   final case class SelectKeyEvt(key: String) extends Event
-  final case class UpdateFuncsEvt(funcs: Seq[TransFunPo]) extends Event
+  final case class UpdateFuncsEvt(funcs: Seq[TransFuncPo]) extends Event
 
   /* persistent objects */
-  final case class TransFunPo(name: String, params: Map[String, String]) extends Serializable
-  final case class SignalPo(name: String, t: String, driverId: String, key: String, funcs: Seq[TransFunPo]) extends Event
+  final case class TransFuncPo(name: String, params: Map[String, String]) extends Serializable
+  final case class SignalPo(name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncPo]) extends Event
 
 }
 
@@ -101,7 +101,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
   var signalType: Option[String] = None
   var driverId: Option[String] = None
   var key: Option[String] = None
-  var funcConfigs: collection.mutable.Seq[TransFunVo] = mutable.ArraySeq()
+  var funcConfigs: collection.mutable.Seq[TransFuncVo] = mutable.ArraySeq()
 
   // transient values
   var funcs: collection.mutable.Seq[UnaryFunction] = mutable.ArraySeq()
@@ -123,13 +123,13 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.signalName = Some(name)
       this.key = Some(key)
       this.signalType = Some(t)
-      tf.foreach(x => this.funcConfigs = this.funcConfigs :+ TransFunVo(x.name, x.params))
-    case x => log.info("RECOVER: {} {}", this, x)
+      tf.foreach(x => this.funcConfigs = this.funcConfigs :+ TransFuncVo(x.name, x.params))
+    case x => log.info("RECOVER *IGNORED*: {} {}", this, x)
   }
 
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateSignalCmd(_, name, t, driverId, key, fs) =>
-      persist(CreateSignalEvt(name, t, driverId, key, for(f <- fs) yield TransFunPo(f.name, f.params)))(updateState)
+      persist(CreateSignalEvt(name, t, driverId, key, for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
     case RenameSignalCmd(_, newName) =>
       persist(RenameSignalEvt(newName))(updateState)
     case SelectDriverCmd(_, driverId) =>
@@ -140,7 +140,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       persist(SelectKeyEvt(key))(updateState)
     case UpdateFuncsCmd(_, fs) =>
       this.funcConfigs = mutable.ArraySeq() ++ fs
-      persist(UpdateFuncsEvt(for(f <- fs) yield TransFunPo(f.name, f.params)))(updateState)
+      persist(UpdateFuncsEvt(for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
     case RetrieveSignalCmd(_) =>
       if (isValid) {
         sender() ! SignalVo(signalId, signalName.get, signalType.get, driverId.get, key.get, funcConfigs)
@@ -149,7 +149,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       }
     case SaveSnapshotCmd(_) =>
       if (isValid) {
-        saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for(x <- funcConfigs) yield TransFunPo(x.name, x.params)))
+        saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for(x <- funcConfigs) yield TransFuncPo(x.name, x.params)))
       }
     case UpdateValueCmd(_, ts, v) =>
       this.valueTs = Some(ts)
@@ -230,11 +230,11 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     case x => log.info("EVENT: {} {}", this, x)
   }
 
-  private def updateFuncs(fs: Seq[TransFunPo]): Unit = {
+  private def updateFuncs(fs: Seq[TransFuncPo]): Unit = {
     this.funcConfigs = mutable.ArraySeq()
     this.funcs = mutable.ArraySeq()
     fs.foreach(f => {
-      this.funcConfigs = this.funcConfigs:+ TransFunVo(f.name, f.params)
+      this.funcConfigs = this.funcConfigs:+ TransFuncVo(f.name, f.params)
       val func = registry.createUnary(f.name, f.params.asJava)
       if(func.isDefined) {
         this.funcs = this.funcs :+ func.get
