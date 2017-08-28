@@ -58,6 +58,6 @@ object DateTimeJsonFormat extends RootJsonFormat[DateTime] {
   }
 
   override def write(obj: DateTime): JsValue = {
-    JsString(Symbol(DateTimeFormat.forPattern(DateFormat.DATETIME_PATTERN).print(obj.)))
+    JsString(Symbol(DateTimeFormat.forPattern(DateFormat.DATETIME_PATTERN).print(obj.clicks)))
   }
 }

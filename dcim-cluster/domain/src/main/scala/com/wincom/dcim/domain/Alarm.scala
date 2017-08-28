@@ -5,12 +5,14 @@ import akka.event.Logging
 import akka.http.scaladsl.model.DateTime
 import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.util.Timeout
 import com.wincom.dcim.domain.Alarm._
 import com.wincom.dcim.signal.{FunctionRegistry, UnaryFunction}
 import org.joda.time.Duration
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Success
@@ -100,12 +102,19 @@ class Alarm(signalShard: () => ActorRef, registry: FunctionRegistry) extends Per
   var valueTs: Option[DateTime] = None
 
   val evalPeriod = Settings(context.system).alarm.evalPeriod.toMillis milliseconds
+
+  override def preStart(): Unit = {
+    super.preStart()
     context.system.scheduler.schedule(0 milliseconds,
       evalPeriod,
       self,
       EvalAlarmValueCmd(alarmId)
     )
+  }
 
+  implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
+  implicit def executionContext: ExecutionContext = context.dispatcher
+  
   override def persistenceId: String = s"${self.path.name}"
 
   override def receiveRecover: Receive = {
