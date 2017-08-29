@@ -50,14 +50,14 @@ object DateTimeJsonFormat extends RootJsonFormat[DateTime] {
   override def read(json: JsValue): DateTime = {
     json match {
       case JsString(value) =>
-        val d = DateTimeFormat.forPattern(DateFormat.DATETIME_PATTERN).parseDateTime(value)
-        DateTime(d.getMillis)
+        val d = DateFormat.parseTimestamp(value)
+        DateTime(d.getTime)
       case x =>
         throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
     }
   }
 
   override def write(obj: DateTime): JsValue = {
-    JsString(Symbol(DateTimeFormat.forPattern(DateFormat.DATETIME_PATTERN).print(obj.clicks)))
+    JsString(Symbol(DateFormat.formatTimestamp(obj.clicks)))
   }
 }

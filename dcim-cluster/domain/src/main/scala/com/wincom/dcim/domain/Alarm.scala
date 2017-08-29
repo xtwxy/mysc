@@ -100,6 +100,8 @@ class Alarm(signalShard: () => ActorRef, registry: FunctionRegistry) extends Per
   var funcs: collection.mutable.Seq[UnaryFunction] = mutable.ArraySeq()
   var value: Option[Boolean] = None
   var valueTs: Option[DateTime] = None
+  var beginTs: Option[DateTime] = None
+  var endTs: Option[DateTime] = None
 
   val evalPeriod = Settings(context.system).alarm.evalPeriod.toMillis milliseconds
 
@@ -204,9 +206,11 @@ class Alarm(signalShard: () => ActorRef, registry: FunctionRegistry) extends Per
         val old = this.value.getOrElse(false)
         if(b != old) {
           if(b) {
-            AlarmRec.RaiseAlarmCmd(alarmId, valueTs.get, alarmLevel.get, sv, positiveDesc.get)
+            this.beginTs = Some(sv.ts)
+            AlarmRec.RaiseAlarmCmd(alarmId, beginTs.get, alarmLevel.get, sv, positiveDesc.get)
           } else {
-            AlarmRec.EndAlarmCmd(alarmId, valueTs.get, sv, negativeDesc.get)
+            this.endTs = Some(sv.ts)
+            AlarmRec.EndAlarmCmd(alarmId, beginTs.get, endTs.get, sv, negativeDesc.get)
           }
         }
         this.value = Some(b)
