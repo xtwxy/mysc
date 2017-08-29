@@ -36,8 +36,18 @@ object AlarmRec {
                                  name: String,
                                  level: Int,
                                  signalId: String,
+                                 desc: String,
+                                 value: AnyVal,
+                                 valueTs: DateTime,
+                                 ackTime: Option[DateTime],
+                                 ackByPerson: Option[String],
+                                 ackDesc: Option[String],
+                                 muteTime: Option[DateTime],
+                                 muteByPerson: Option[String],
+                                 muteDesc: Option[String],
                                  transitions: Seq[Event],
-                                 end: Option[DateTime]) extends Command
+                                 end: Option[DateTime]
+                                ) extends Command
 
   /* commands */
   final case class RaiseAlarmCmd(alarmId: String,
@@ -74,7 +84,7 @@ object AlarmRec {
                                  transitions: Seq[Event],
                                  end: Option[DateTime]) extends Serializable
 
-  final case class RaiseAlarmEvt(time:DateTime,
+  final case class RaiseAlarmEvt(time: DateTime,
                                  name: String,
                                  level: Int,
                                  signalValue: SignalValueVo,
@@ -145,7 +155,24 @@ class AlarmRec(signalShard: () => ActorRef, registry: FunctionRegistry) extends 
     case MuteAlarmCmd(_, _, time, person, desc) =>
       persist(MuteAlarmEvt(time, person, desc))(updateState)
     case RetrieveAlarmCmd(_, _) =>
-      sender() ! AlarmRecordVo(alarmId, beginTs, alarmName.get, alarmLevel.get, signalId.get, transitions, endTs)
+      sender() ! AlarmRecordVo(
+        alarmId,
+        beginTs,
+        alarmName.get,
+        alarmLevel.get,
+        signalId.get,
+        alarmDesc.get,
+        currentValue.get,
+        valueTs.get,
+        ackTime,
+        ackByPerson,
+        ackDesc,
+        muteTime,
+        muteByPerson,
+        muteDesc,
+        transitions: Seq[Event],
+        endTs
+      )
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
