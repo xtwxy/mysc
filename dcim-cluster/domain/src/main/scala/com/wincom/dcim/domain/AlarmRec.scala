@@ -7,6 +7,7 @@ import akka.persistence.{PersistentActor, SnapshotOffer}
 import com.wincom.dcim.domain.AlarmRec._
 import com.wincom.dcim.domain.Signal.SignalValueVo
 import com.wincom.dcim.signal.FunctionRegistry
+import com.wincom.dcim.util.DateFormat
 import com.wincom.dcim.util.DateFormat._
 
 import scala.collection.mutable
@@ -35,7 +36,7 @@ object AlarmRec {
                                  name: String,
                                  level: Int,
                                  signalId: String,
-                                 transitions: Seq[Command],
+                                 transitions: Seq[Event],
                                  end: Option[DateTime]) extends Command
 
   /* commands */
@@ -59,9 +60,9 @@ object AlarmRec {
                                signalValue: SignalValueVo,
                                desc: String) extends Command
 
-  final case class AckAlarmCmd(alarmId: String, begin: DateTime, byPerson: String, muteTime: DateTime) extends Command
+  final case class AckAlarmCmd(alarmId: String, begin: DateTime, ackTime: DateTime, byPerson: String, desc: String) extends Command
 
-  final case class MuteAlarmCmd(alarmId: String, begin: DateTime, byPerson: String, muteTime: DateTime) extends Command
+  final case class MuteAlarmCmd(alarmId: String, begin: DateTime, muteTime: DateTime, byPerson: String, desc: String) extends Command
 
   /* transient commands */
   final case class RetrieveAlarmCmd(alarmId: String, begin: DateTime) extends Command
@@ -88,17 +89,18 @@ object AlarmRec {
                                signalValue: SignalValueVo,
                                desc: String) extends Event
 
-  final case class AckAlarmEvt(time: DateTime, byPerson: String) extends Event
+  final case class AckAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event
 
-  final case class MuteAlarmEvt(time: DateTime, byPerson: String) extends Event
+  final case class MuteAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event
 
 }
 
 class AlarmRec(signalShard: () => ActorRef, registry: FunctionRegistry) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
-  val alarmId = s"${self.path.name}"
-  var beginTs: Option[DateTime] = None
+  val id = (s"${self.path.name}").split(",")
+  val alarmId: String = id(0)
+  val beginTs: DateTime = DateTime(DateFormat.parseTimestamp(id(1)).getTime)
   var alarmName: Option[String] = None
   var alarmLevel: Option[Int] = None
   var signalId: Option[String] = None
@@ -107,11 +109,13 @@ class AlarmRec(signalShard: () => ActorRef, registry: FunctionRegistry) extends 
   var valueTs: Option[DateTime] = None
   var endTs: Option[DateTime] = None
 
-  var ackByPerson: Option[String] = None
   var ackTime: Option[DateTime] = None
+  var ackByPerson: Option[String] = None
+  var ackDesc: Option[String] = None
 
-  var muteByPerson: Option[String] = None
   var muteTime: Option[DateTime] = None
+  var muteByPerson: Option[String] = None
+  var muteDesc: Option[String] = None
 
   var transitions: mutable.Seq[Event] = mutable.ArraySeq()
 
@@ -130,7 +134,19 @@ class AlarmRec(signalShard: () => ActorRef, registry: FunctionRegistry) extends 
   }
 
   override def receiveCommand: Receive = {
-    case _ =>
+    case RaiseAlarmCmd(_, begin, name, level, sv, desc) =>
+      persist(RaiseAlarmEvt(begin, name, level, sv, desc))(updateState)
+    case TransitAlarmCmd(_, _, trans, level, sv, desc) =>
+      persist(TransitAlarmEvt(trans, level, sv, desc))(updateState)
+    case EndAlarmCmd(_, _, trans, sv, desc) =>
+      persist(EndAlarmEvt(trans, sv, desc))(updateState)
+    case AckAlarmCmd(_, _, time, person, desc) =>
+      persist(AckAlarmEvt(time, person, desc))(updateState)
+    case MuteAlarmCmd(_, _, time, person, desc) =>
+      persist(MuteAlarmEvt(time, person, desc))(updateState)
+    case RetrieveAlarmCmd(_, _) =>
+      sender() ! AlarmRecordVo(alarmId, beginTs, alarmName.get, alarmLevel.get, signalId.get, transitions, endTs)
+    case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
   private def updateState: (Event => Unit) = {
@@ -155,13 +171,15 @@ class AlarmRec(signalShard: () => ActorRef, registry: FunctionRegistry) extends 
       this.valueTs = Some(sv.ts)
       this.alarmDesc = Some(desc)
       this.transitions = this.transitions :+ x
-    case x@AckAlarmEvt(time, person) =>
+    case x@AckAlarmEvt(time, person, desc) =>
       this.ackByPerson = Some(person)
       this.ackTime = Some(time)
+      this.ackDesc = Some(desc)
       this.transitions = this.transitions :+ x
-    case x@MuteAlarmEvt(time, person) =>
+    case x@MuteAlarmEvt(time, person, desc) =>
       this.muteByPerson = Some(person)
       this.muteTime = Some(time)
+      this.muteDesc = Some(desc)
       this.transitions = this.transitions :+ x
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
   }
