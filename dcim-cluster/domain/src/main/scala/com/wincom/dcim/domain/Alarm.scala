@@ -207,10 +207,10 @@ class Alarm(signalShard: () => ActorRef, registry: FunctionRegistry) extends Per
         if(b != old) {
           if(b) {
             this.beginTs = Some(sv.ts)
-            AlarmRec.RaiseAlarmCmd(alarmId, beginTs.get, alarmName.get, alarmLevel.get, sv, positiveDesc.get)
+            AlarmRecord.RaiseAlarmCmd(alarmId, beginTs.get, alarmName.get, alarmLevel.get, sv, positiveDesc.get)
           } else {
             this.endTs = Some(sv.ts)
-            AlarmRec.EndAlarmCmd(alarmId, beginTs.get, endTs.get, sv, negativeDesc.get)
+            AlarmRecord.EndAlarmCmd(alarmId, beginTs.get, endTs.get, sv, negativeDesc.get)
           }
         }
         this.value = Some(b)

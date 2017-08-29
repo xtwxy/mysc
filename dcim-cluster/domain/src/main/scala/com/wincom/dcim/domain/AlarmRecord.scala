@@ -4,10 +4,8 @@ import akka.actor.{ActorRef, Props}
 import akka.event.Logging
 import akka.http.scaladsl.model.DateTime
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.wincom.dcim.domain.AlarmRec._
+import com.wincom.dcim.domain.AlarmRecord._
 import com.wincom.dcim.domain.Signal.SignalValueVo
-import com.wincom.dcim.signal.FunctionRegistry
-import com.wincom.dcim.util.DateFormat
 import com.wincom.dcim.util.DateFormat._
 
 import scala.collection.mutable
@@ -15,8 +13,8 @@ import scala.collection.mutable
 /**
   * Created by wangxy on 17-8-28.
   */
-object AlarmRec {
-  def props(signalShard: () => ActorRef, registry: FunctionRegistry) = Props(new AlarmRec(signalShard, registry))
+object AlarmRecord {
+  def props(notifier: () => ActorRef) = Props(new AlarmRecord(notifier))
 
   def name(alarmId: String, begin: DateTime) = s"${alarmId},${formatTimestamp(begin.clicks)}"
 
@@ -76,6 +74,7 @@ object AlarmRec {
 
   /* transient commands */
   final case class RetrieveAlarmCmd(alarmId: String, begin: DateTime) extends Command
+  final case class PassivateAlarmCmd(alarmId: String, begin: DateTime) extends Command
 
   /* persistent objects */
   final case class AlarmRecordPo(name: String,
@@ -105,12 +104,12 @@ object AlarmRec {
 
 }
 
-class AlarmRec(signalShard: () => ActorRef, registry: FunctionRegistry) extends PersistentActor {
+class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
   val id = (s"${self.path.name}").split(",")
   val alarmId: String = id(0)
-  val beginTs: DateTime = DateTime(DateFormat.parseTimestamp(id(1)).getTime)
+  val beginTs: DateTime = DateTime(parseTimestamp(id(1)).getTime)
   var alarmName: Option[String] = None
   var alarmLevel: Option[Int] = None
   var signalId: Option[String] = None

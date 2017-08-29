@@ -23,16 +23,16 @@ class ShardedSignals extends Actor {
   val log = Logging(context.system.eventStream, ShardedSignals.name)
   val registry: FunctionRegistry = (new FunctionRegistry(log)).initialize()
 
-  val shardedDriver: () => ActorRef = {
-    () => ClusterSharding(context.system).shardRegion(ShardedDriver.shardName)
-  }
-
   ClusterSharding(context.system).start(
     ShardedSignal.shardName,
     ShardedSignal.props(shardedDriver, registry),
     ClusterShardingSettings(context.system),
     ShardedSignal.extractEntityId,
     ShardedSignal.extractShardId)
+
+  def shardedDriver(): ActorRef = {
+    ClusterSharding(context.system).shardRegion(ShardedDriver.shardName)
+  }
 
   def shardedSignal: ActorRef = {
     ClusterSharding(context.system).shardRegion(ShardedSignal.shardName)
