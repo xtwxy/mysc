@@ -19,7 +19,7 @@ parallelExecution in Test := false
 fork := true
 
 libraryDependencies ++= {
-  val akkaVersion = "2.5.1"
+  val akkaVersion = "2.5.3"
   Seq(
     "com.typesafe.akka"         %%  "akka-actor"                          % akkaVersion,
     "com.typesafe.akka"         %%  "akka-stream"                         % akkaVersion,
@@ -40,12 +40,7 @@ libraryDependencies ++= {
     "org.scalatest"             %%  "scalatest"                           % "3.0.1"       % "test",
 
     "com.typesafe.akka"         %%  "akka-testkit"                        % akkaVersion   % "test",
-    "com.typesafe.akka"         %%  "akka-multi-node-testkit"             % akkaVersion   % "test",
-
-    "com.typesafe.akka"         %%  "akka-slf4j"                          % akkaVersion,
-
-    "commons-io"                %  "commons-io"                           % "2.4",
-    "ch.qos.logback"            %  "logback-classic"                      % "1.1.2"
+    "com.typesafe.akka"         %%  "akka-multi-node-testkit"             % akkaVersion   % "test"
   )
 }
 assemblyMergeStrategy in assembly := {

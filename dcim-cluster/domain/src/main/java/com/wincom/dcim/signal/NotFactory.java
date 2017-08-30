@@ -30,7 +30,7 @@ public class NotFactory implements UnaryFunctionFactory {
         return Option.apply(new Not());
     }
 
-    class Not implements UnaryFunction {
+    public final class Not implements UnaryFunction {
         public Not() {
         }
 
@@ -40,11 +40,6 @@ public class NotFactory implements UnaryFunctionFactory {
                 Boolean x = (Boolean) input;
                 return !x;
             }
-            return input;
-        }
-
-        @Override
-        public Object inverse(Object input) {
             return input;
         }
     }

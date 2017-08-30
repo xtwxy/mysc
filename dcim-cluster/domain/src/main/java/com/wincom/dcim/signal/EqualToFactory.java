@@ -36,7 +36,7 @@ public class EqualToFactory implements UnaryFunctionFactory {
         return Option.apply(new EqualTo(reference, abs(delta)));
     }
 
-    class EqualTo implements UnaryFunction {
+    public final class EqualTo implements UnaryFunction {
         private final double reference;
         private final double delta;
         public EqualTo(double reference, double delta) {
@@ -50,11 +50,6 @@ public class EqualToFactory implements UnaryFunctionFactory {
                 Double x = (Double) input;
                 return abs(x - reference) < delta;
             }
-            return input;
-        }
-
-        @Override
-        public Object inverse(Object input) {
             return input;
         }
     }

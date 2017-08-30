@@ -7,7 +7,7 @@ import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.util.Timeout
 import com.wincom.dcim.domain.Signal._
-import com.wincom.dcim.signal.{FunctionRegistry, UnaryFunction}
+import com.wincom.dcim.signal.{FunctionRegistry, InverseFunction, UnaryFunction}
 import org.joda.time.Duration
 
 import scala.collection.JavaConverters._
@@ -158,7 +158,9 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       val theSender = sender()
       var x = v
       for(f <- funcs) {
-        x = f.inverse(x)
+        if(f.isInstanceOf[InverseFunction]) {
+          x = f.asInstanceOf[InverseFunction].inverse(x)
+        }
       }
       driverShard().ask(Driver.SetSignalValueCmd(this.driverId.get, this.key.get, x)).mapTo[Driver.Command].onComplete {
         case f: Success[Driver.Command] =>

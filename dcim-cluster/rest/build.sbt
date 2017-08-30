@@ -18,7 +18,7 @@ parallelExecution in Test := false
 fork := true
 
 libraryDependencies ++= {
-  val akkaVersion = "2.5.1"
+  val akkaVersion = "2.5.3"
   val akkaHttpVersion = "10.0.9"
   val sprayVersion = "1.3.3"
   val jodaTimeVersion = "2.9.9"
@@ -26,7 +26,6 @@ libraryDependencies ++= {
     "com.typesafe.akka"         %%  "akka-http"                           % akkaHttpVersion,
     "com.typesafe.akka"         %%  "akka-http-core"                      % akkaHttpVersion,
     "com.typesafe.akka"         %%  "akka-http-spray-json"                % akkaHttpVersion,
-    //"io.spray"                  %%  "spray-json"                          % sprayVersion,
 
     "joda-time"                 %   "joda-time"                           % jodaTimeVersion
   )

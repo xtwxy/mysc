@@ -5,6 +5,8 @@ import scala.Option;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import com.wincom.dcim.signal.GreaterThanFactory.GreaterThan;
+import com.wincom.dcim.signal.LessThanFactory.LessThan;
 
 import static java.lang.Math.abs;
 
@@ -55,10 +57,10 @@ public class BetweenFactory implements UnaryFunctionFactory {
         return Option.apply(new Between(lower, upper, insensitivityZone));
     }
 
-    class Between implements UnaryFunction {
-        private final double upperBound;
-        private final double lowerBound;
-        private final double insensitivityZone;
+    public final class Between implements UnaryFunction, SetFunction {
+        public final double upperBound;
+        public final double lowerBound;
+        public final double insensitivityZone;
         private Boolean value;
         public Between(double lowerBound, double upperBound, double insensitivityZone) {
             this.upperBound = upperBound;
@@ -85,8 +87,46 @@ public class BetweenFactory implements UnaryFunctionFactory {
         }
 
         @Override
-        public Object inverse(Object input) {
-            return input;
+        public boolean contains(Object e) {
+            Object o = transform(e);
+            if(o instanceof Boolean) {
+                return (Boolean) o;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean subsetOf(SetFunction f) {
+            if(f instanceof Between) {
+                Between b = (Between) f;
+                if(lowerBound >= b.lowerBound && upperBound <= b.upperBound) {
+                    return true;
+                }
+            } else if(f instanceof GreaterThan) {
+                GreaterThan g = (GreaterThan) f;
+                if(lowerBound >= g.threshold) return true;
+            } else if(f instanceof LessThan) {
+                LessThan l = (LessThan) f;
+                if(upperBound <= l.threshold) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean intersects(SetFunction f) {
+            if(f instanceof Between) {
+                Between b = (Between) f;
+                if(lowerBound <= b.upperBound && upperBound >= b.lowerBound) {
+                    return true;
+                }
+            } else if(f instanceof GreaterThan) {
+                GreaterThan g = (GreaterThan) f;
+                if(g.threshold <= upperBound) return true;
+            } else if(f instanceof LessThan) {
+                LessThan l = (LessThan) f;
+                if(l.threshold >= lowerBound) return true;
+            }
+            return false;
         }
     }
 }
