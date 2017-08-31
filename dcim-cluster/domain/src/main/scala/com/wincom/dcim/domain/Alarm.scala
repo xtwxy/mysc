@@ -34,7 +34,7 @@ object AlarmConditionVo {
   def apply(cond: AlarmCondition): AlarmConditionVo = new AlarmConditionVo(ThresholdFuncVo(cond.func), cond.level, cond.positiveDesc, cond.negativeDesc)
 }
 
-final class ThresholdFunc(val name: String, val params: Map[String, String], val func: SetFunction) extends SetFunction {
+final case class ThresholdFunc(val name: String, val params: Map[String, String], val func: SetFunction) extends SetFunction {
   override def contains(e: AnyVal): Boolean = func.contains(e)
 
   override def subsetOf(f: SetFunction): Boolean = func.subsetOf(f)
@@ -57,7 +57,7 @@ final class ThresholdFunc(val name: String, val params: Map[String, String], val
   }
 }
 
-final class AlarmCondition(val func: ThresholdFunc, val level: Int, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
+final case class AlarmCondition(val func: ThresholdFunc, val level: Int, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
   override def contains(e: AnyVal): Boolean = func.contains(e)
 
   override def subsetOf(f: SetFunction): Boolean = {
