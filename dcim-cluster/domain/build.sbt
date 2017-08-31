@@ -23,6 +23,8 @@ libraryDependencies ++= {
     "com.typesafe.akka"         %%  "akka-actor"                          % akkaVersion,
     "com.typesafe.akka"         %%  "akka-stream"                         % akkaVersion,
     "com.typesafe.akka"         %%  "akka-persistence"                    % akkaVersion,
+    "com.typesafe.akka"         %%  "akka-cluster"                        % akkaVersion,
+    "com.typesafe.akka"         %%  "akka-cluster-tools"                  % akkaVersion,
     "com.typesafe.akka"         %%  "akka-http-core"                      % "10.0.9",
     "org.reflections"           %   "reflections"                         % "0.9.11",
     "joda-time"                 %   "joda-time"                           % "2.9.9"

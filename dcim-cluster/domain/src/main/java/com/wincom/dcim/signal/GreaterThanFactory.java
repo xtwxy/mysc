@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Set;
 import static java.lang.Math.*;
 
+import com.wincom.dcim.signal.LessThanFactory.LessThan;
+import com.wincom.dcim.signal.BetweenFactory.Between;
+
 /**
  * Created by wangxy on 17-8-25.
  */
@@ -52,9 +55,9 @@ public class GreaterThanFactory implements UnaryFunctionFactory {
         return Option.apply(new GreaterThan(threshold, abs(insensitivityZone)));
     }
 
-    class GreaterThan implements UnaryFunction {
-        private final double threshold;
-        private final double insensitivityZone;
+    public final class GreaterThan implements UnaryFunction , SetFunction {
+        public final double threshold;
+        public final double insensitivityZone;
         private Boolean value;
         public GreaterThan(double threshold, double insensitivityZone) {
             this.threshold = threshold;
@@ -81,8 +84,42 @@ public class GreaterThanFactory implements UnaryFunctionFactory {
         }
 
         @Override
-        public Object inverse(Object input) {
-            return input;
+        public boolean contains(Object e) {
+            Object o = transform(e);
+            if(o instanceof Boolean) {
+                return (Boolean) o;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean subsetOf(SetFunction f) {
+            if(f instanceof Between) {
+                return false;
+            } else if(f instanceof GreaterThan) {
+                GreaterThan g = (GreaterThan) f;
+                if(threshold >= g.threshold) return true;
+            } else if(f instanceof LessThan) {
+                return false;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean intersects(SetFunction f) {
+            if(f instanceof Between) {
+                Between b = (Between) f;
+                if(threshold <= b.upperBound) {
+                    return true;
+                }
+            } else if(f instanceof GreaterThan) {
+                return true;
+            } else if(f instanceof LessThan) {
+                LessThan l = (LessThan) f;
+                if(l.threshold >= threshold) return true;
+            }
+            return false;
+
         }
     }
 }

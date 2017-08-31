@@ -33,7 +33,7 @@ public class LinearFactory implements UnaryFunctionFactory {
         return Option.apply(new Linear(slope, intercept));
     }
 
-    class Linear implements UnaryFunction {
+    public final class Linear implements UnaryFunction, InverseFunction {
         private final double slope;
         private final double intercept;
         public Linear(double slope, double intercept) {

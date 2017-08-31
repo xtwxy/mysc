@@ -3,25 +3,122 @@ package com.wincom.dcim.domain
 import akka.actor.{ActorRef, Props}
 import akka.event.Logging
 import akka.http.scaladsl.model.DateTime
-import akka.pattern.ask
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.PersistentActor
 import akka.util.Timeout
 import com.wincom.dcim.domain.Alarm._
-import com.wincom.dcim.signal.{FunctionRegistry, UnaryFunction}
-import org.joda.time.Duration
+import com.wincom.dcim.domain.Signal.SignalValueVo
+import com.wincom.dcim.signal.{FunctionRegistry, SetFunction}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Success
 
 /**
   * Created by wangxy on 17-8-28.
   */
+final case class ThresholdFuncVo(name: String, params: Map[String, String])
+
+final case class AlarmConditionVo(func: ThresholdFuncVo, level: Int, positiveDesc: String, negativeDesc: String)
+
+object ThresholdFuncVo {
+  def apply(name: String, params: Map[String, String]): ThresholdFuncVo = new ThresholdFuncVo(name, params)
+
+  def apply(func: ThresholdFunc): ThresholdFuncVo = new ThresholdFuncVo(func.name, func.params)
+}
+
+object AlarmConditionVo {
+  def apply(func: ThresholdFuncVo, level: Int, positiveDesc: String, negativeDesc: String): AlarmConditionVo = new AlarmConditionVo(func, level, positiveDesc, negativeDesc)
+
+  def apply(cond: AlarmCondition): AlarmConditionVo = new AlarmConditionVo(ThresholdFuncVo(cond.func), cond.level, cond.positiveDesc, cond.negativeDesc)
+}
+
+final class ThresholdFunc(val name: String, val params: Map[String, String], val func: SetFunction) extends SetFunction {
+  override def contains(e: AnyVal): Boolean = func.contains(e)
+
+  override def subsetOf(f: SetFunction): Boolean = func.subsetOf(f)
+
+  override def intersects(f: SetFunction): Boolean = func.intersects(f)
+
+  override def equals(other: Any): Boolean = other match {
+    case that: ThresholdFunc =>
+      name == that.name &&
+        params == that.params
+    case _ => {
+      println("false: " + other)
+      false
+    }
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(name, params)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+
+final class AlarmCondition(val func: ThresholdFunc, val level: Int, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
+  override def contains(e: AnyVal): Boolean = func.contains(e)
+
+  override def subsetOf(f: SetFunction): Boolean = {
+    f match {
+      case t: AlarmCondition =>
+        func.subsetOf(t.func.func)
+      case _ =>
+        func.subsetOf(f)
+    }
+  }
+
+  override def intersects(f: SetFunction): Boolean = {
+    f match {
+      case t: AlarmCondition =>
+        func.intersects(t.func.func)
+      case _ =>
+        func.subsetOf(f)
+    }
+  }
+
+  override def equals(other: Any): Boolean = other match {
+    case that: AlarmCondition =>
+      func == that.func &&
+        level == that.level &&
+        positiveDesc == that.positiveDesc &&
+        negativeDesc == that.negativeDesc
+    case _ => {
+      println("false: " + other)
+      false
+    }
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(func, level, positiveDesc, negativeDesc)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+}
+
+object ThresholdFunc {
+  def apply(name: String, params: Map[String, String], func: SetFunction): ThresholdFunc = new ThresholdFunc(name, params, func)
+
+  def apply(f: ThresholdFuncVo)(implicit registry: FunctionRegistry): ThresholdFunc = {
+    val func = registry.createUnary(f.name, f.params.asJava)
+    if (func.isDefined) {
+      new ThresholdFunc(f.name, f.params, func.get.asInstanceOf[SetFunction])
+    } else {
+      throw new IllegalArgumentException(f.toString)
+    }
+  }
+}
+
+object AlarmCondition {
+  def apply(func: ThresholdFunc, level: Int, positiveDesc: String, negativeDesc: String): AlarmCondition = new AlarmCondition(func, level, positiveDesc, negativeDesc)
+
+  def apply(c: AlarmConditionVo)(implicit registry: FunctionRegistry): AlarmCondition = new AlarmCondition(ThresholdFunc(c.func), c.level, c.positiveDesc, c.negativeDesc)
+}
+
 object Alarm {
-  def props(signalShard: () => ActorRef, registry: FunctionRegistry) = Props(new Alarm(signalShard, registry))
+  def props(signalShard: () => ActorRef,
+            alarmRecordShard: () => ActorRef,
+            registry: FunctionRegistry) = Props(new Alarm(signalShard, alarmRecordShard, registry))
 
   def name(alarmId: String) = s"$alarmId"
 
@@ -32,74 +129,69 @@ object Alarm {
   sealed trait Event extends Serializable
 
   /* value objects */
-  final case class AlarmVo(alarmId: String, name: String, level: Int, signalId: String, funcs: Seq[ThresholdFuncVo], positiveDesc: String, negativeDesc: String) extends Serializable
-
-  final case class AlarmValueVo(alarmId: String, valueTs: DateTime, value: Boolean) extends Serializable
-
-  final case class ThresholdFuncVo(name: String, params: Map[String, String]) extends Serializable
+  final case class AlarmValueVo(alarmId: String,
+                                name: String,
+                                signalId: String,
+                                conditions: Set[Seq[AlarmCondition]],
+                                value: Option[Boolean],
+                                matched: Option[AlarmCondition],
+                                beginTs: Option[DateTime],
+                                endTs: Option[DateTime])
 
   final case class Ok(alarmId: String) extends Command
 
   final case class NotAvailable(alarmId: String) extends Command
 
   /* commands */
-  final case class CreateAlarmCmd(alarmId: String, name: String, level: Int, signalId: String, funcs: Seq[ThresholdFuncVo], positiveDesc: String, negativeDesc: String) extends Command
+  final case class CreateAlarmCmd(alarmId: String, name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]]) extends Command
 
   final case class RenameAlarmCmd(alarmId: String, newName: String) extends Command
 
-  final case class ChangeLevelCmd(alarmId: String, newLevel: Int) extends Command
+  final case class SelectSignalCmd(alarmId: String, newSignalId: String) extends Command
 
-  final case class ChangeSignalCmd(alarmId: String, newSignalId: String) extends Command
+  final case class AddConditionCmd(alarmId: String, condition: AlarmConditionVo) extends Command
 
-  final case class ChangeGenFuncsCmd(alarmId: String, newFuncs: Seq[ThresholdFuncVo]) extends Command
+  final case class RemoveConditionCmd(alarmId: String, condition: AlarmConditionVo) extends Command
 
-  final case class ChangePositiveDescCmd(alarmId: String, positiveDesc: String) extends Command
-
-  final case class ChangeNegativeDescCmd(alarmId: String, negativeDesc: String) extends Command
+  final case class ReplaceConditionCmd(alarmId: String, oldCondition: AlarmConditionVo, newCondition: AlarmConditionVo) extends Command
 
   /* transient commands */
   final case class RetrieveAlarmCmd(alarmId: String) extends Command
 
-  final case class GetAarmValueCmd(alarmId: String) extends Command
-
   final case class EvalAlarmValueCmd(alarmId: String) extends Command
 
+  /* persistent objects */
   /* events */
-  final case class CreateAlarmEvt(name: String, level: Int, signalId: String, funcs: Seq[ThresholdFuncPo], positiveDesc: String, negativeDesc: String) extends Event
+  final case class CreateAlarmEvt(name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]]) extends Event
 
   final case class RenameAlarmEvt(newName: String) extends Event
 
-  final case class ChangeLevelEvt(newLevel: Int) extends Event
+  final case class SelectSignalEvt(newSignalId: String) extends Event
 
-  final case class ChangeSignalEvt(newSignalId: String) extends Event
+  final case class AddConditionEvt(condition: AlarmConditionVo) extends Event
 
-  final case class ChangeGenFuncsEvt(newFuncs: Seq[ThresholdFuncPo]) extends Event
+  final case class RemoveConditionEvt(condition: AlarmConditionVo) extends Event
 
-  final case class ChangePositiveDescEvt(newDesc: String) extends Event
+  final case class ReplaceConditionEvt(old: AlarmConditionVo, newOne: AlarmConditionVo) extends Event
 
-  final case class ChangeNegativeDescEvt(newDesc: String) extends Event
-
-  final case class AlarmPo(name: String, level: Int, signalId: String, funcs: Seq[ThresholdFuncPo], positiveDesc: String, negativeDesc: String) extends Serializable
-
-  final case class ThresholdFuncPo(name: String, params: Map[String, String]) extends Serializable
+  /* snapshot */
+  final case class AlarmPo(alarmId: String, name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]])
 
 }
 
-class Alarm(signalShard: () => ActorRef, registry: FunctionRegistry) extends PersistentActor {
+class Alarm(signalShard: () => ActorRef,
+            alarmRecordShard: () => ActorRef,
+            implicit val registry: FunctionRegistry) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
   val alarmId = s"${self.path.name}"
   var alarmName: Option[String] = None
-  var alarmLevel: Option[Int] = None
   var signalId: Option[String] = None
-  var funcConfigs: collection.mutable.Seq[ThresholdFuncVo] = mutable.ArraySeq()
-  var positiveDesc: Option[String] = None
-  var negativeDesc: Option[String] = None
 
   // transient values
-  var funcs: collection.mutable.Seq[UnaryFunction] = mutable.ArraySeq()
+  var conditions: Set[Seq[AlarmCondition]] = Set()
   var value: Option[Boolean] = None
-  var valueTs: Option[DateTime] = None
+  var matched: Option[AlarmCondition] = None
   var beginTs: Option[DateTime] = None
   var endTs: Option[DateTime] = None
 
@@ -115,138 +207,132 @@ class Alarm(signalShard: () => ActorRef, registry: FunctionRegistry) extends Per
   }
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
+
   implicit def executionContext: ExecutionContext = context.dispatcher
-  
+
   override def persistenceId: String = s"${self.path.name}"
 
   override def receiveRecover: Receive = {
     case evt: Event => updateState(evt)
-    case SnapshotOffer(_, AlarmPo(name, level, signalId, funcs, posDesc, negDesc)) =>
-      this.alarmName = Some(name)
-      this.alarmLevel = Some(level)
-      this.signalId = Some(signalId)
-      funcs.foreach(x => this.funcConfigs = this.funcConfigs :+ ThresholdFuncVo(x.name, x.params))
-      this.positiveDesc = Some(posDesc)
-      this.negativeDesc = Some(negDesc)
     case x => log.info("RECOVER *IGNORED*: {} {}", this, x)
   }
 
   override def receiveCommand: Receive = {
-    case CreateAlarmCmd(_, name, level, signalId, funcs, posDesc, negDesc) =>
-      persist(CreateAlarmEvt(name, level, signalId, for (f <- funcs) yield ThresholdFuncPo(f.name, f.params), posDesc, negDesc))(updateState)
-    case RetrieveAlarmCmd(_) =>
-      if (isValid()) {
-        sender() ! AlarmVo(alarmId, alarmName.get, alarmLevel.get, signalId.get, funcConfigs, positiveDesc.get, negativeDesc.get)
-      } else {
-        sender() ! NotAvailable(alarmId)
-      }
-    case GetAarmValueCmd(_) =>
-      if (available()) {
-        sender() ! AlarmValueVo(alarmId, this.valueTs.get, this.value.get)
-      } else {
-        sender() ! NotAvailable(alarmId)
-      }
+    case CreateAlarmCmd(_, name, signalId, conds) =>
+      persist(CreateAlarmEvt(name, signalId, conds))(updateState)
+    case SelectSignalCmd(_, newSignalId) =>
+      persist(SelectSignalEvt(newSignalId))(updateState)
+    case AddConditionCmd(_, condition) =>
+      persist(AddConditionEvt(condition))(updateState)
+    case RemoveConditionCmd(_, condition) =>
+      persist(RemoveConditionEvt(condition))(updateState)
+    case ReplaceConditionCmd(_, old, newOne) =>
+      persist(ReplaceConditionEvt(old, newOne))(updateState)
     case EvalAlarmValueCmd(_) =>
-      signalShard().ask(Signal.GetValueCmd(signalId.get)).mapTo[Signal.Command].onComplete {
-        case f: Success[Signal.Command] =>
-        f.value match {
-          case sv: Signal.SignalValueVo =>
-            updateAlarmValue(sv)
-          case _ =>
-        }
-        case _ =>
-      }
-    case RenameAlarmCmd(_, newName) =>
-      persist(RenameAlarmEvt(newName))(updateState)
-    case ChangeLevelCmd(_, newLevel) =>
-      persist(ChangeLevelEvt(newLevel))(updateState)
-    case ChangeSignalCmd(_, newSignalId) =>
-      persist(ChangeSignalEvt(newSignalId))(updateState)
-    case ChangeGenFuncsCmd(_, newFuncs) =>
-      persist(ChangeGenFuncsEvt(for (f <- newFuncs) yield ThresholdFuncPo(f.name, f.params)))(updateState)
-    case ChangePositiveDescCmd(_, newDesc) =>
-      persist(ChangePositiveDescEvt(newDesc))(updateState)
-    case ChangeNegativeDescCmd(_, newDesc) =>
-      persist(ChangeNegativeDescEvt(newDesc))(updateState)
+      signalShard() ! Signal.GetValueCmd(signalId.get)
+    case sv: Signal.SignalValueVo =>
+      evalConditionsWith(sv)
+    case RetrieveAlarmCmd(_) =>
+      sender() ! AlarmValueVo(alarmId, alarmName.get, signalId.get, conditions, value, matched, beginTs, endTs)
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateAlarmEvt(name, level, signalId, funcs, posDesc, negDesc) =>
+    case CreateAlarmEvt(name, signalId, conds) =>
       this.alarmName = Some(name)
-      this.alarmLevel = Some(level)
       this.signalId = Some(signalId)
-      funcs.foreach(x => this.funcConfigs = this.funcConfigs :+ ThresholdFuncVo(x.name, x.params))
-      this.positiveDesc = Some(posDesc)
-      this.negativeDesc = Some(negDesc)
-    case RenameAlarmEvt(newName) =>
-      this.alarmName = Some(newName)
-    case ChangeLevelEvt(newLevel) =>
-      this.alarmLevel = Some(newLevel)
-    case ChangeSignalEvt(newSignalId) =>
+      createConditions(conds)
+    case SelectSignalEvt(newSignalId) =>
       this.signalId = Some(newSignalId)
-    case ChangeGenFuncsEvt(newFuncs) =>
-      newFuncs.foreach(x => this.funcConfigs = this.funcConfigs :+ ThresholdFuncVo(x.name, x.params))
-      updateFuncs(newFuncs)
-    case ChangePositiveDescEvt(posDesc) =>
-      this.positiveDesc = Some(posDesc)
-    case ChangeNegativeDescEvt(negDesc) =>
-      this.negativeDesc = Some(negDesc)
+    case AddConditionEvt(condition) =>
+      addCondition(condition)
+    case RemoveConditionEvt(condition) =>
+      removeCondition(condition)
+    case ReplaceConditionEvt(old, newOne) =>
+      replaceCondition(old, newOne)
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
   }
 
-  private def updateAlarmValue(sv: Signal.SignalValueVo): Unit = {
-    this.valueTs = Some(sv.ts)
-    var x = sv.value
-    for (f <- funcs) {
-      x = f.transform(x)
-    }
-    x match {
-      case b: Boolean =>
-        val old = this.value.getOrElse(false)
-        if(b != old) {
-          if(b) {
-            this.beginTs = Some(sv.ts)
-            AlarmRecord.RaiseAlarmCmd(alarmId, beginTs.get, alarmName.get, alarmLevel.get, sv, positiveDesc.get)
+  private def evalConditionsWith(sv: SignalValueVo): Unit = {
+    for (a <- conditions) {
+      for (c <- a) {
+        if (c.contains(sv.value)) {
+          if (value.isDefined && value.get) {
+            if (c.eq(matched.get)) {
+              // no changes. continue alarming state, no transition and no ending.
+            } else {
+              // transition.
+              matched = Some(c)
+              alarmRecordShard() ! AlarmRecord.TransitAlarmCmd(alarmId, beginTs.get, sv.ts, c.level, sv, c.positiveDesc)
+            }
           } else {
-            this.endTs = Some(sv.ts)
-            AlarmRecord.EndAlarmCmd(alarmId, beginTs.get, endTs.get, sv, negativeDesc.get)
+            // new alarm.
+            value = Some(true)
+            matched = Some(c)
+            beginTs = Some(sv.ts)
+            alarmRecordShard() ! AlarmRecord.RaiseAlarmCmd(alarmId, beginTs.get, alarmName.get, c.level, sv, c.positiveDesc)
           }
+          // break the iterations. only the first match matters.
+          return
         }
-        this.value = Some(b)
-      case _ =>
-    }
-  }
-  private def updateFuncs(fs: Seq[ThresholdFuncPo]): Unit = {
-    this.funcConfigs = mutable.ArraySeq()
-    this.funcs = mutable.ArraySeq()
-    fs.foreach(f => {
-      this.funcConfigs = this.funcConfigs :+ ThresholdFuncVo(f.name, f.params)
-      val func = registry.createUnary(f.name, f.params.asJava)
-      if (func.isDefined) {
-        this.funcs = this.funcs :+ func.get
-      } else {
-        log.warning("unary function cannot be initialized: {}", f)
       }
-    })
-  }
-
-  private def isValid(): Boolean = {
-    if (alarmName.isDefined
-      && alarmLevel.isDefined
-      && signalId.isDefined
-      && positiveDesc.isDefined
-      && negativeDesc.isDefined) true else false
-  }
-
-  private def available(): Boolean = {
-    if (isValid() && value.isDefined && valueTs.isDefined) {
-      val d = Duration.millis(DateTime.now.clicks - valueTs.get.clicks)
-      val r = Duration.standardMinutes(1)
-      val a = d.isShorterThan(r)
-      return a
-    } else {
-      false
     }
+    // None matched. no alarm or, end of alarm if current state is in alarming state.
+    if (value.isDefined && value.get) {
+      value = Some(false)
+      endTs = Some(sv.ts)
+      alarmRecordShard() ! AlarmRecord.EndAlarmCmd(alarmId, beginTs.get, endTs.get, sv, matched.get.negativeDesc)
+    }
+  }
+
+  private def createConditions(conds: Set[Seq[AlarmConditionVo]]): Unit = {
+    for (cs <- conds) {
+      var seq: mutable.Seq[AlarmCondition] = mutable.ArraySeq()
+      for (c <- cs) {
+        seq = seq :+ AlarmCondition(c)
+      }
+      if (!seq.isEmpty) this.conditions = this.conditions + seq
+    }
+  }
+
+  private def addCondition(cond: AlarmConditionVo): Unit = {
+    var set: mutable.Set[AlarmCondition] = mutable.Set()
+    set = set + AlarmCondition(cond)
+    for (cs <- conditions) {
+      for (c <- cs) {
+        set = set + c
+      }
+    }
+    var seq: mutable.Seq[AlarmCondition] = mutable.Seq()
+    for(c <- set) seq = seq :+ c
+    for(i <- 0 to seq.size) {
+      for(j <- 1 to seq.size) {
+        if(seq(i).subsetOf(seq(j))) {
+
+        } else if(seq(j).subsetOf(seq(i))) {
+
+        } else {
+
+        }
+      }
+    }
+  }
+
+  private def removeCondition(cond: AlarmConditionVo): Unit = {
+    var newConditions: Set[Seq[AlarmCondition]] = Set()
+    for (cs <- conditions) {
+      var seq: mutable.Seq[AlarmCondition] = mutable.ArraySeq()
+      for (c <- cs) {
+        if (!cond.equals(AlarmConditionVo(c))) {
+          seq = seq :+ c
+        }
+      }
+      if (!seq.isEmpty) newConditions = newConditions + seq
+    }
+  }
+
+  private def replaceCondition(old: AlarmConditionVo, newOne: AlarmConditionVo): Unit = {
+    removeCondition(old)
+    addCondition(newOne)
   }
 }

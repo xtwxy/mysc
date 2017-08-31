@@ -26,7 +26,6 @@ libraryDependencies ++= {
     "com.typesafe.akka"         %%  "akka-http"                           % akkaHttpVersion,
     "com.typesafe.akka"         %%  "akka-http-core"                      % akkaHttpVersion,
     "com.typesafe.akka"         %%  "akka-http-spray-json"                % akkaHttpVersion,
-    //"io.spray"                  %%  "spray-json"                          % sprayVersion,
 
     "joda-time"                 %   "joda-time"                           % jodaTimeVersion
   )

@@ -4,11 +4,13 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.event.Logging
 import com.wincom.dcim.domain.AlarmRecord.Command
-import com.wincom.dcim.domain.Settings
+import com.wincom.dcim.domain.{EventNotifier, Settings}
 
 object ShardedAlarmRecords {
   def props = Props(new ShardedAlarmRecords)
   def name = "sharded-alarm-records"
+
+  val topicName = "alarm-events"
 }
 
 class ShardedAlarmRecords extends Actor {
@@ -26,7 +28,7 @@ class ShardedAlarmRecords extends Actor {
   )
 
   def notifier(): ActorRef = {
-    ClusterSharding(context.system).shardRegion(ShardedAlarmRecord.shardName)
+    context.actorOf(EventNotifier.props(ShardedAlarmRecords.topicName), EventNotifier.name(ShardedAlarmRecords.topicName))
   }
 
   def shardedAlarmRecord(): ActorRef = {

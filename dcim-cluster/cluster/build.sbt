@@ -40,12 +40,7 @@ libraryDependencies ++= {
     "org.scalatest"             %%  "scalatest"                           % "3.0.1"       % "test",
 
     "com.typesafe.akka"         %%  "akka-testkit"                        % akkaVersion   % "test",
-    "com.typesafe.akka"         %%  "akka-multi-node-testkit"             % akkaVersion   % "test",
-
-    "com.typesafe.akka"         %%  "akka-slf4j"                          % akkaVersion,
-
-    "commons-io"                %  "commons-io"                           % "2.4",
-    "ch.qos.logback"            %  "logback-classic"                      % "1.1.2"
+    "com.typesafe.akka"         %%  "akka-multi-node-testkit"             % akkaVersion   % "test"
   )
 }
 assemblyMergeStrategy in assembly := {
