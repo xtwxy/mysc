@@ -6,10 +6,10 @@ import akka.http.scaladsl.model.DateTime
 import akka.persistence.PersistentActor
 import akka.util.Timeout
 import com.wincom.dcim.domain.Alarm._
+import com.wincom.dcim.domain.AlarmCondition.AlarmConditionVo
 import com.wincom.dcim.domain.Signal.SignalValueVo
-import com.wincom.dcim.signal.{FunctionRegistry, SetFunction}
+import com.wincom.dcim.signal.FunctionRegistry
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -18,103 +18,6 @@ import scala.language.postfixOps
 /**
   * Created by wangxy on 17-8-28.
   */
-final case class ThresholdFuncVo(name: String, params: Map[String, String])
-
-final case class AlarmConditionVo(func: ThresholdFuncVo, level: Int, positiveDesc: String, negativeDesc: String)
-
-object ThresholdFuncVo {
-  def apply(name: String, params: Map[String, String]): ThresholdFuncVo = new ThresholdFuncVo(name, params)
-
-  def apply(func: ThresholdFunc): ThresholdFuncVo = new ThresholdFuncVo(func.name, func.params)
-}
-
-object AlarmConditionVo {
-  def apply(func: ThresholdFuncVo, level: Int, positiveDesc: String, negativeDesc: String): AlarmConditionVo = new AlarmConditionVo(func, level, positiveDesc, negativeDesc)
-
-  def apply(cond: AlarmCondition): AlarmConditionVo = new AlarmConditionVo(ThresholdFuncVo(cond.func), cond.level, cond.positiveDesc, cond.negativeDesc)
-}
-
-final case class ThresholdFunc(val name: String, val params: Map[String, String], val func: SetFunction) extends SetFunction {
-  override def contains(e: AnyVal): Boolean = func.contains(e)
-
-  override def subsetOf(f: SetFunction): Boolean = func.subsetOf(f)
-
-  override def intersects(f: SetFunction): Boolean = func.intersects(f)
-
-  override def equals(other: Any): Boolean = other match {
-    case that: ThresholdFunc =>
-      name == that.name &&
-        params == that.params
-    case _ => {
-      println("false: " + other)
-      false
-    }
-  }
-
-  override def hashCode(): Int = {
-    val state = Seq(name, params)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
-  }
-}
-
-final case class AlarmCondition(val func: ThresholdFunc, val level: Int, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
-  override def contains(e: AnyVal): Boolean = func.contains(e)
-
-  override def subsetOf(f: SetFunction): Boolean = {
-    f match {
-      case t: AlarmCondition =>
-        func.subsetOf(t.func.func)
-      case _ =>
-        func.subsetOf(f)
-    }
-  }
-
-  override def intersects(f: SetFunction): Boolean = {
-    f match {
-      case t: AlarmCondition =>
-        func.intersects(t.func.func)
-      case _ =>
-        func.subsetOf(f)
-    }
-  }
-
-  override def equals(other: Any): Boolean = other match {
-    case that: AlarmCondition =>
-      func == that.func &&
-        level == that.level &&
-        positiveDesc == that.positiveDesc &&
-        negativeDesc == that.negativeDesc
-    case _ => {
-      println("false: " + other)
-      false
-    }
-  }
-
-  override def hashCode(): Int = {
-    val state = Seq(func, level, positiveDesc, negativeDesc)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
-  }
-}
-
-object ThresholdFunc {
-  def apply(name: String, params: Map[String, String], func: SetFunction): ThresholdFunc = new ThresholdFunc(name, params, func)
-
-  def apply(f: ThresholdFuncVo)(implicit registry: FunctionRegistry): ThresholdFunc = {
-    val func = registry.createUnary(f.name, f.params.asJava)
-    if (func.isDefined) {
-      new ThresholdFunc(f.name, f.params, func.get.asInstanceOf[SetFunction])
-    } else {
-      throw new IllegalArgumentException(f.toString)
-    }
-  }
-}
-
-object AlarmCondition {
-  def apply(func: ThresholdFunc, level: Int, positiveDesc: String, negativeDesc: String): AlarmCondition = new AlarmCondition(func, level, positiveDesc, negativeDesc)
-
-  def apply(c: AlarmConditionVo)(implicit registry: FunctionRegistry): AlarmCondition = new AlarmCondition(ThresholdFunc(c.func), c.level, c.positiveDesc, c.negativeDesc)
-}
-
 object Alarm {
   def props(signalShard: () => ActorRef,
             alarmRecordShard: () => ActorRef,
@@ -189,7 +92,7 @@ class Alarm(signalShard: () => ActorRef,
   var signalId: Option[String] = None
 
   // transient values
-  var conditions: Set[Seq[AlarmCondition]] = Set()
+  var conditions: mutable.Set[Seq[AlarmCondition]] = mutable.Set()
   var value: Option[Boolean] = None
   var matched: Option[AlarmCondition] = None
   var beginTs: Option[DateTime] = None
@@ -233,7 +136,7 @@ class Alarm(signalShard: () => ActorRef,
     case sv: Signal.SignalValueVo =>
       evalConditionsWith(sv)
     case RetrieveAlarmCmd(_) =>
-      sender() ! AlarmValueVo(alarmId, alarmName.get, signalId.get, conditions, value, matched, beginTs, endTs)
+      sender() ! AlarmValueVo(alarmId, alarmName.get, signalId.get, conditions.toSet, value, matched, beginTs, endTs)
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
@@ -295,7 +198,7 @@ class Alarm(signalShard: () => ActorRef,
     }
   }
 
-  private def addCondition(cond: AlarmConditionVo): Unit = {
+  private def addCondition(cond: AlarmConditionVo): Boolean = {
     var set: mutable.Set[AlarmCondition] = mutable.Set()
     set = set + AlarmCondition(cond)
     for (cs <- conditions) {
@@ -303,19 +206,38 @@ class Alarm(signalShard: () => ActorRef,
         set = set + c
       }
     }
+    partitionConditions(set)
+  }
+
+  def validatePartitions(conds: mutable.Set[Seq[AlarmCondition]]): Boolean = {
     var seq: mutable.Seq[AlarmCondition] = mutable.Seq()
-    for(c <- set) seq = seq :+ c
-    for(i <- 0 to seq.size) {
-      for(j <- 1 to seq.size) {
-        if(seq(i).subsetOf(seq(j))) {
-
-        } else if(seq(j).subsetOf(seq(i))) {
-
-        } else {
-
-        }
+    for (cs <- conds) {
+      if (!cs.isEmpty) {
+        seq :+= cs.last
       }
     }
+    for (i <- 0 to seq.length) {
+      for (j <- i to seq.length) {
+        if (seq(i).intersects(seq(j))) false
+      }
+    }
+    true
+  }
+
+  private def partitionConditions(set: mutable.Set[AlarmCondition]): Boolean = {
+    var conds: mutable.Set[Seq[AlarmCondition]] = mutable.Set()
+    val ordering = Ordering.fromLessThan[AlarmCondition]((x, y) => x != y && x.subsetOf(y))
+    while (!set.isEmpty) {
+      var s = mutable.TreeSet.empty(ordering)
+      var seq: Seq[AlarmCondition] = mutable.ArraySeq()
+      set.foreach(x => s += x)
+      set --= s
+      s.foreach(x => seq :+= x)
+      conds += seq
+    }
+    val result = validatePartitions(conds)
+    if (result) conditions = conds
+    result
   }
 
   private def removeCondition(cond: AlarmConditionVo): Unit = {
@@ -331,8 +253,9 @@ class Alarm(signalShard: () => ActorRef,
     }
   }
 
-  private def replaceCondition(old: AlarmConditionVo, newOne: AlarmConditionVo): Unit = {
+  private def replaceCondition(old: AlarmConditionVo, newOne: AlarmConditionVo): Boolean = {
     removeCondition(old)
     addCondition(newOne)
   }
+
 }

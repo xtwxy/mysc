@@ -30,7 +30,7 @@ public class NotFactory implements UnaryFunctionFactory {
         return Option.apply(new Not());
     }
 
-    public final class Not implements UnaryFunction {
+    public final class Not implements UnaryFunction, SetFunction {
         public Not() {
         }
 
@@ -41,6 +41,21 @@ public class NotFactory implements UnaryFunctionFactory {
                 return !x;
             }
             return input;
+        }
+
+        @Override
+        public boolean contains(Object e) {
+            return false;
+        }
+
+        @Override
+        public boolean subsetOf(SetFunction f) {
+            return false;
+        }
+
+        @Override
+        public boolean intersects(SetFunction f) {
+            return false;
         }
     }
 }

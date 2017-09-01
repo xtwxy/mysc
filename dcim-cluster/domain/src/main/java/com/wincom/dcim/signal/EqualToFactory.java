@@ -5,6 +5,9 @@ import scala.Option;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import com.wincom.dcim.signal.BetweenFactory.Between;
+import com.wincom.dcim.signal.GreaterThanFactory.GreaterThan;
+import com.wincom.dcim.signal.LessThanFactory.LessThan;
 
 import static java.lang.Math.*;
 
@@ -36,9 +39,9 @@ public class EqualToFactory implements UnaryFunctionFactory {
         return Option.apply(new EqualTo(reference, abs(delta)));
     }
 
-    public final class EqualTo implements UnaryFunction {
-        private final double reference;
-        private final double delta;
+    public final class EqualTo implements UnaryFunction, SetFunction {
+        public final double reference;
+        public final double delta;
         public EqualTo(double reference, double delta) {
             this.reference = reference;
             this.delta = delta;
@@ -51,6 +54,40 @@ public class EqualToFactory implements UnaryFunctionFactory {
                 return abs(x - reference) < delta;
             }
             return input;
+        }
+
+        @Override
+        public boolean contains(Object e) {
+            Object o = transform(e);
+            if(o instanceof Boolean) {
+                return (Boolean) o;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean subsetOf(SetFunction f) {
+            if(f instanceof Between) {
+                Between b = (Between) f;
+                if(reference >= b.lowerBound && reference <= b.upperBound) {
+                    return true;
+                }
+            } else if(f instanceof GreaterThan) {
+                GreaterThan g = (GreaterThan) f;
+                if(reference >= g.threshold) return true;
+            } else if(f instanceof LessThan) {
+                LessThan l = (LessThan) f;
+                if(reference <= l.threshold) return true;
+            } else if(f instanceof EqualTo) {
+                EqualTo e = (EqualTo) f;
+                if (abs(reference - e.reference) < delta) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean intersects(SetFunction f) {
+            return false;
         }
     }
 }

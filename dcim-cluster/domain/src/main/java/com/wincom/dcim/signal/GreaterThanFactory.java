@@ -9,6 +9,7 @@ import static java.lang.Math.*;
 
 import com.wincom.dcim.signal.LessThanFactory.LessThan;
 import com.wincom.dcim.signal.BetweenFactory.Between;
+import com.wincom.dcim.signal.EqualToFactory.EqualTo;
 
 /**
  * Created by wangxy on 17-8-25.
@@ -117,6 +118,9 @@ public class GreaterThanFactory implements UnaryFunctionFactory {
             } else if(f instanceof LessThan) {
                 LessThan l = (LessThan) f;
                 if(l.threshold >= threshold) return true;
+            } else if(f instanceof EqualTo) {
+                EqualTo e = (EqualTo) f;
+                if(threshold <= e.reference) return true;
             }
             return false;
 

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import com.wincom.dcim.signal.GreaterThanFactory.GreaterThan;
 import com.wincom.dcim.signal.LessThanFactory.LessThan;
+import com.wincom.dcim.signal.EqualToFactory.EqualTo;
 
 import static java.lang.Math.abs;
 
@@ -108,6 +109,10 @@ public class BetweenFactory implements UnaryFunctionFactory {
             } else if(f instanceof LessThan) {
                 LessThan l = (LessThan) f;
                 if(upperBound <= l.threshold) return true;
+            } else if(f instanceof EqualTo) {
+                EqualTo e = (EqualTo) f;
+                if(abs(lowerBound - e.reference) < e.delta
+                    && abs(upperBound - e.reference) < e.delta) return true;
             }
             return false;
         }
@@ -125,6 +130,9 @@ public class BetweenFactory implements UnaryFunctionFactory {
             } else if(f instanceof LessThan) {
                 LessThan l = (LessThan) f;
                 if(l.threshold >= lowerBound) return true;
+            } else if(f instanceof EqualTo) {
+                EqualTo e = (EqualTo) f;
+                if(lowerBound <= e.reference && upperBound >= e.reference) return true;
             }
             return false;
         }
