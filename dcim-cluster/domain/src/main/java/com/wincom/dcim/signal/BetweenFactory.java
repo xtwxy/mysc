@@ -23,6 +23,7 @@ public class BetweenFactory implements UnaryFunctionFactory {
         params.add("lower-bound");
         params.add("insensitivity-zone");
         params.add("use-percentage");
+        params.add("range");
     }
     @Override
     public String name() {

@@ -23,6 +23,7 @@ public class LessThanFactory implements UnaryFunctionFactory {
         params.add("threshold");
         params.add("insensitivity-zone");
         params.add("use-percentage");
+        params.add("range");
     }
     @Override
     public String name() {
