@@ -44,6 +44,7 @@ object Alarm {
   final case class Ok(alarmId: String) extends Command
 
   final case class NotAvailable(alarmId: String) extends Command
+  final case class BadCmd(alarmId: String) extends Command
 
   /* commands */
   final case class CreateAlarmCmd(alarmId: String, name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]]) extends Command
@@ -145,15 +146,30 @@ class Alarm(signalShard: () => ActorRef,
       this.alarmName = Some(name)
       this.signalId = Some(signalId)
       createConditions(conds)
+      replyTo(Ok(alarmId))
     case SelectSignalEvt(newSignalId) =>
       this.signalId = Some(newSignalId)
+      replyTo(Ok(alarmId))
     case AddConditionEvt(condition) =>
-      addCondition(condition)
+      if(addCondition(condition)) {
+        replyTo(Ok(alarmId))
+      } else {
+        replyTo(BadCmd(alarmId))
+      }
     case RemoveConditionEvt(condition) =>
       removeCondition(condition)
+      replyTo(Ok(alarmId))
     case ReplaceConditionEvt(old, newOne) =>
-      replaceCondition(old, newOne)
+      if(replaceCondition(old, newOne)) {
+        replyTo(Ok(alarmId))
+      } else {
+        replyTo(BadCmd(alarmId))
+      }
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
+  }
+
+  private def replyTo(msg: Any) = {
+    if ("deadLetters" != sender().path.name) sender() ! msg
   }
 
   private def evalConditionsWith(sv: SignalValueVo): Unit = {
@@ -206,7 +222,9 @@ class Alarm(signalShard: () => ActorRef,
         set = set + c
       }
     }
-    partitionConditions(set)
+    val result = partitionConditions(set)
+    if(result._1) conditions = result._2
+    result._1
   }
 
   def validatePartitions(conds: mutable.Set[Seq[AlarmCondition]]): Boolean = {
@@ -224,7 +242,7 @@ class Alarm(signalShard: () => ActorRef,
     true
   }
 
-  private def partitionConditions(set: mutable.Set[AlarmCondition]): Boolean = {
+  private def partitionConditions(set: mutable.Set[AlarmCondition]): (Boolean, mutable.Set[Seq[AlarmCondition]]) = {
     var conds: mutable.Set[Seq[AlarmCondition]] = mutable.Set()
     val ordering = Ordering.fromLessThan[AlarmCondition]((x, y) => x != y && x.subsetOf(y))
     while (!set.isEmpty) {
@@ -236,8 +254,7 @@ class Alarm(signalShard: () => ActorRef,
       conds += seq
     }
     val result = validatePartitions(conds)
-    if (result) conditions = conds
-    result
+    (result, conds)
   }
 
   private def removeCondition(cond: AlarmConditionVo): Unit = {
