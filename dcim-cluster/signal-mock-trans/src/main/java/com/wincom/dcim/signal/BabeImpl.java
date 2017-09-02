@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * Created by wangxy on 17-8-24.
  */
-public class BabeImpl implements UnaryFunction {
+public class BabeImpl implements UnaryFunction, InverseFunction {
     private final Map<String, String> params;
     public BabeImpl(Map<String, String> params) {
         this.params = params;

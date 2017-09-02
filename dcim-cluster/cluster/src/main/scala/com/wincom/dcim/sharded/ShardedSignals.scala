@@ -1,6 +1,6 @@
 package com.wincom.dcim.sharded
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, ActorLogging, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.event.Logging
 import com.wincom.dcim.domain.Settings
@@ -16,11 +16,10 @@ object ShardedSignals {
   def name = "sharded-signals"
 }
 
-class ShardedSignals extends Actor {
+class ShardedSignals extends Actor with ActorLogging {
   val settings = Settings(context.system)
   ShardedSignal.numberOfShards = settings.actor.numberOfShards
 
-  val log = Logging(context.system.eventStream, ShardedSignals.name)
   val registry: FunctionRegistry = (new FunctionRegistry(log)).initialize()
 
   ClusterSharding(context.system).start(
@@ -40,7 +39,7 @@ class ShardedSignals extends Actor {
 
   override def receive: Receive = {
     case cmd: Command =>
-      log.info("forwarded to: {} {}", shardedDriver, cmd)
+      log.info("forwarded to: {} {}", shardedSignal, cmd)
       shardedSignal forward cmd
     case x => log.info("COMMAND: {} {}", this, x)
   }

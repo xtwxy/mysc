@@ -4,7 +4,7 @@ import java.util._
 /**
   * Created by wangxy on 17-8-24.
   */
-class LinerFuncImpl(val params: Map[String, String]) extends UnaryFunction {
+class LinerFuncImpl(val params: Map[String, String]) extends UnaryFunction with InverseFunction {
 
   override def transform(input: AnyVal): AnyVal = {
     input match {

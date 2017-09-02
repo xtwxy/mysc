@@ -64,6 +64,9 @@ object Alarm {
 
   final case class EvalAlarmValueCmd(alarmId: String) extends Command
 
+  final case class PassivateAlarmCmd(alarmId: String) extends Command
+  
+
   /* persistent objects */
   /* events */
   final case class CreateAlarmEvt(name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]]) extends Event
