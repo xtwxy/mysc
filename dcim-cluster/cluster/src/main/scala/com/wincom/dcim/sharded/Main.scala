@@ -9,10 +9,15 @@ object Main extends App with ServiceSupport {
   val shardedFsus = system.actorOf(ShardedFsus.props, ShardedFsus.name)
   val shardedDrivers = system.actorOf(ShardedDrivers.props, ShardedDrivers.name)
   val shardedSignals = system.actorOf(ShardedSignals.props, ShardedSignals.name)
+  val shardedAlarms = system.actorOf(ShardedAlarms.props, ShardedAlarms.name)
+  val shardedAlarmRecords = system.actorOf(ShardedAlarmRecords.props, ShardedAlarmRecords.name)
+  val shardedNotifiler = system.actorOf(ShardedNotifier.props, ShardedNotifier.name("alarm-publish"))
 
   startService(
     shardedFsus,
     shardedDrivers,
-    shardedSignals
+    shardedSignals,
+    shardedAlarms,
+    shardedAlarmRecords
   )
 }

@@ -3,6 +3,10 @@ package com.wincom.dcim.sharded
 import akka.actor.{Actor, ActorInitializationException, DeathPactException, OneForOneStrategy, Props, SupervisorStrategy}
 import com.wincom.dcim.domain.Fsu
 
+object SuppervisedFsu {
+  def props = Props(new SuppervisedFsu)
+  def name(fsuId: String): String = fsuId.toString
+}
 
 class SuppervisedFsu extends Actor {
   override val supervisorStrategy = OneForOneStrategy() {

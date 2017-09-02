@@ -21,7 +21,9 @@ import scala.util.{Failure, Success}
 trait ServiceSupport extends RequestTimeout {
   def startService(fsus: ActorRef,
                    drivers: ActorRef,
-                   signals: ActorRef
+                   signals: ActorRef,
+                   alarms: ActorRef,
+                   alarmRecords: ActorRef
                   )(implicit system: ActorSystem): Unit = {
     val config = system.settings.config
     val settings = Settings(system)
