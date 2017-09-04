@@ -32,12 +32,14 @@ object Alarm {
   sealed trait Event extends Serializable
 
   /* value objects */
-  final case class AlarmValueVo(alarmId: String,
+    final case class AlarmVo(alarmId: String,
                                 name: String,
                                 signalId: String,
-                                conditions: Set[Seq[AlarmCondition]],
+                                conditions: Set[Seq[AlarmConditionVo]])
+                                
+  final case class AlarmValueVo(alarmId: String,
                                 value: Option[Boolean],
-                                matched: Option[AlarmCondition],
+                                matched: Option[AlarmConditionVo],
                                 beginTs: Option[DateTime],
                                 endTs: Option[DateTime])
 
@@ -61,6 +63,7 @@ object Alarm {
 
   /* transient commands */
   final case class RetrieveAlarmCmd(alarmId: String) extends Command
+  final case class GetAlarmValueCmd(alarmId: String) extends Command
 
   final case class EvalAlarmValueCmd(alarmId: String) extends Command
 
@@ -87,8 +90,8 @@ object Alarm {
 }
 
 class Alarm(signalShard: () => ActorRef,
-            alarmRecordShard: () => ActorRef,
-            implicit val registry: FunctionRegistry) extends PersistentActor {
+alarmRecordShard: () => ActorRef,
+implicit val registry: FunctionRegistry) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
   val alarmId = s"${self.path.name}"
@@ -140,8 +143,22 @@ class Alarm(signalShard: () => ActorRef,
     case sv: Signal.SignalValueVo =>
       evalConditionsWith(sv)
     case RetrieveAlarmCmd(_) =>
-      sender() ! AlarmValueVo(alarmId, alarmName.get, signalId.get, conditions.toSet, value, matched, beginTs, endTs)
+      sender() ! AlarmVo(alarmId, alarmName.get, signalId.get, conditionsAsVo)
+    case GetAlarmValueCmd(_) =>
+      sender() ! AlarmValueVo(alarmId, value, if(matched.isDefined) Some(new AlarmConditionVo(matched.get)) else None, beginTs, endTs)
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
+  }
+  
+  private def conditionsAsVo(): Set[Seq[AlarmConditionVo]] = {
+    var conds: mutable.Set[Seq[AlarmConditionVo]] = mutable.Set()
+    for(cs <- conditions) {
+      var s = mutable.ArraySeq[AlarmConditionVo]()
+      for(c <- cs) {
+        s :+= new AlarmConditionVo(c)
+      }
+      if(!(s.isEmpty)) conds += s
+    }
+    conds.toSet
   }
 
   private def updateState: (Event => Unit) = {
@@ -265,7 +282,7 @@ class Alarm(signalShard: () => ActorRef,
     for (cs <- conditions) {
       var seq: mutable.Seq[AlarmCondition] = mutable.ArraySeq()
       for (c <- cs) {
-        if (!cond.equals(AlarmConditionVo(c))) {
+        if (!cond.equals(new AlarmConditionVo(c))) {
           seq = seq :+ c
         }
       }
@@ -277,5 +294,4 @@ class Alarm(signalShard: () => ActorRef,
     removeCondition(old)
     addCondition(newOne)
   }
-
 }

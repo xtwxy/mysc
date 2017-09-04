@@ -20,17 +20,12 @@ object ThresholdFunction {
     }
   }
 
-  final case class ThresholdFunctionVo(name: String, params: Map[String, String])
-
-  object ThresholdFunctionVo {
-    def apply(name: String, params: Map[String, String]): ThresholdFunctionVo = new ThresholdFunctionVo(name, params)
-
-    def apply(func: ThresholdFunction): ThresholdFunctionVo = new ThresholdFunctionVo(func.name, func.params)
+  final case class ThresholdFunctionVo(name: String, params: Map[String, String]) {
+    def this(func: ThresholdFunction) = this(func.name, func.params)
   }
-
 }
 
-final case class ThresholdFunction(val name: String, val params: Map[String, String], val func: SetFunction) extends SetFunction {
+final case class ThresholdFunction(name: String, params: Map[String, String], func: SetFunction) extends SetFunction {
   override def contains(e: AnyVal): Boolean = func.contains(e)
 
   override def subsetOf(f: SetFunction): Boolean = func.subsetOf(f)

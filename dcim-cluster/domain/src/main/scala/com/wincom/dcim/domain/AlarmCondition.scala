@@ -13,17 +13,12 @@ object AlarmCondition {
 
   def apply(c: AlarmConditionVo)(implicit registry: FunctionRegistry): AlarmCondition = new AlarmCondition(ThresholdFunction(c.func), c.level, c.positiveDesc, c.negativeDesc)
 
-  final case class AlarmConditionVo(func: ThresholdFunctionVo, level: Int, positiveDesc: String, negativeDesc: String)
-
-  object AlarmConditionVo {
-    def apply(func: ThresholdFunctionVo, level: Int, positiveDesc: String, negativeDesc: String): AlarmConditionVo = new AlarmConditionVo(func, level, positiveDesc, negativeDesc)
-
-    def apply(cond: AlarmCondition): AlarmConditionVo = new AlarmConditionVo(ThresholdFunctionVo(cond.func), cond.level, cond.positiveDesc, cond.negativeDesc)
+  final case class AlarmConditionVo(func: ThresholdFunctionVo, level: Int, positiveDesc: String, negativeDesc: String) {
+    def this(cond: AlarmCondition) = this(new ThresholdFunctionVo(cond.func), cond.level, cond.positiveDesc, cond.negativeDesc)
   }
-
 }
 
-final case class AlarmCondition(val func: ThresholdFunction, val level: Int, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
+final class AlarmCondition(val func: ThresholdFunction, val level: Int, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
   override def contains(e: AnyVal): Boolean = func.contains(e)
 
   override def subsetOf(f: SetFunction): Boolean = {
