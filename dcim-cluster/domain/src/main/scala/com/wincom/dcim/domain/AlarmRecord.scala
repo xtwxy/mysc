@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, Props}
 import akka.event.Logging
 import akka.http.scaladsl.model.DateTime
 import akka.persistence.{PersistentActor, SnapshotOffer}
+import com.wincom.dcim.domain.AlarmRecord.EventType._
 import com.wincom.dcim.domain.AlarmRecord._
 import com.wincom.dcim.domain.Signal.SignalValueVo
 import com.wincom.dcim.util.DateFormat._
@@ -23,8 +24,29 @@ object AlarmRecord {
 
     def begin: DateTime
   }
-
+  sealed trait EventType {
+    val name: String
+  }
+  object EventType {
+    val values = Raise::Transit::End::Ack::Mute::Nil
+    case object Raise extends EventType {
+      override val name: String = "raise"
+    }
+    case object Transit extends EventType {
+      override val name: String = "transit"
+    }
+    case object End extends EventType {
+      override val name: String = "end"
+    }
+    case object Ack extends EventType {
+      override val name: String = "ack"
+    }
+    case object Mute extends EventType {
+      override val name: String = "mute"
+    }
+  }
   sealed trait Event extends Serializable {
+    def event: EventType
     def time: DateTime
   }
 
@@ -87,20 +109,30 @@ object AlarmRecord {
                                  name: String,
                                  level: Int,
                                  signalValue: SignalValueVo,
-                                 desc: String) extends Event
+                                 desc: String) extends Event {
+    def event = Raise
+  }
 
   final case class TransitAlarmEvt(time: DateTime,
                                    level: Int,
                                    signalValue: SignalValueVo,
-                                   desc: String) extends Event
+                                   desc: String) extends Event {
+    def event = Transit
+  }
 
   final case class EndAlarmEvt(time: DateTime,
                                signalValue: SignalValueVo,
-                               desc: String) extends Event
+                               desc: String) extends Event {
+    def event = End
+  }
 
-  final case class AckAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event
+  final case class AckAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event {
+    def event = Ack
+  }
 
-  final case class MuteAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event
+  final case class MuteAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event {
+    def event = Mute
+  }
 
 }
 

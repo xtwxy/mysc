@@ -35,8 +35,12 @@ trait ServiceSupport extends RequestTimeout {
     val fsuApi = new FsuService(fsus, system, requestTimeout(config)).routes // the RestApi provides a Route
     val driverApi = new DriverService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
     val signalApi = new SignalService(signals, system, requestTimeout(config)).routes // the RestApi provides a Route
-    val api = fsuApi ~ driverApi ~ signalApi
+    val alarmApi = new AlarmService(alarms, system, requestTimeout(config)).routes // the RestApi provides a Route
+    val alarmRecordApi = new AlarmRecordService(alarmRecords, system, requestTimeout(config)).routes // the RestApi provides a Route
+    val api = fsuApi ~ driverApi ~ signalApi ~ alarmApi ~ alarmRecordApi
+
     implicit val materializer = ActorMaterializer()
+
     val bindingFuture: Future[ServerBinding] =
       Http().bindAndHandle(api, host, port)
 
