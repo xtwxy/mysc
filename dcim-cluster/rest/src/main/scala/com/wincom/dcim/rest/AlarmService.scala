@@ -29,7 +29,7 @@ trait AlarmRoutes extends AlarmMarshaling {
 
   implicit def executionContext: ExecutionContext
 
-  def routes: Route = pathPrefix("alarm-record") {
+  def routes: Route = pathPrefix("alarm") {
     path(Segment) { alarmId =>
       pathEnd {
         get {

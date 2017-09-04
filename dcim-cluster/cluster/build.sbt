@@ -27,6 +27,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"         %%  "akka-cluster"                        % akkaVersion,
     "com.typesafe.akka"         %%  "akka-cluster-tools"                  % akkaVersion,
     "com.typesafe.akka"         %%  "akka-cluster-sharding"               % akkaVersion,
+    "com.typesafe.akka"         %%  "akka-slf4j"                          % akkaVersion,
 
     "com.typesafe.akka"         %%  "akka-http"                           % "10.0.9",
     "com.typesafe.akka"         %%  "akka-http-core"                      % "10.0.9",
@@ -37,6 +38,9 @@ libraryDependencies ++= {
 
     "org.reflections"           %   "reflections"                         % "0.9.11",
     "joda-time"                 %   "joda-time"                           % "2.9.9",
+    "org.slf4j"                 %   "slf4j-simple"                        % "1.7.25",
+
+
     "org.scalatest"             %%  "scalatest"                           % "3.0.1"       % "test",
 
     "com.typesafe.akka"         %%  "akka-testkit"                        % akkaVersion   % "test",
