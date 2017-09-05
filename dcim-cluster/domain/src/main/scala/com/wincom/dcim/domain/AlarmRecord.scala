@@ -105,35 +105,42 @@ object AlarmRecord {
                                  transitions: Seq[Event],
                                  end: Option[DateTime]) extends Serializable
 
-  final case class RaiseAlarmEvt(time: DateTime,
+  final case class RaiseAlarmEvt(event: EventType,
+                                 time: DateTime,
                                  name: String,
                                  level: Int,
                                  signalValue: SignalValueVo,
                                  desc: String) extends Event {
-    def event = Raise
+    def this(time: DateTime, name: String, level: Int, signalValue: SignalValueVo, desc: String) =
+      this(Raise, time, name, level, signalValue, desc)
   }
 
-  final case class TransitAlarmEvt(time: DateTime,
+  final case class TransitAlarmEvt(event: EventType,
+                                   time: DateTime,
                                    level: Int,
                                    signalValue: SignalValueVo,
                                    desc: String) extends Event {
-    def event = Transit
+    def this(time: DateTime, level: Int, signalValue: SignalValueVo, desc: String) =
+      this(Transit, time, level, signalValue, desc)
   }
 
-  final case class EndAlarmEvt(time: DateTime,
+  final case class EndAlarmEvt(event: EventType,
+                               time: DateTime,
                                signalValue: SignalValueVo,
                                desc: String) extends Event {
-    def event = End
+    def this(time: DateTime, signalValue: SignalValueVo, desc: String) =
+      this(End, time, signalValue, desc)
   }
 
-  final case class AckAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event {
-    def event = Ack
+  final case class AckAlarmEvt(event: EventType, time: DateTime, byPerson: String, desc: String) extends Event {
+    def this(time: DateTime, byPerson: String, desc: String) =
+      this(Ack, time, byPerson, desc)
   }
 
-  final case class MuteAlarmEvt(time: DateTime, byPerson: String, desc: String) extends Event {
-    def event = Mute
+  final case class MuteAlarmEvt(event: EventType, time: DateTime, byPerson: String, desc: String) extends Event {
+    def this(time: DateTime, byPerson: String, desc: String) =
+      this(Mute, time, byPerson, desc)
   }
-
 }
 
 class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
@@ -176,15 +183,15 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
 
   override def receiveCommand: Receive = {
     case RaiseAlarmCmd(_, begin, name, level, sv, desc) =>
-      persist(RaiseAlarmEvt(begin, name, level, sv, desc))(updateState)
+      persist(new RaiseAlarmEvt(begin, name, level, sv, desc))(updateState)
     case TransitAlarmCmd(_, _, trans, level, sv, desc) =>
-      persist(TransitAlarmEvt(trans, level, sv, desc))(updateState)
+      persist(new TransitAlarmEvt(trans, level, sv, desc))(updateState)
     case EndAlarmCmd(_, _, trans, sv, desc) =>
-      persist(EndAlarmEvt(trans, sv, desc))(updateState)
+      persist(new EndAlarmEvt(trans, sv, desc))(updateState)
     case AckAlarmCmd(_, _, time, person, desc) =>
-      persist(AckAlarmEvt(time, person, desc))(updateState)
+      persist(new AckAlarmEvt(time, person, desc))(updateState)
     case MuteAlarmCmd(_, _, time, person, desc) =>
-      persist(MuteAlarmEvt(time, person, desc))(updateState)
+      persist(new MuteAlarmEvt(time, person, desc))(updateState)
     case RetrieveAlarmCmd(_, _) =>
       sender() ! AlarmRecordVo(
         alarmId,
@@ -208,7 +215,7 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
   }
 
   private def updateState: (Event => Unit) = {
-    case x@RaiseAlarmEvt(_, name, level, sv, desc) =>
+    case x@RaiseAlarmEvt(Raise, _, name, level, sv, desc) =>
       this.alarmName = Some(name)
       this.alarmLevel = Some(level)
       this.signalId = Some(sv.signalId)
@@ -216,25 +223,25 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
       this.valueTs = Some(sv.ts)
       this.alarmDesc = Some(desc)
       this.transitions = this.transitions :+ x
-    case x@TransitAlarmEvt(_, level, sv, desc) =>
+    case x@TransitAlarmEvt(Transit, _, level, sv, desc) =>
       this.alarmLevel = Some(level)
       this.signalId = Some(sv.signalId)
       this.currentValue = Some(sv.value)
       this.valueTs = Some(sv.ts)
       this.alarmDesc = Some(desc)
       this.transitions = this.transitions :+ x
-    case x@EndAlarmEvt(_, sv, desc) =>
+    case x@EndAlarmEvt(End, _, sv, desc) =>
       this.signalId = Some(sv.signalId)
       this.currentValue = Some(sv.value)
       this.valueTs = Some(sv.ts)
       this.alarmDesc = Some(desc)
       this.transitions = this.transitions :+ x
-    case x@AckAlarmEvt(time, person, desc) =>
+    case x@AckAlarmEvt(Ack, time, person, desc) =>
       this.ackByPerson = Some(person)
       this.ackTime = Some(time)
       this.ackDesc = Some(desc)
       this.transitions = this.transitions :+ x
-    case x@MuteAlarmEvt(time, person, desc) =>
+    case x@MuteAlarmEvt(Mute, time, person, desc) =>
       this.muteByPerson = Some(person)
       this.muteTime = Some(time)
       this.muteDesc = Some(desc)

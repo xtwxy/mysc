@@ -34,7 +34,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
         get {
           var trans: mutable.Seq[Event] = mutable.ArraySeq()
           trans :+= new RaiseAlarmEvt(DateTime.now, "alarm", 1, SignalValueVo("sig-2000", DateTime.now, 32.0), "alarm")
-          trans :+= TransitAlarmEvt(DateTime.now, 2, SignalValueVo("sig-2000", DateTime.now, 36.0), "alarm")
+          trans :+= new TransitAlarmEvt(DateTime.now, 2, SignalValueVo("sig-2000", DateTime.now, 36.0), "alarm")
           val alarm = AlarmRecordVo(alarmId,
             DateTime.now,
             "temperature-alarm",
