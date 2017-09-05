@@ -29,24 +29,27 @@ object Alarm {
     def alarmId: String
   }
 
-  sealed trait Event extends Serializable
+  sealed trait Response
+
+  sealed trait Event
 
   /* value objects */
-    final case class AlarmVo(alarmId: String,
-                                name: String,
-                                signalId: String,
-                                conditions: Set[Seq[AlarmConditionVo]])
-                                
+  final case class AlarmVo(alarmId: String,
+                           name: String,
+                           signalId: String,
+                           conditions: Set[Seq[AlarmConditionVo]]) extends Response
+
   final case class AlarmValueVo(alarmId: String,
                                 value: Option[Boolean],
                                 matched: Option[AlarmConditionVo],
                                 beginTs: Option[DateTime],
-                                endTs: Option[DateTime])
+                                endTs: Option[DateTime]) extends Response
 
-  final case class Ok(alarmId: String) extends Command
+  final case object Ok extends Response
 
-  final case class NotAvailable(alarmId: String) extends Command
-  final case class BadCmd(alarmId: String) extends Command
+  final case object NotAvailable extends Response
+
+  final case object BadCmd extends Response
 
   /* commands */
   final case class CreateAlarmCmd(alarmId: String, name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]]) extends Command
@@ -63,12 +66,13 @@ object Alarm {
 
   /* transient commands */
   final case class RetrieveAlarmCmd(alarmId: String) extends Command
+
   final case class GetAlarmValueCmd(alarmId: String) extends Command
 
   final case class EvalAlarmValueCmd(alarmId: String) extends Command
 
   final case class PassivateAlarmCmd(alarmId: String) extends Command
-  
+
 
   /* persistent objects */
   /* events */
@@ -90,8 +94,8 @@ object Alarm {
 }
 
 class Alarm(signalShard: () => ActorRef,
-alarmRecordShard: () => ActorRef,
-implicit val registry: FunctionRegistry) extends PersistentActor {
+            alarmRecordShard: () => ActorRef,
+            implicit val registry: FunctionRegistry) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
   val alarmId = s"${self.path.name}"
@@ -129,34 +133,62 @@ implicit val registry: FunctionRegistry) extends PersistentActor {
 
   override def receiveCommand: Receive = {
     case CreateAlarmCmd(_, name, signalId, conds) =>
-      persist(CreateAlarmEvt(name, signalId, conds))(updateState)
+      if (isValid()) {
+        persist(CreateAlarmEvt(name, signalId, conds))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case SelectSignalCmd(_, newSignalId) =>
-      persist(SelectSignalEvt(newSignalId))(updateState)
+      if (isValid()) {
+        persist(SelectSignalEvt(newSignalId))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case AddConditionCmd(_, condition) =>
-      persist(AddConditionEvt(condition))(updateState)
+      if (isValid()) {
+        persist(AddConditionEvt(condition))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case RemoveConditionCmd(_, condition) =>
-      persist(RemoveConditionEvt(condition))(updateState)
+      if (isValid()) {
+        persist(RemoveConditionEvt(condition))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case ReplaceConditionCmd(_, old, newOne) =>
-      persist(ReplaceConditionEvt(old, newOne))(updateState)
+      if (isValid()) {
+        persist(ReplaceConditionEvt(old, newOne))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case EvalAlarmValueCmd(_) =>
       signalShard() ! Signal.GetValueCmd(signalId.get)
     case sv: Signal.SignalValueVo =>
       evalConditionsWith(sv)
     case RetrieveAlarmCmd(_) =>
-      sender() ! AlarmVo(alarmId, alarmName.get, signalId.get, conditionsAsVo)
+      if (isValid()) {
+        sender() ! AlarmVo(alarmId, alarmName.get, signalId.get, conditionsAsVo)
+      } else {
+        sender() ! NotAvailable
+      }
     case GetAlarmValueCmd(_) =>
-      sender() ! AlarmValueVo(alarmId, value, if(matched.isDefined) Some(new AlarmConditionVo(matched.get)) else None, beginTs, endTs)
+      if (isValid()) {
+        sender() ! AlarmValueVo(alarmId, value, if (matched.isDefined) Some(new AlarmConditionVo(matched.get)) else None, beginTs, endTs)
+      } else {
+        sender() ! NotAvailable
+      }
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
-  
+
   private def conditionsAsVo(): Set[Seq[AlarmConditionVo]] = {
     var conds: mutable.Set[Seq[AlarmConditionVo]] = mutable.Set()
-    for(cs <- conditions) {
+    for (cs <- conditions) {
       var s = mutable.ArraySeq[AlarmConditionVo]()
-      for(c <- cs) {
+      for (c <- cs) {
         s :+= new AlarmConditionVo(c)
       }
-      if(!(s.isEmpty)) conds += s
+      if (!(s.isEmpty)) conds += s
     }
     conds.toSet
   }
@@ -166,24 +198,24 @@ implicit val registry: FunctionRegistry) extends PersistentActor {
       this.alarmName = Some(name)
       this.signalId = Some(signalId)
       createConditions(conds)
-      replyTo(Ok(alarmId))
+      replyTo(Ok)
     case SelectSignalEvt(newSignalId) =>
       this.signalId = Some(newSignalId)
-      replyTo(Ok(alarmId))
+      replyTo(Ok)
     case AddConditionEvt(condition) =>
-      if(addCondition(condition)) {
-        replyTo(Ok(alarmId))
+      if (addCondition(condition)) {
+        replyTo(Ok)
       } else {
-        replyTo(BadCmd(alarmId))
+        replyTo(BadCmd)
       }
     case RemoveConditionEvt(condition) =>
       removeCondition(condition)
-      replyTo(Ok(alarmId))
+      replyTo(Ok)
     case ReplaceConditionEvt(old, newOne) =>
-      if(replaceCondition(old, newOne)) {
-        replyTo(Ok(alarmId))
+      if (replaceCondition(old, newOne)) {
+        replyTo(Ok)
       } else {
-        replyTo(BadCmd(alarmId))
+        replyTo(BadCmd)
       }
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
   }
@@ -243,7 +275,7 @@ implicit val registry: FunctionRegistry) extends PersistentActor {
       }
     }
     val result = partitionConditions(set)
-    if(result._1) conditions = result._2
+    if (result._1) conditions = result._2
     result._1
   }
 
@@ -293,5 +325,9 @@ implicit val registry: FunctionRegistry) extends PersistentActor {
   private def replaceCondition(old: AlarmConditionVo, newOne: AlarmConditionVo): Boolean = {
     removeCondition(old)
     addCondition(newOne)
+  }
+
+  private def isValid(): Boolean = {
+    alarmName.isDefined && signalId.isDefined
   }
 }

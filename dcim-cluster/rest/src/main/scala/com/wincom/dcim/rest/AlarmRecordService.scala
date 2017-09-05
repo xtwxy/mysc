@@ -36,7 +36,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
     get {
       path(Segment / TimestampSegment) { (alarmId, begin) =>
         pathEnd {
-          onSuccess(alarmRecords.ask(RetrieveAlarmCmd(alarmId, begin)).mapTo[Response]) {
+          onSuccess(alarmRecords.ask(RetrieveAlarmRecordCmd(alarmId, begin)).mapTo[Response]) {
             case alarm: AlarmRecordVo =>
               complete(alarm)
             case _ =>

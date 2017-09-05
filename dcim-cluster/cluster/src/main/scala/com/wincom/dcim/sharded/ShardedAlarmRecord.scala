@@ -35,8 +35,8 @@ class ShardedAlarmRecord(notifier: () => ActorRef) extends AlarmRecord(notifier)
 
   override def unhandled(message: Any): Unit = message match {
     case ReceiveTimeout =>
-      context.parent ! Passivate(stopMessage = PassivateAlarmCmd)
-    case PassivateAlarmCmd =>
+      context.parent ! Passivate(stopMessage = PassivateAlarmRecordCmd)
+    case PassivateAlarmRecordCmd =>
       context.stop(self)
     case x => log.info("unhandled COMMAND: {} {}", this, x)
   }
