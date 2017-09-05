@@ -46,9 +46,11 @@ trait DriverRoutes extends DriverMarshaling {
     } ~
       post {
         path("create-driver") {
-          entity(as[CreateDriverCmd]) { v =>
-            drivers ! v
-            complete(Created)
+          pathEnd {
+            entity(as[CreateDriverCmd]) { v =>
+              drivers ! v
+              complete(Created)
+            }
           }
         } ~
           path("rename-driver") {

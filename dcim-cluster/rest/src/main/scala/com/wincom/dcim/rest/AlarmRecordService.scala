@@ -1,18 +1,18 @@
 package com.wincom.dcim.rest
 
 import akka.actor._
-import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.DateTime
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.pattern._
 import akka.util.Timeout
-import com.wincom.dcim.domain.AlarmRecord.{AlarmRecordVo, Event, RaiseAlarmEvt, TransitAlarmEvt}
-import com.wincom.dcim.domain.Signal.SignalValueVo
+import com.wincom.dcim.domain.AlarmRecord._
+import com.wincom.dcim.util.DateFormat._
 
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 
 /**
   * Created by wangxy on 17-9-4.
@@ -25,36 +25,74 @@ class AlarmRecordService(val alarmRecords: ActorRef,
 
 trait AlarmRecordRoutes extends AlarmRecordMarshaling {
   def alarmRecords: ActorRef
+
   implicit def requestTimeout: Timeout
+
   implicit def executionContext: ExecutionContext
 
+  val TimestampSegment = Segment.flatMap(id => Try(DateTime(parseTimestamp(id).getTime)).toOption)
+
   def routes: Route = pathPrefix("alarm-record") {
-    path(Segment) { alarmId=>
-      pathEnd {
-        get {
-          var trans: mutable.Seq[Event] = mutable.ArraySeq()
-          trans :+= new RaiseAlarmEvt(DateTime.now, "alarm", 1, SignalValueVo("sig-2000", DateTime.now, 32.0), "alarm")
-          trans :+= new TransitAlarmEvt(DateTime.now, 2, SignalValueVo("sig-2000", DateTime.now, 36.0), "alarm")
-          val alarm = AlarmRecordVo(alarmId,
-            DateTime.now,
-            "temperature-alarm",
-            1,
-            "sig-2000",
-            "alarm",
-            true,
-            DateTime.now,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            trans,
-            None
-          )
-          complete(alarm)
+    get {
+      path(Segment / TimestampSegment) { (alarmId, begin) =>
+        pathEnd {
+          onSuccess(alarmRecords.ask(RetrieveAlarmCmd(alarmId, begin)).mapTo[Response]) {
+            case alarm: AlarmRecordVo =>
+              complete(alarm)
+            case _ =>
+              complete(NotFound)
+          }
         }
       }
+    } ~ post {
+      path("raise") {
+        pathEnd {
+          entity(as[RaiseAlarmCmd]) { v =>
+            alarmRecords ! v
+            complete(Created)
+          }
+        }
+      } ~
+        path("transit") {
+          pathEnd {
+            entity(as[TransitAlarmCmd]) { v =>
+              alarmRecords ! v
+              complete(NoContent)
+            }
+          }
+        } ~
+        path("end") {
+          pathEnd {
+            entity(as[EndAlarmCmd]) { v =>
+              alarmRecords ! v
+              complete(NoContent)
+            }
+          }
+        } ~
+        path("ack") {
+          pathEnd {
+            entity(as[AckAlarmCmd]) { v =>
+              onSuccess(alarmRecords.ask(v).mapTo[Response]) {
+                case Ok =>
+                  complete(NoContent)
+                case _ =>
+                  complete(NotFound)
+              }
+            }
+          }
+        } ~
+        path("mute") {
+          pathEnd {
+            entity(as[MuteAlarmCmd]) { v =>
+              onSuccess(alarmRecords.ask(v).mapTo[Response]) {
+                case Ok =>
+                  complete(NoContent)
+                case _ =>
+                  complete(NotFound)
+              }
+            }
+          }
+        }
     }
   }
 }

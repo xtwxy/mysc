@@ -24,29 +24,41 @@ object AlarmRecord {
 
     def begin: DateTime
   }
+
+  sealed trait Response
+
   sealed trait EventType {
     val name: String
   }
+
   object EventType {
-    val values = Raise::Transit::End::Ack::Mute::Nil
+    val values = Raise :: Transit :: End :: Ack :: Mute :: Nil
+
     case object Raise extends EventType {
       override val name: String = "raise"
     }
+
     case object Transit extends EventType {
       override val name: String = "transit"
     }
+
     case object End extends EventType {
       override val name: String = "end"
     }
+
     case object Ack extends EventType {
       override val name: String = "ack"
     }
+
     case object Mute extends EventType {
       override val name: String = "mute"
     }
+
   }
+
   sealed trait Event extends Serializable {
     def event: EventType
+
     def time: DateTime
   }
 
@@ -67,7 +79,11 @@ object AlarmRecord {
                                  muteDesc: Option[String],
                                  transitions: Seq[Event],
                                  end: Option[DateTime]
-                                ) extends Command
+                                ) extends Response
+
+  final case object Ok extends Response
+
+  final case object NotAvailable extends Response
 
   /* commands */
   final case class RaiseAlarmCmd(alarmId: String,
@@ -96,6 +112,7 @@ object AlarmRecord {
 
   /* transient commands */
   final case class RetrieveAlarmCmd(alarmId: String, begin: DateTime) extends Command
+
   final case class PassivateAlarmCmd(alarmId: String, begin: DateTime) extends Command
 
   /* persistent objects */
@@ -141,6 +158,7 @@ object AlarmRecord {
     def this(time: DateTime, byPerson: String, desc: String) =
       this(Mute, time, byPerson, desc)
   }
+
 }
 
 class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
@@ -185,32 +203,52 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
     case RaiseAlarmCmd(_, begin, name, level, sv, desc) =>
       persist(new RaiseAlarmEvt(begin, name, level, sv, desc))(updateState)
     case TransitAlarmCmd(_, _, trans, level, sv, desc) =>
-      persist(new TransitAlarmEvt(trans, level, sv, desc))(updateState)
+      if (isValid()) {
+        persist(new TransitAlarmEvt(trans, level, sv, desc))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case EndAlarmCmd(_, _, trans, sv, desc) =>
-      persist(new EndAlarmEvt(trans, sv, desc))(updateState)
+      if (isValid()) {
+        persist(new EndAlarmEvt(trans, sv, desc))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case AckAlarmCmd(_, _, time, person, desc) =>
-      persist(new AckAlarmEvt(time, person, desc))(updateState)
+      if (isValid()) {
+        persist(new AckAlarmEvt(time, person, desc))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case MuteAlarmCmd(_, _, time, person, desc) =>
-      persist(new MuteAlarmEvt(time, person, desc))(updateState)
+      if (isValid()) {
+        persist(new MuteAlarmEvt(time, person, desc))(updateState)
+      } else {
+        sender() ! NotAvailable
+      }
     case RetrieveAlarmCmd(_, _) =>
-      sender() ! AlarmRecordVo(
-        alarmId,
-        beginTs,
-        alarmName.get,
-        alarmLevel.get,
-        signalId.get,
-        alarmDesc.get,
-        currentValue.get,
-        valueTs.get,
-        ackTime,
-        ackByPerson,
-        ackDesc,
-        muteTime,
-        muteByPerson,
-        muteDesc,
-        transitions: Seq[Event],
-        endTs
-      )
+      if (isValid()) {
+        sender() ! AlarmRecordVo(
+          alarmId,
+          beginTs,
+          alarmName.get,
+          alarmLevel.get,
+          signalId.get,
+          alarmDesc.get,
+          currentValue.get,
+          valueTs.get,
+          ackTime,
+          ackByPerson,
+          ackDesc,
+          muteTime,
+          muteByPerson,
+          muteDesc,
+          transitions: Seq[Event],
+          endTs
+        )
+      } else {
+        sender() ! NotAvailable
+      }
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
@@ -241,11 +279,19 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
       this.ackTime = Some(time)
       this.ackDesc = Some(desc)
       this.transitions = this.transitions :+ x
+      replyTo(Ok)
     case x@MuteAlarmEvt(Mute, time, person, desc) =>
       this.muteByPerson = Some(person)
       this.muteTime = Some(time)
       this.muteDesc = Some(desc)
       this.transitions = this.transitions :+ x
+      replyTo(Ok)
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
+  }
+  private def replyTo(msg: Any) = {
+    if ("deadLetters" != sender().path.name) sender() ! msg
+  }
+  private def isValid(): Boolean = {
+    alarmName.isDefined && alarmLevel.isDefined && signalId.isDefined && !transitions.isEmpty
   }
 }
