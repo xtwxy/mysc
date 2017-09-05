@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.Set;
 import static java.lang.Math.*;
 
-import com.wincom.dcim.signal.LessThanFactory.LessThan;
-import com.wincom.dcim.signal.BetweenFactory.Between;
-import com.wincom.dcim.signal.EqualToFactory.EqualTo;
+import com.wincom.dcim.signal.LessThanFactory.*;
+import com.wincom.dcim.signal.BetweenFactory.*;
+import com.wincom.dcim.signal.EqualToFactory.*;
 
 /**
  * Created by wangxy on 17-8-25.

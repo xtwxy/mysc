@@ -5,9 +5,9 @@ import scala.Option;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import com.wincom.dcim.signal.GreaterThanFactory.GreaterThan;
-import com.wincom.dcim.signal.LessThanFactory.LessThan;
-import com.wincom.dcim.signal.EqualToFactory.EqualTo;
+import com.wincom.dcim.signal.GreaterThanFactory.*;
+import com.wincom.dcim.signal.LessThanFactory.*;
+import com.wincom.dcim.signal.EqualToFactory.*;
 
 import static java.lang.Math.abs;
 
