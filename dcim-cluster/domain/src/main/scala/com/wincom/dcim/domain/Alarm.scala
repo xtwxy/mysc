@@ -200,29 +200,29 @@ class Alarm(signalShard: () => ActorRef,
       this.alarmName = Some(name)
       this.signalId = Some(signalId)
       createConditions(conds)
-      replyTo(Ok)
+      replyToSender(Ok)
     case SelectSignalEvt(newSignalId) =>
       this.signalId = Some(newSignalId)
-      replyTo(Ok)
+      replyToSender(Ok)
     case AddConditionEvt(condition) =>
       if (addCondition(condition)) {
-        replyTo(Ok)
+        replyToSender(Ok)
       } else {
-        replyTo(BadCmd)
+        replyToSender(BadCmd)
       }
     case RemoveConditionEvt(condition) =>
       removeCondition(condition)
-      replyTo(Ok)
+      replyToSender(Ok)
     case ReplaceConditionEvt(old, newOne) =>
       if (replaceCondition(old, newOne)) {
-        replyTo(Ok)
+        replyToSender(Ok)
       } else {
-        replyTo(BadCmd)
+        replyToSender(BadCmd)
       }
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
   }
 
-  private def replyTo(msg: Any) = {
+  private def replyToSender(msg: Any) = {
     if ("deadLetters" != sender().path.name) sender() ! msg
   }
 

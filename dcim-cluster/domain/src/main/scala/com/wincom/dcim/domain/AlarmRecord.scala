@@ -286,16 +286,16 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
       this.ackTime = Some(time)
       this.ackDesc = Some(desc)
       this.transitions = this.transitions :+ x
-      replyTo(Ok)
+      replyToSender(Ok)
     case x@MuteAlarmEvt(Mute, _, time, person, desc) =>
       this.muteByPerson = Some(person)
       this.muteTime = Some(time)
       this.muteDesc = Some(desc)
       this.transitions = this.transitions :+ x
-      replyTo(Ok)
+      replyToSender(Ok)
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
   }
-  private def replyTo(msg: Any) = {
+  private def replyToSender(msg: Any) = {
     if ("deadLetters" != sender().path.name) sender() ! msg
   }
   private def isValid(): Boolean = {

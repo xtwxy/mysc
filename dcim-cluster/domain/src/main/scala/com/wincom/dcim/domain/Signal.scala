@@ -268,22 +268,22 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.key = Some(key)
       this.signalType = Some(t)
       updateFuncs(fs)
-      replyTo(Ok)
+      replyToSender(Ok)
     case RenameSignalEvt(newName) =>
       this.signalName = Some(newName)
-      replyTo(Ok)
+      replyToSender(Ok)
     case SelectDriverEvt(driverId) =>
       this.driverId = Some(driverId)
-      replyTo(Ok)
+      replyToSender(Ok)
     case SelectTypeEvt(newType) =>
       this.signalType = Some(newType)
-      replyTo(Ok)
+      replyToSender(Ok)
     case SelectKeyEvt(key) =>
       this.key = Some(key)
-      replyTo(Ok)
+      replyToSender(Ok)
     case UpdateFuncsEvt(fs) =>
       updateFuncs(fs)
-      replyTo(Ok)
+      replyToSender(Ok)
     case x => log.info("EVENT: {} {}", this, x)
   }
 
@@ -316,7 +316,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     }
   }
 
-  private def replyTo(msg: Any) = {
+  private def replyToSender(msg: Any) = {
     if ("deadLetters" != sender().path.name) sender() ! msg
   }
 }

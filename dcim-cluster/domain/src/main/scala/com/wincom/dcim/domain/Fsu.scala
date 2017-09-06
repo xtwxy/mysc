@@ -128,32 +128,32 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       if (isValid()) {
         persist(RenameFsuEvt(newName))(updateState)
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case ChangeModelCmd(_, newModel) =>
       if (isValid()) {
         persist(ChangeModelEvt(newModel))(updateState)
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case SaveSnapshotCmd(_) =>
       if (isValid()) {
         saveSnapshot(FsuPo(fsuName.get, modelName.get, initParams.toMap))
-        replyTo(Ok)
+        replyToSender(Ok)
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case AddParamsCmd(_, params) =>
       if (isValid()) {
         persist(AddParamsEvt(params))(updateState)
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case RemoveParamsCmd(_, params) =>
       if (isValid()) {
         persist(RemoveParamsEvt(params))(updateState)
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case cmd: GetPortCmd =>
       val theSender = sender()
@@ -175,7 +175,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
           log.warning("Message CANNOT be delivered because codec not started: {} {}", this, cmd)
         }
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case RetrieveFsuCmd(_) =>
       if (!isValid()) {
@@ -190,13 +190,13 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       if (isValid()) {
         sender() ! GetSupportedModelsRsp(fsuId, registry.names.toSet)
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case GetModelParamsCmd(_, model) =>
       if (isValid()) {
         sender() ! GetSupportedModelsRsp(fsuId, registry.paramNames(model).toSet)
       } else {
-        replyTo(NotExist)
+        replyToSender(NotExist)
       }
     case _: ReceiveTimeout =>
       stop()
@@ -208,19 +208,19 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       this.fsuName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
-      replyTo(Ok)
+      replyToSender(Ok)
     case RenameFsuEvt(newName) =>
       this.fsuName = Some(newName)
-      replyTo(Ok)
+      replyToSender(Ok)
     case ChangeModelEvt(newModel) =>
       this.modelName = Some(newModel)
-      replyTo(Ok)
+      replyToSender(Ok)
     case AddParamsEvt(params) =>
       this.initParams = this.initParams ++ params
-      replyTo(Ok)
+      replyToSender(Ok)
     case RemoveParamsEvt(params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
-      replyTo(Ok)
+      replyToSender(Ok)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 
@@ -248,7 +248,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     }
   }
 
-  private def replyTo(msg: Any) = {
+  private def replyToSender(msg: Any) = {
     if ("deadLetters" != sender().path.name) sender() ! msg
   }
 }

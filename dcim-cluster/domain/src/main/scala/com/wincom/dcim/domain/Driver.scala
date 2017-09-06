@@ -269,22 +269,22 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
       for ((k, v) <- idMap) this.signalIdMap.put(k, v)
-      replyTo(Ok)
+      replyToSender(Ok)
     case RenameDriverEvt(newName) =>
       this.driverName = Some(newName)
-      replyTo(Ok)
+      replyToSender(Ok)
     case ChangeModelEvt(newModel) =>
       this.modelName = Some(newModel)
-      replyTo(Ok)
+      replyToSender(Ok)
     case AddParamsEvt(params) =>
       this.initParams = this.initParams ++ params
-      replyTo(Ok)
+      replyToSender(Ok)
     case RemoveParamsEvt(params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
-      replyTo(Ok)
+      replyToSender(Ok)
     case MapSignalKeyIdEvt(key, signalId) =>
       this.signalIdMap.put(key, signalId)
-      replyTo(Ok)
+      replyToSender(Ok)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 
@@ -313,7 +313,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     }
   }
 
-  private def replyTo(msg: Any) = {
+  private def replyToSender(msg: Any) = {
     if ("deadLetters" != sender().path.name) sender() ! msg
   }
 }
