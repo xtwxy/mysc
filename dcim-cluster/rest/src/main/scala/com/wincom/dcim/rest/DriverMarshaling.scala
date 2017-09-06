@@ -10,7 +10,6 @@ trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val anyValFormat: AnyValFormat.type = AnyValFormat
   implicit val dateTimeFormat: DateTimeJsonFormat.type = DateTimeJsonFormat
 
-  implicit val okFormat: RootJsonFormat[Ok] = jsonFormat1(Ok)
   implicit val driverVoFormat: RootJsonFormat[DriverVo] = jsonFormat5(DriverVo)
   implicit val signalValueFormat: RootJsonFormat[SignalValue] = jsonFormat3(SignalValue)
   implicit val signalValueVoFormat: RootJsonFormat[SignalValueVo] = jsonFormat4(SignalValueVo)

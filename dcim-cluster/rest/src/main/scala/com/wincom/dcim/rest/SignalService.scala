@@ -45,7 +45,7 @@ trait SignalRoutes extends SignalMarshaling {
         pathEnd {
           onSuccess(signals.ask(
             RetrieveSignalCmd(signalId)
-          ).mapTo[Command]) {
+          ).mapTo[Response]) {
             case v: SignalVo => complete(v)
             case _ => complete(NotFound)
           }
@@ -100,7 +100,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("retrieve-signal") {
             pathEnd {
               entity(as[RetrieveSignalCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Command]) {
+                onSuccess(signals.ask(x).mapTo[Response]) {
                   case v: SignalVo => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -126,7 +126,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("set-value") {
             pathEnd {
               entity(as[SetValueCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Command]) {
+                onSuccess(signals.ask(x).mapTo[Response]) {
                   case v: SetValueRsp => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -136,7 +136,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("get-value") {
             pathEnd {
               entity(as[GetValueCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Command]) {
+                onSuccess(signals.ask(x).mapTo[Response]) {
                   case v: SignalValueVo => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -162,7 +162,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("get-supported-funcs") {
             pathEnd {
               entity(as[GetSupportedFuncsCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Command]) {
+                onSuccess(signals.ask(x).mapTo[Response]) {
                   case v: GetSupportedFuncsRsp => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -172,7 +172,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("get-func-params") {
             pathEnd {
               entity(as[GetFuncParamsCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Command]) {
+                onSuccess(signals.ask(x).mapTo[Response]) {
                   case v: GetFuncParamsRsp => complete(v)
                   case _ => complete(NotFound)
                 }

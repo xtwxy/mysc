@@ -29,41 +29,48 @@ object Signal {
     def signalId: String
   }
 
+  sealed trait Response
+
   sealed trait Event extends Serializable
 
   /* value objects */
   final case class TransFuncVo(name: String, params: Map[String, String]) extends Serializable
-  final case class SignalVo(signalId: String, name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncVo]) extends Command
 
-  final case class SignalValueVo(signalId: String, ts: DateTime, value: AnyVal) extends Command
+  final case class SignalVo(signalId: String, name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncVo]) extends Response
 
-  final case class Ok(signalId: String) extends Command
+  final case class SignalValueVo(signalId: String, ts: DateTime, value: AnyVal) extends Response
 
-  final case class NotAvailable(signalId: String) extends Command
+  final case object Ok extends Response
 
-  final case class NotExist(signalId: String) extends Command
+  final case object NotAvailable extends Response
 
-  final case class AlreadyExists(signalId: String) extends Command
+  final case object NotExist extends Response
+
+  final case object AlreadyExists extends Response
 
   /* commands */
-  final case class CreateSignalCmd(signalId: String, name: String, t:String, driverId: String, key: String, funcs: Seq[TransFuncVo]) extends Command
+  final case class CreateSignalCmd(signalId: String, name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncVo]) extends Command
 
   final case class RenameSignalCmd(signalId: String, newName: String) extends Command
 
   final case class SelectDriverCmd(signalId: String, driverId: String) extends Command
+
   final case class SelectTypeCmd(signalId: String, newType: String) extends Command
 
   final case class SelectKeyCmd(signalId: String, key: String) extends Command
+
   final case class UpdateFuncsCmd(signalId: String, funcs: Seq[TransFuncVo]) extends Command
 
   final case class RetrieveSignalCmd(signalId: String) extends Command
+
   final case class SaveSnapshotCmd(signalId: String) extends Command
 
   /* transient commands */
   final case class UpdateValueCmd(signalId: String, ts: DateTime, value: AnyVal) extends Command
 
   final case class SetValueCmd(signalId: String, value: AnyVal) extends Command
-  final case class SetValueRsp(signalId: String, result: String) extends Command
+
+  final case class SetValueRsp(signalId: String, result: String) extends Response
 
   final case class GetValueCmd(signalId: String) extends Command
 
@@ -72,9 +79,12 @@ object Signal {
   final case class StopSignalCmd(signalId: String) extends Command
 
   final case class GetSupportedFuncsCmd(signalId: String) extends Command
-  final case class GetSupportedFuncsRsp(signalId: String, funcNames: Set[String]) extends Command
+
+  final case class GetSupportedFuncsRsp(signalId: String, funcNames: Set[String]) extends Response
+
   final case class GetFuncParamsCmd(signalId: String, funcName: String) extends Command
-  final case class GetFuncParamsRsp(signalId: String, paramNames: Set[String]) extends Command
+
+  final case class GetFuncParamsRsp(signalId: String, paramNames: Set[String]) extends Response
 
   /* events */
   final case class CreateSignalEvt(name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncPo]) extends Event
@@ -82,13 +92,16 @@ object Signal {
   final case class RenameSignalEvt(newName: String) extends Event
 
   final case class SelectDriverEvt(driverId: String) extends Event
+
   final case class SelectTypeEvt(newType: String) extends Event
 
   final case class SelectKeyEvt(key: String) extends Event
+
   final case class UpdateFuncsEvt(funcs: Seq[TransFuncPo]) extends Event
 
   /* persistent objects */
   final case class TransFuncPo(name: String, params: Map[String, String]) extends Serializable
+
   final case class SignalPo(name: String, t: String, driverId: String, key: String, funcs: Seq[TransFuncPo]) extends Event
 
 }
@@ -109,6 +122,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
   var valueTs: Option[DateTime] = None
 
   val signalId: String = s"${self.path.name}"
+
   override def persistenceId: String = s"${self.path.name}"
 
   implicit def requestTimeout: Timeout = FiniteDuration(20, SECONDS)
@@ -129,84 +143,118 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
 
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateSignalCmd(_, name, t, driverId, key, fs) =>
-      persist(CreateSignalEvt(name, t, driverId, key, for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
+      persist(CreateSignalEvt(name, t, driverId, key, for (f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
     case RenameSignalCmd(_, newName) =>
-      persist(RenameSignalEvt(newName))(updateState)
+      if (isValid()) {
+        persist(RenameSignalEvt(newName))(updateState)
+      } else {
+        sender() ! NotExist
+      }
     case SelectDriverCmd(_, driverId) =>
-      persist(SelectDriverEvt(driverId))(updateState)
+      if (isValid()) {
+        persist(SelectDriverEvt(driverId))(updateState)
+      } else {
+        sender() ! NotExist
+      }
     case SelectTypeCmd(_, newType) =>
-      persist(SelectTypeEvt(newType))(updateState)
+      if (isValid()) {
+        persist(SelectTypeEvt(newType))(updateState)
+      } else {
+        sender() ! NotExist
+      }
     case SelectKeyCmd(_, key) =>
-      persist(SelectKeyEvt(key))(updateState)
+      if (isValid()) {
+        persist(SelectKeyEvt(key))(updateState)
+      } else {
+        sender() ! NotExist
+      }
     case UpdateFuncsCmd(_, fs) =>
-      this.funcConfigs = mutable.ArraySeq() ++ fs
-      persist(UpdateFuncsEvt(for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
+      if (isValid()) {
+        this.funcConfigs = mutable.ArraySeq() ++ fs
+        persist(UpdateFuncsEvt(for (f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
+      } else {
+        sender() ! NotExist
+      }
     case RetrieveSignalCmd(_) =>
       if (isValid) {
         sender() ! SignalVo(signalId, signalName.get, signalType.get, driverId.get, key.get, funcConfigs)
       } else {
-        sender() ! NotAvailable(signalId)
+        sender() ! NotAvailable
       }
     case SaveSnapshotCmd(_) =>
       if (isValid) {
-        saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for(x <- funcConfigs) yield TransFuncPo(x.name, x.params)))
+        saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for (x <- funcConfigs) yield TransFuncPo(x.name, x.params)))
+      } else {
+        sender() ! NotExist
       }
     case UpdateValueCmd(_, ts, v) =>
       this.valueTs = Some(ts)
       this.value = Some(v)
     case SetValueCmd(_, v) =>
       val theSender = sender()
-      var x = v
-      for(f <- funcs) {
-        if(f.isInstanceOf[InverseFunction]) {
-          x = f.asInstanceOf[InverseFunction].inverse(x)
-        }
-      }
-      driverShard().ask(Driver.SetSignalValueCmd(this.driverId.get, this.key.get, x)).mapTo[Driver.Command].onComplete {
-        case f: Success[Driver.Command] =>
-          f.value match {
-            case Driver.SetSignalValueRsp(_, _, result) =>
-              theSender ! SetValueRsp(signalId, result)
-            case _ =>
-              theSender ! NotAvailable(signalId)
+      if (isValid()) {
+        var x = v
+        for (f <- funcs) {
+          if (f.isInstanceOf[InverseFunction]) {
+            x = f.asInstanceOf[InverseFunction].inverse(x)
           }
-        case _ =>
-          theSender ! NotAvailable(signalId)
+        }
+        driverShard().ask(Driver.SetSignalValueCmd(this.driverId.get, this.key.get, x)).mapTo[Driver.Response].onComplete {
+          case f: Success[Driver.Response] =>
+            f.value match {
+              case Driver.SetSignalValueRsp(_, _, result) =>
+                theSender ! SetValueRsp(signalId, result)
+              case _ =>
+                theSender ! NotAvailable
+            }
+          case _ =>
+            theSender ! NotAvailable
+        }
+      } else {
+        sender() ! NotExist
       }
     case GetValueCmd(_) =>
       val theSender = sender()
       if (available()) {
         sender() ! SignalValueVo(signalId, this.valueTs.get, this.value.get)
       } else {
-        driverShard().ask(Driver.GetSignalValueCmd(driverId.get, key.get)).mapTo[Driver.Command].onComplete {
-          case f: Success[Driver.Command] =>
+        driverShard().ask(Driver.GetSignalValueCmd(driverId.get, key.get)).mapTo[Driver.Response].onComplete {
+          case f: Success[Driver.Response] =>
             f.value match {
               case Driver.SignalValueVo(driverId, key, ts, v) =>
-                if(this.driverId.get.equals(driverId) && this.key.get.equals(key)) {
+                if (this.driverId.get.equals(driverId) && this.key.get.equals(key)) {
                   var x = v
-                  for(f <- this.funcs) {
+                  for (f <- this.funcs) {
                     x = f.transform(x)
                   }
                   this.value = Some(x)
                   this.valueTs = Some(ts)
                   theSender ! SignalValueVo(signalId, ts, x)
                 } else {
-                  theSender ! NotAvailable(signalId)
+                  theSender ! NotAvailable
                 }
               case _ =>
-                theSender ! NotAvailable(signalId)
+                theSender ! NotAvailable
             }
           case _ =>
-            theSender ! NotAvailable(signalId)
+            theSender ! NotAvailable
         }
       }
     case StartSignalCmd(_) =>
     case StopSignalCmd(_) =>
       context.stop(self)
     case GetSupportedFuncsCmd(_) =>
-      sender() ! GetSupportedFuncsRsp(signalId, registry.names.toSet)
+      if (isValid()) {
+        sender() ! GetSupportedFuncsRsp(signalId, registry.names.toSet)
+      } else {
+        sender() ! NotExist
+      }
     case GetFuncParamsCmd(_, model) =>
-      sender() ! GetFuncParamsRsp(signalId, registry.paramNames(model).toSet)
+      if (isValid()) {
+        sender() ! GetFuncParamsRsp(signalId, registry.paramNames(model).toSet)
+      } else {
+        sender() ! NotExist
+      }
     case _: ReceiveTimeout =>
       context.stop(self)
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
@@ -219,16 +267,22 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.key = Some(key)
       this.signalType = Some(t)
       updateFuncs(fs)
+      replyTo(Ok)
     case RenameSignalEvt(newName) =>
       this.signalName = Some(newName)
+      replyTo(Ok)
     case SelectDriverEvt(driverId) =>
       this.driverId = Some(driverId)
+      replyTo(Ok)
     case SelectTypeEvt(newType) =>
       this.signalType = Some(newType)
+      replyTo(Ok)
     case SelectKeyEvt(key) =>
       this.key = Some(key)
+      replyTo(Ok)
     case UpdateFuncsEvt(fs) =>
       updateFuncs(fs)
+      replyTo(Ok)
     case x => log.info("EVENT: {} {}", this, x)
   }
 
@@ -236,9 +290,9 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     this.funcConfigs = mutable.ArraySeq()
     this.funcs = mutable.ArraySeq()
     fs.foreach(f => {
-      this.funcConfigs = this.funcConfigs:+ TransFuncVo(f.name, f.params)
+      this.funcConfigs = this.funcConfigs :+ TransFuncVo(f.name, f.params)
       val func = registry.createUnary(f.name, f.params.asJava)
-      if(func.isDefined) {
+      if (func.isDefined) {
         this.funcs = this.funcs :+ func.get
       } else {
         log.warning("unary function cannot be initialized: {}", f)
@@ -259,5 +313,9 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     } else {
       false
     }
+  }
+
+  private def replyTo(msg: Any) = {
+    if ("deadLetters" != sender().path.name) sender() ! msg
   }
 }

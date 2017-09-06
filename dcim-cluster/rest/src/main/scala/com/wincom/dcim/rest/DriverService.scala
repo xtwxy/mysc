@@ -35,7 +35,7 @@ trait DriverRoutes extends DriverMarshaling {
         pathEnd {
           onSuccess(drivers.ask(
             RetrieveDriverCmd(driverId)
-          ).mapTo[Command]) {
+          ).mapTo[Response]) {
             case v: DriverVo =>
               complete(v)
             case _ =>
@@ -104,7 +104,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("get-signal-value") {
             pathEnd {
               entity(as[GetSignalValueCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[Command]) {
+                onSuccess(drivers.ask(x).mapTo[Response]) {
                   case v: SignalValueVo =>
                     complete(v)
                   case _ =>
@@ -116,7 +116,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("get-signal-values") {
             pathEnd {
               entity(as[GetSignalValuesCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[Command]) {
+                onSuccess(drivers.ask(x).mapTo[Response]) {
                   case v: SignalValuesVo =>
                     complete(v)
                   case _ =>
@@ -128,7 +128,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("set-signal-value") {
             pathEnd {
               entity(as[SetSignalValueCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[Command]) {
+                onSuccess(drivers.ask(x).mapTo[Response]) {
                   case v: SetSignalValueRsp =>
                     complete(v)
                   case _ =>
@@ -140,7 +140,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("set-signal-values") {
             pathEnd {
               entity(as[SetSignalValuesCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[Command]) {
+                onSuccess(drivers.ask(x).mapTo[Response]) {
                   case v: SetSignalValuesRsp =>
                     complete(v)
                   case _ =>
@@ -168,7 +168,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("retrieve-driver") {
             pathEnd {
               entity(as[RetrieveDriverCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[Command]) {
+                onSuccess(drivers.ask(x).mapTo[Response]) {
                   case v: DriverVo =>
                     complete(v)
                   case _ =>
@@ -196,7 +196,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("get-supported-models") {
             pathEnd {
               entity(as[GetSupportedModelsCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[Command]) {
+                onSuccess(drivers.ask(x).mapTo[Response]) {
                   case v: GetSupportedModelsRsp => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -206,7 +206,7 @@ trait DriverRoutes extends DriverMarshaling {
           path("get-model-params") {
             pathEnd {
               entity(as[GetModelParamsCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[Command]) {
+                onSuccess(drivers.ask(x).mapTo[Response]) {
                   case v: GetModelParamsRsp => complete(v)
                   case _ => complete(NotFound)
                 }

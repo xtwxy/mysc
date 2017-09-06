@@ -35,7 +35,7 @@ trait FsuRoutes extends FsuMarshaling {
           pathEnd {
             onSuccess(fsus.ask(
               RetrieveFsuCmd(fsuId)
-            ).mapTo[Command]) {
+            ).mapTo[Response]) {
               case v: FsuVo =>
                 complete(v)
               case _ =>
@@ -106,7 +106,7 @@ trait FsuRoutes extends FsuMarshaling {
             path("retrieve-fsu") {
               pathEnd {
                 entity(as[RetrieveFsuCmd]) { f =>
-                  onSuccess(fsus.ask(f).mapTo[Command]) {
+                  onSuccess(fsus.ask(f).mapTo[Response]) {
                     case v: FsuVo =>
                       complete(v)
                     case _ =>
@@ -134,7 +134,7 @@ trait FsuRoutes extends FsuMarshaling {
             path("get-supported-models") {
               pathEnd {
                 entity(as[GetSupportedModelsCmd]) { x =>
-                  onSuccess(fsus.ask(x).mapTo[Command]) {
+                  onSuccess(fsus.ask(x).mapTo[Response]) {
                     case v: GetSupportedModelsRsp => complete(v)
                     case _ => complete(NotFound)
                   }
@@ -144,7 +144,7 @@ trait FsuRoutes extends FsuMarshaling {
             path("get-model-params") {
               pathEnd {
                 entity(as[GetModelParamsCmd]) { x =>
-                  onSuccess(fsus.ask(x).mapTo[Command]) {
+                  onSuccess(fsus.ask(x).mapTo[Response]) {
                     case v: GetModelParamsRsp => complete(v)
                     case _ => complete(NotFound)
                   }
