@@ -45,7 +45,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
         }
       }
     } ~ post {
-      path("raise") {
+      path("raise-alarm") {
         pathEnd {
           entity(as[RaiseAlarmCmd]) { v =>
             alarmRecords ! v
@@ -53,7 +53,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
           }
         }
       } ~
-        path("transit") {
+        path("transit-alarm") {
           pathEnd {
             entity(as[TransitAlarmCmd]) { v =>
               alarmRecords ! v
@@ -61,7 +61,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
             }
           }
         } ~
-        path("end") {
+        path("end-alarm") {
           pathEnd {
             entity(as[EndAlarmCmd]) { v =>
               alarmRecords ! v
@@ -69,7 +69,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
             }
           }
         } ~
-        path("ack") {
+        path("ack-alarm") {
           pathEnd {
             entity(as[AckAlarmCmd]) { v =>
               onSuccess(alarmRecords.ask(v).mapTo[Response]) {
@@ -81,7 +81,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
             }
           }
         } ~
-        path("mute") {
+        path("mute-alarm") {
           pathEnd {
             entity(as[MuteAlarmCmd]) { v =>
               onSuccess(alarmRecords.ask(v).mapTo[Response]) {
