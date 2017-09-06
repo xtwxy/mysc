@@ -133,7 +133,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   // key => id
   val signalIdMap: BiMap[String, String] = create()
 
-  def driverId: String = s"${self.path.name}"
+  val driverId: String = s"${self.path.name}"
 
   override def persistenceId: String = s"${self.path.name}"
 
