@@ -48,56 +48,70 @@ trait DriverRoutes extends DriverMarshaling {
         path("create-driver") {
           pathEnd {
             entity(as[CreateDriverCmd]) { v =>
-              drivers ! v
-              complete(Created)
+              onSuccess(drivers.ask(v).mapTo[Response]) {
+                case Ok => complete(Created)
+                case _ => complete(NotFound)
+              }
             }
           }
         } ~
           path("rename-driver") {
             pathEnd {
               entity(as[RenameDriverCmd]) { v =>
-                drivers ! v
-                complete(NoContent)
+                onSuccess(drivers.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("change-model") {
             pathEnd {
               entity(as[ChangeModelCmd]) { v =>
-                drivers ! v
-                complete(NoContent)
+                onSuccess(drivers.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("save-snapshot") {
             pathEnd {
               entity(as[SaveSnapshotCmd]) { v =>
-                drivers ! v
-                complete(NoContent)
+                onSuccess(drivers.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("add-params") {
             pathEnd {
               entity(as[AddParamsCmd]) { v =>
-                drivers ! v
-                complete(NoContent)
+                onSuccess(drivers.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("remove-params") {
             pathEnd {
               entity(as[RemoveParamsCmd]) { v =>
-                drivers ! v
-                complete(NoContent)
+                onSuccess(drivers.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("map-signal-key-id") {
             pathEnd {
               entity(as[MapSignalKeyIdCmd]) { v =>
-                drivers ! v
-                complete(NoContent)
+                onSuccess(drivers.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~

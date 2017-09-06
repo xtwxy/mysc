@@ -163,7 +163,9 @@ class Alarm(signalShard: () => ActorRef,
         sender() ! NotAvailable
       }
     case EvalAlarmValueCmd(_) =>
-      signalShard() ! Signal.GetValueCmd(signalId.get)
+      if (isValid()) {
+        signalShard() ! Signal.GetValueCmd(signalId.get)
+      }
     case sv: Signal.SignalValueVo =>
       evalConditionsWith(sv)
     case RetrieveAlarmCmd(_) =>

@@ -187,8 +187,10 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     case SaveSnapshotCmd(_) =>
       if (isValid) {
         saveSnapshot(DriverPo(driverName.get, modelName.get, initParams.toMap, signalIdMap.toMap))
+        sender() ! Ok
       } else {
         log.warning("Save snapshot failed - Not a valid object")
+        sender() ! NotExist
       }
     case MapSignalKeyIdCmd(_, key, signalId) =>
       if (isValid) {

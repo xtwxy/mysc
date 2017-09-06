@@ -46,40 +46,50 @@ trait FsuRoutes extends FsuMarshaling {
       } ~
         post {
           path("create-fsu") {
-            entity(as[CreateFsuCmd]) { f =>
-              fsus ! f
-              complete(Created)
+            entity(as[CreateFsuCmd]) { v =>
+              onSuccess(fsus.ask(v).mapTo[Response]) {
+                case Ok => complete(NoContent)
+                case _ => complete(NotFound)
+              }
             }
           } ~
             path("rename-fsu") {
               pathEnd {
-                entity(as[RenameFsuCmd]) { f =>
-                  fsus ! f
-                  complete(NoContent)
+                entity(as[RenameFsuCmd]) { v =>
+                  onSuccess(fsus.ask(v).mapTo[Response]) {
+                    case Ok => complete(NoContent)
+                    case _ => complete(NotFound)
+                  }
                 }
               }
             } ~
             path("change-model") {
               pathEnd {
-                entity(as[ChangeModelCmd]) { f =>
-                  fsus ! f
-                  complete(NoContent)
+                entity(as[ChangeModelCmd]) { v =>
+                  onSuccess(fsus.ask(v).mapTo[Response]) {
+                    case Ok => complete(NoContent)
+                    case _ => complete(NotFound)
+                  }
                 }
               }
             } ~
             path("add-params") {
               pathEnd {
-                entity(as[AddParamsCmd]) { f =>
-                  fsus ! f
-                  complete(NoContent)
+                entity(as[AddParamsCmd]) { v =>
+                  onSuccess(fsus.ask(v).mapTo[Response]) {
+                    case Ok => complete(NoContent)
+                    case _ => complete(NotFound)
+                  }
                 }
               }
             } ~
             path("remove-params") {
               pathEnd {
-                entity(as[RemoveParamsCmd]) { f =>
-                  fsus ! f
-                  complete(NoContent)
+                entity(as[RemoveParamsCmd]) { v =>
+                  onSuccess(fsus.ask(v).mapTo[Response]) {
+                    case Ok => complete(NoContent)
+                    case _ => complete(NotFound)
+                  }
                 }
               }
             } ~

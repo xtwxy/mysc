@@ -32,14 +32,8 @@ trait SignalRoutes extends SignalMarshaling {
   private def validateSignalType(t: String): Boolean = {
     t matches("AI|DI|SI|AO|DO|SO")
   }
-  val tests =
-    path("hello") {
-      get {
-        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Say hello to akka-http</h1>"))
-      }
-    }
 
-  def routes = tests ~ pathPrefix("signal") {
+  def routes = pathPrefix("signal") {
     get {
       path(Segment) { signalId =>
         pathEnd {
@@ -57,8 +51,10 @@ trait SignalRoutes extends SignalMarshaling {
           pathEnd {
             entity(as[CreateSignalCmd]) { v =>
               if(validateSignalType(v.t)) {
-                signals ! v
-                complete(Created)
+                onSuccess(signals.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               } else {
                 complete(BadRequest)
               }
@@ -68,32 +64,40 @@ trait SignalRoutes extends SignalMarshaling {
           path("rename-signal") {
             pathEnd {
               entity(as[RenameSignalCmd]) { v =>
-                signals ! v
-                complete(NoContent)
+                onSuccess(signals.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("select-driver") {
             pathEnd {
               entity(as[SelectDriverCmd]) { v =>
-                signals ! v
-                complete(NoContent)
+                onSuccess(signals.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("select-key") {
             pathEnd {
               entity(as[SelectKeyCmd]) { v =>
-                signals ! v
-                complete(NoContent)
+                onSuccess(signals.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
           path("update-funcs") {
             pathEnd {
               entity(as[UpdateFuncsCmd]) { v =>
-                signals ! v
-                complete(NoContent)
+                onSuccess(signals.ask(v).mapTo[Response]) {
+                  case Ok => complete(NoContent)
+                  case _ => complete(NotFound)
+                }
               }
             }
           } ~
@@ -110,8 +114,12 @@ trait SignalRoutes extends SignalMarshaling {
           path("save-snapshot") {
             pathEnd {
               entity(as[SaveSnapshotCmd]) { v =>
-                signals ! v
-                complete(NoContent)
+                onSuccess(signals.ask(v).mapTo[Response]) {
+                  case Ok =>
+                    complete(NoContent)
+                  case _ =>
+                    complete(NotFound)
+                }
               }
             }
           } ~

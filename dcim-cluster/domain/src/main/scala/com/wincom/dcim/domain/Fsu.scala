@@ -139,6 +139,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case SaveSnapshotCmd(_) =>
       if (isValid()) {
         saveSnapshot(FsuPo(fsuName.get, modelName.get, initParams.toMap))
+        replyTo(Ok)
       } else {
         replyTo(NotExist)
       }

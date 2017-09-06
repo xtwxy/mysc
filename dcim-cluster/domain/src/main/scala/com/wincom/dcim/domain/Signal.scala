@@ -184,6 +184,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     case SaveSnapshotCmd(_) =>
       if (isValid) {
         saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for (x <- funcConfigs) yield TransFuncPo(x.name, x.params)))
+        sender() ! Ok
       } else {
         sender() ! NotExist
       }
