@@ -1,15 +1,6 @@
 syntax = "proto2";
-
+import "scalapb/scalapb.proto";
 package com.wincom.dcim.message;
-
-message Command {
-    optional string user = 1;
-    required string id = 2;
-}
-
-message Event {
-    optional string user = 1;
-}
 
 enum ResponseType {
     SUCCESS = 0;
@@ -18,7 +9,8 @@ enum ResponseType {
 }
 
 message Response {
-    required ResponseType result = 1 [default = OK];
+    option(scalapb.message).extends = "com.wincom.dcim.message.ValueObject";
+    required ResponseType result = 1 [default = SUCCESS];
 }
 
 enum SignalType {
@@ -38,4 +30,10 @@ enum AlarmLevel {
     LEVEL_5 = 5;
 }
 
+
+message FsuVo {
+    option(scalapb.message).extends = "com.wincom.dcim.message.ValueObject";
+    required string id = 1;
+    required string name = 2;
+}
 
