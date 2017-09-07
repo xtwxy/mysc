@@ -1,0 +1,41 @@
+syntax = "proto2";
+
+package com.wincom.dcim.message;
+
+message Command {
+    optional string user = 1;
+    required string id = 2;
+}
+
+message Event {
+    optional string user = 1;
+}
+
+enum ResponseType {
+    SUCCESS = 0;
+    NOT_EXIST = 1;
+    NOT_AVAILABLE = 2;
+}
+
+message Response {
+    required ResponseType result = 1 [default = OK];
+}
+
+enum SignalType {
+    AI = 0;
+    DI = 1;
+    SI = 2;
+    AO = 3;
+    DO = 4;
+    SO = 5;
+}
+
+enum AlarmLevel {
+    LEVEL_1 = 1;
+    LEVEL_2 = 2;
+    LEVEL_3 = 3;
+    LEVEL_4 = 4;
+    LEVEL_5 = 5;
+}
+
+
