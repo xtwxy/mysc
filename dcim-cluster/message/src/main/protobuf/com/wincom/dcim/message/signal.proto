@@ -1,0 +1,17 @@
+syntax = "proto2";
+import "scalapb/scalapb.proto";
+option(scalapb.options) = {
+    package_name: "com.wincom.dcim.message.signal"
+    flat_package: true
+};
+
+enum SignalType {
+    AI = 0;
+    DI = 1;
+    SI = 2;
+    AO = 3;
+    DO = 4;
+    SO = 5;
+}
+
+

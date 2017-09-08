@@ -1,0 +1,197 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+import "scalapb/scalapb.proto";
+option (scalapb.options) = {
+    package_name: "com.wincom.dcim.message.alarm"
+    flat_package: true
+};
+
+enum AlarmLevel {
+    LEVEL_0 = 0;
+    LEVEL_1 = 1;
+    LEVEL_2 = 2;
+    LEVEL_3 = 3;
+    LEVEL_4 = 4;
+    LEVEL_5 = 5;
+};
+
+// value objects
+message ThresholdFunctionVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    string name = 1;
+    map<string, string> params = 2;
+};
+
+message AlarmConditionVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    ThresholdFunctionVo func = 1;
+    AlarmLevel level = 2;
+    string positiveDesc = 3;
+    string negativeDesc = 4;
+};
+
+message AlarmValueVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    string alarmId = 1;
+    bool value = 2;
+    AlarmConditionVo matched = 3;
+    google.protobuf.Timestamp beginTs = 4;
+    google.protobuf.Timestamp endTs = 5;
+};
+
+message InclusiveConditionVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated AlarmConditionVo ordered = 1 [(scalapb.field).collection_type="List"];
+}
+
+message ExclusiveConditionVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated InclusiveConditionVo exclusive = 1 [(scalapb.field).collection_type="Set"];
+}
+
+message AlarmVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    string alarmId = 1;
+    string name = 2;
+    ExclusiveConditionVo conditions = 3;
+};
+
+// commands
+message CreateAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+    string name = 3;
+    string signalId = 4;
+    ExclusiveConditionVo conditions = 5;
+}
+
+message RenameAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+    string newName = 3;
+}
+
+message SelectSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+    string newSignalId = 3;
+}
+
+message AddConditionCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+    AlarmConditionVo condition = 3;
+}
+
+message RemoveConditionCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+    AlarmConditionVo condition = 3;
+}
+
+message ReplaceConditionCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+    AlarmConditionVo oldCondition = 3;
+    AlarmConditionVo newCondition = 4;
+}
+
+message RetrieveAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+}
+
+message GetAlarmValueCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+}
+
+message EvalAlarmValueCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+}
+
+message PassivateAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    string id = 1;
+    string user = 2;
+}
+
+// persistent objects
+
+message AlarmPo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    string alarmId = 1;
+    string name = 2;
+    ExclusiveConditionVo conditions = 3;
+};
+
+message CreateAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+    string name = 2;
+    string signalId = 3;
+    ExclusiveConditionVo conditions = 4;
+}
+
+message RenameAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+    string newName = 2;
+}
+
+message SelectSignalEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+    string newSignalId = 2;
+}
+
+message AddConditionEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+    AlarmConditionVo condition = 2;
+}
+
+message RemoveConditionEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+    AlarmConditionVo condition = 2;
+}
+
+message ReplaceConditionEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+    AlarmConditionVo oldCondition = 2;
+    AlarmConditionVo newCondition = 3;
+}
+
+message RetrieveAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+}
+
+message GetAlarmValueEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+}
+
+message EvalAlarmValueEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+}
+
+message PassivateAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    string user = 1;
+}
+

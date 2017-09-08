@@ -53,3 +53,4 @@ target
 .settings
 
 .cache-main
+*.swp

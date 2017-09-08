@@ -1,0 +1,8 @@
+syntax = "proto2";
+import "scalapb/scalapb.proto";
+option(scalapb.options) = {
+    package_name: "com.wincom.dcim.message.alarmrecord"
+    flat_package: true
+};
+
+
