@@ -11,7 +11,7 @@ lazy val root = (project in file(".")).
     name := "dcim-cluster",
     libraryDependencies += scalaTest % Test
   )
-  .aggregate(domain, cluster, rest, driverMockCodec, fsuMockCodec).dependsOn(cluster)
+  .aggregate(message, domain, cluster, rest, driverMockCodec, fsuMockCodec).dependsOn(cluster)
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 enablePlugins(JavaAppPackaging)
