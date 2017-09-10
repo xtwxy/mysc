@@ -1,9 +1,157 @@
 syntax = "proto2";
 import "scalapb/scalapb.proto";
 option(scalapb.options) = {
-    package_name: "com.wincom.dcim.message.fsu"
     flat_package: true
 };
 
+package com.wincom.dcim.message.fsu;
 
+
+message FsuVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string id = 1;
+    required string name = 2;
+    required string model = 3;
+    map<string, string> params = 4;
+};
+
+message CreateFsuCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string name = 3;
+    required string model = 4;
+    map<string, string> params = 5;
+};
+
+message RenameFsuCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string newName = 3;
+};
+
+message ChangeModelCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string newModel = 3;
+};
+
+message SaveSnapshotCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message AddParamsCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    map<string, string> params = 3;
+};
+
+message RemoveParamsCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    map<string, string> params = 3;
+};
+
+message GetPortCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    map<string, string> params = 3;
+};
+
+message SendBytesCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string id = 1;
+    optional string user = 2;
+    required bytes bytes = 3;
+};
+
+message RetrieveFsuCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message StartFsuCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message StopFsuCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message GetSupportedFsuModelsCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message GetSupportedFsuModelsRsp {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string modelNames = 2;
+};
+
+message GetModelParamsCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    repeated string modelName = 3;
+};
+
+message GetModelParamsRsp {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string paramNames = 3;
+};
+
+// events
+
+
+message CreateFsuEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string name = 2;
+    required string model = 3;
+    map<string, string> params = 4;
+};
+
+message RenameFsuEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newName = 2;
+};
+
+message ChangeModelEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newModel = 2;
+};
+
+message AddParamsEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    map<string, string> params = 2;
+};
+
+message RemoveParamsEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    map<string, string> params = 2;
+};
+
+message FsuPo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string name = 1;
+    required string model = 2;
+    map<string, string> params = 3;
+};
 

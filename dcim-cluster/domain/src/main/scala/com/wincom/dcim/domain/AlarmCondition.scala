@@ -1,6 +1,6 @@
 package com.wincom.dcim.domain
 
-import com.wincom.dcim.domain.ThresholdFunction.ThresholdFunctionVo
+import com.wincom.dcim.message.alarm.{AlarmConditionVo, AlarmLevel, ThresholdFunctionVo}
 import com.wincom.dcim.signal.{FunctionRegistry, SetFunction}
 
 import scala.language.postfixOps
@@ -9,16 +9,16 @@ import scala.language.postfixOps
   * Created by wangxy on 17-8-28.
   */
 object AlarmCondition {
-  def apply(func: ThresholdFunction, level: Int, positiveDesc: String, negativeDesc: String): AlarmCondition = new AlarmCondition(func, level, positiveDesc, negativeDesc)
+  def apply(func: ThresholdFunction, level: AlarmLevel, positiveDesc: String, negativeDesc: String): AlarmCondition = new AlarmCondition(func, level, positiveDesc, negativeDesc)
 
   def apply(c: AlarmConditionVo)(implicit registry: FunctionRegistry): AlarmCondition = new AlarmCondition(ThresholdFunction(c.func), c.level, c.positiveDesc, c.negativeDesc)
 
-  final case class AlarmConditionVo(func: ThresholdFunctionVo, level: Int, positiveDesc: String, negativeDesc: String) {
-    def this(cond: AlarmCondition) = this(new ThresholdFunctionVo(cond.func), cond.level, cond.positiveDesc, cond.negativeDesc)
+  def valueObjectOf(c: AlarmCondition): AlarmConditionVo = {
+    AlarmConditionVo(ThresholdFunction.valueObjectOf(c.func), c.level, c.positiveDesc, c.negativeDesc)
   }
 }
 
-final class AlarmCondition(val func: ThresholdFunction, val level: Int, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
+final class AlarmCondition(val func: ThresholdFunction, val level: AlarmLevel, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
   override def contains(e: AnyVal): Boolean = func.contains(e)
 
   override def subsetOf(f: SetFunction): Boolean = {

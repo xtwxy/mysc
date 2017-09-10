@@ -1,8 +1,29 @@
 syntax = "proto2";
+import "google/protobuf/timestamp.proto";
+
 import "scalapb/scalapb.proto";
 option(scalapb.options) = {
-    package_name: "com.wincom.dcim.message.alarmrecord"
     flat_package: true
 };
 
+package com.wincom.dcim.message.alarmrecord;
 
+import "com/wincom/dcim/message/alarm.proto";
+
+enum EventType {
+  RAISE = 0;
+  TRANSIT = 1;
+  END = 2;
+  ACK = 3;
+  MUTE = 4;
+};
+
+message AlarmRecordVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string alarmId = 1;
+    required google.protobuf.Timestamp begin = 2;
+    required string name = 3;
+    required com.wincom.dcim.message.alarm.AlarmLevel level = 4;
+    required string signalId = 5;
+    optional string desc = 6;
+};

@@ -31,7 +31,7 @@ trait AlarmRoutes extends AlarmMarshaling {
     get {
       path(Segment) { alarmId =>
         pathEnd {
-          onSuccess(alarms.ask(RetrieveAlarmCmd(alarmId)).mapTo[Response]) {
+          onSuccess(alarms.ask(RetrieveAlarmCmd(alarmId)).mapTo[ValueObject]) {
             case alarm: AlarmVo =>
               complete(alarm)
             case _ =>
@@ -44,7 +44,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("create-alarm") {
         pathEnd {
           entity(as[CreateAlarmCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -56,7 +56,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("rename-alarm") {
         pathEnd {
           entity(as[RenameAlarmCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -69,7 +69,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("select-signal") {
         pathEnd {
           entity(as[SelectSignalCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -81,7 +81,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("add-condition") {
         pathEnd {
           entity(as[AddConditionCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -93,7 +93,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("remove-condition") {
         pathEnd {
           entity(as[RemoveConditionCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -105,7 +105,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("replace-condition") {
         pathEnd {
           entity(as[ReplaceConditionCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -117,7 +117,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("get-alarm-value") {
         pathEnd {
           entity(as[GetAlarmValueCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -129,7 +129,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("eval-alarm-value") {
         pathEnd {
           entity(as[EvalAlarmValueCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>
@@ -141,7 +141,7 @@ trait AlarmRoutes extends AlarmMarshaling {
       path("passivate-alarm") {
         pathEnd {
           entity(as[PassivateAlarmCmd]) { v =>
-            onSuccess(alarms.ask(v).mapTo[Response]) {
+            onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case Ok =>
                 complete(Created)
               case _ =>

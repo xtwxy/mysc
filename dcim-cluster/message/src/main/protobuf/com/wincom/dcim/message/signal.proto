@@ -1,9 +1,11 @@
 syntax = "proto2";
+import "google/protobuf/timestamp.proto";
+
 import "scalapb/scalapb.proto";
 option(scalapb.options) = {
-    package_name: "com.wincom.dcim.message.signal"
     flat_package: true
 };
+package com.wincom.dcim.message.signal;
 
 enum SignalType {
     AI = 0;
@@ -14,4 +16,204 @@ enum SignalType {
     SO = 5;
 }
 
+// value objects
+message TransFuncVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string name = 1;
+    map<string, string> params = 2;
+};
 
+message SignalVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string id = 1;
+    required string name = 2;
+    required SignalType t = 3;
+    required string driverId = 4;
+    required string key = 5;
+    repeated TransFuncVo funcs = 6;
+};
+
+message SignalValueVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.SignalValue";
+    required SignalType signalType = 3;
+    optional bool digitalValue = 4;
+    optional double analogValue = 5;
+    optional string stringValue = 6;
+};
+
+message SignalSnapshotValueVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.SignalValue";
+    required string id = 1;
+    required google.protobuf.Timestamp ts = 2;
+    required SignalType signalType = 3;
+    optional bool digitalValue = 4;
+    optional double analogValue = 5;
+    optional string stringValue = 6;
+};
+
+// configuration commands
+message CreateSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string name = 3;
+    required SignalType t = 4;
+    required string driverId = 5;
+    required string key = 6;
+    repeated TransFuncVo funcs = 7;
+};
+
+message RenameSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string newName = 3;
+};
+
+message SelectDriverCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string driverId = 3;
+};
+
+message SelectTypeCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required SignalType newType = 3;
+};
+
+message SelectKeyCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string key = 3;
+};
+
+message UpdateFuncsCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    repeated TransFuncVo funcs = 3;
+};
+
+message SaveSnapshotCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+// transient commands
+message RetrieveSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message UpdateValueCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required SignalSnapshotValueVo value = 3;
+};
+
+message SetValueCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required SignalValueVo value = 3;
+}
+
+message SetValueRsp {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    optional string result = 1;
+}
+
+message GetValueCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message StartSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message StopSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message GetSupportedFuncsCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
+message GetSupportedFuncsRsp {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string funcNames = 1;
+}
+
+message GetFuncParamsCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string funcName = 3;
+};
+
+message GetFuncParamsRsp {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string paramNames = 1;
+};
+
+// persistent events
+message RenameSignalEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newName = 2;
+};
+
+message SelectDriverEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+   optional string user = 1;
+    required string driverId = 2;
+};
+
+message SelectTypeEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required SignalType newType = 2;
+};
+
+message SelectKeyEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string key = 2;
+};
+
+message UpdateFuncsEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    repeated TransFuncVo funcs = 2;
+};
+
+// persistent objects
+message TransFuncPo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string name = 1;
+    map<string, string> params = 2;
+};
+
+message SignalPo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string name = 1;
+    required SignalType t = 2;
+    required string driverId = 3;
+    required string key = 4;
+    repeated TransFuncPo funcs = 5;
+};

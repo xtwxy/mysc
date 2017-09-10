@@ -9,7 +9,8 @@ enum ResponseType {
     option(scalapb.enum_options).extends = "com.wincom.dcim.message.common.ValueObject";
     SUCCESS = 0;
     NOT_EXIST = 1;
-    NOT_AVAILABLE = 2;
-    BAD_COMMAND = 3;
+    ALREADY_EXISTS = 2;
+    NOT_AVAILABLE = 3;
+    BAD_COMMAND = 4;
 }
 

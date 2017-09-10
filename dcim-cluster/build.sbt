@@ -1,4 +1,3 @@
-import Dependencies._
 import sbtassembly.MergeStrategy
 
 lazy val root = (project in file(".")).
@@ -9,7 +8,7 @@ lazy val root = (project in file(".")).
       version      := "1.0.0"
     )),
     name := "dcim-cluster",
-    libraryDependencies += scalaTest % Test
+    libraryDependencies ++= Seq()
   )
   .aggregate(message, domain, cluster, rest, driverMockCodec, fsuMockCodec).dependsOn(cluster)
 

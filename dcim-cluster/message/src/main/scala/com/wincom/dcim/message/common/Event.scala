@@ -1,6 +1,6 @@
 package com.wincom.dcim.message.common
 
 trait Event {
-    def user: String
+    def user: Option[String]
 }
 

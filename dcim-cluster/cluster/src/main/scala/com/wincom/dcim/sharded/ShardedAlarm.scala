@@ -20,12 +20,12 @@ object ShardedAlarm {
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case cmd: Command =>
-      (cmd.alarmId, cmd)
+      (cmd.id, cmd)
   }
 
   val extractShardId: ShardRegion.ExtractShardId = {
     case cmd: Command =>
-      (abs(cmd.alarmId.hashCode) % numberOfShards).toString
+      (abs(cmd.id.hashCode) % numberOfShards).toString
   }
 }
 

@@ -5,7 +5,11 @@ import akka.event.Logging
 import akka.http.scaladsl.model.DateTime
 import akka.persistence.PersistentActor
 import akka.util.Timeout
+import com.google.protobuf.timestamp.Timestamp
 import com.wincom.dcim.domain.Alarm._
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.alarm._
 import com.wincom.dcim.domain.AlarmCondition.AlarmConditionVo
 import com.wincom.dcim.domain.Signal.SignalValueVo
 import com.wincom.dcim.signal.FunctionRegistry
@@ -24,73 +28,6 @@ object Alarm {
             registry: FunctionRegistry) = Props(new Alarm(signalShard, alarmRecordShard, registry))
 
   def name(alarmId: String) = s"$alarmId"
-
-  sealed trait Command {
-    def alarmId: String
-  }
-
-  sealed trait Response
-
-  sealed trait Event
-
-  /* value objects */
-  final case class AlarmVo(alarmId: String,
-                           name: String,
-                           signalId: String,
-                           conditions: Set[Seq[AlarmConditionVo]]) extends Response
-
-  final case class AlarmValueVo(alarmId: String,
-                                value: Option[Boolean],
-                                matched: Option[AlarmConditionVo],
-                                beginTs: Option[DateTime],
-                                endTs: Option[DateTime]) extends Response
-
-  final case object Ok extends Response
-
-  final case object NotAvailable extends Response
-
-  final case object BadCmd extends Response
-
-  /* commands */
-  final case class CreateAlarmCmd(alarmId: String, name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]]) extends Command
-
-  final case class RenameAlarmCmd(alarmId: String, newName: String) extends Command
-
-  final case class SelectSignalCmd(alarmId: String, newSignalId: String) extends Command
-
-  final case class AddConditionCmd(alarmId: String, condition: AlarmConditionVo) extends Command
-
-  final case class RemoveConditionCmd(alarmId: String, condition: AlarmConditionVo) extends Command
-
-  final case class ReplaceConditionCmd(alarmId: String, oldCondition: AlarmConditionVo, newCondition: AlarmConditionVo) extends Command
-
-  /* transient commands */
-  final case class RetrieveAlarmCmd(alarmId: String) extends Command
-
-  final case class GetAlarmValueCmd(alarmId: String) extends Command
-
-  final case class EvalAlarmValueCmd(alarmId: String) extends Command
-
-  final case class PassivateAlarmCmd(alarmId: String) extends Command
-
-
-  /* persistent objects */
-  /* events */
-  final case class CreateAlarmEvt(name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]]) extends Event
-
-  final case class RenameAlarmEvt(newName: String) extends Event
-
-  final case class SelectSignalEvt(newSignalId: String) extends Event
-
-  final case class AddConditionEvt(condition: AlarmConditionVo) extends Event
-
-  final case class RemoveConditionEvt(condition: AlarmConditionVo) extends Event
-
-  final case class ReplaceConditionEvt(old: AlarmConditionVo, newOne: AlarmConditionVo) extends Event
-
-  /* snapshot */
-  final case class AlarmPo(alarmId: String, name: String, signalId: String, conditions: Set[Seq[AlarmConditionVo]])
-
 }
 
 class Alarm(signalShard: () => ActorRef,
@@ -106,8 +43,8 @@ class Alarm(signalShard: () => ActorRef,
   var conditions: mutable.Set[Seq[AlarmCondition]] = mutable.Set()
   var value: Option[Boolean] = None
   var matched: Option[AlarmCondition] = None
-  var beginTs: Option[DateTime] = None
-  var endTs: Option[DateTime] = None
+  var beginTs: Option[Timestamp] = None
+  var endTs: Option[Timestamp] = None
 
   val evalPeriod = Settings(context.system).alarm.evalPeriod.toMillis milliseconds
 
@@ -132,53 +69,53 @@ class Alarm(signalShard: () => ActorRef,
   }
 
   override def receiveCommand: Receive = {
-    case CreateAlarmCmd(_, name, signalId, conds) =>
+    case CreateAlarmCmd(_, user, name, signalId, conds) =>
       if (isValid()) {
-        persist(CreateAlarmEvt(name, signalId, conds))(updateState)
+        persist(CreateAlarmEvt(user, name, signalId, conds))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case SelectSignalCmd(_, newSignalId) =>
+    case SelectSignalCmd(_, user, newSignalId) =>
       if (isValid()) {
-        persist(SelectSignalEvt(newSignalId))(updateState)
+        persist(SelectSignalEvt(user, newSignalId))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case AddConditionCmd(_, condition) =>
+    case AddConditionCmd(_, user, condition) =>
       if (isValid()) {
-        persist(AddConditionEvt(condition))(updateState)
+        persist(AddConditionEvt(user, condition))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case RemoveConditionCmd(_, condition) =>
+    case RemoveConditionCmd(_, user, condition) =>
       if (isValid()) {
-        persist(RemoveConditionEvt(condition))(updateState)
+        persist(RemoveConditionEvt(user, condition))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case ReplaceConditionCmd(_, old, newOne) =>
+    case ReplaceConditionCmd(_, user, old, newOne) =>
       if (isValid()) {
-        persist(ReplaceConditionEvt(old, newOne))(updateState)
+        persist(ReplaceConditionEvt(user, old, newOne))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case EvalAlarmValueCmd(_) =>
+    case EvalAlarmValueCmd(_, _) =>
       if (isValid()) {
         signalShard() ! Signal.GetValueCmd(signalId.get)
       }
     case sv: Signal.SignalValueVo =>
       evalConditionsWith(sv)
-    case RetrieveAlarmCmd(_) =>
+    case RetrieveAlarmCmd(_, _) =>
       if (isValid()) {
-        sender() ! AlarmVo(alarmId, alarmName.get, signalId.get, conditionsAsVo)
+        sender() ! AlarmVo(alarmId, alarmName.get, signalId.get, exclusiveConditions(conditions))
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case GetAlarmValueCmd(_) =>
+    case GetAlarmValueCmd(_, _) =>
       if (isValid()) {
-        sender() ! AlarmValueVo(alarmId, value, if (matched.isDefined) Some(new AlarmConditionVo(matched.get)) else None, beginTs, endTs)
+        sender() ! AlarmValueVo(alarmId, value, if (matched.isDefined) Some(AlarmCondition.valueObjectOf(matched.get)) else None, beginTs, endTs)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
@@ -188,7 +125,7 @@ class Alarm(signalShard: () => ActorRef,
     for (cs <- conditions) {
       var s = mutable.ArraySeq[AlarmConditionVo]()
       for (c <- cs) {
-        s :+= new AlarmConditionVo(c)
+        s :+= AlarmCondition.valueObjectOf(c)
       }
       if (!(s.isEmpty)) conds += s
     }
@@ -196,28 +133,28 @@ class Alarm(signalShard: () => ActorRef,
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateAlarmEvt(name, signalId, conds) =>
+    case CreateAlarmEvt(_, name, signalId, conds) =>
       this.alarmName = Some(name)
-      this.signalId = Some(signalId)
+      this.signalId = signalId
       createConditions(conds)
-      replyToSender(Ok)
-    case SelectSignalEvt(newSignalId) =>
+      replyToSender(SUCCESS)
+    case SelectSignalEvt(_, newSignalId) =>
       this.signalId = Some(newSignalId)
-      replyToSender(Ok)
-    case AddConditionEvt(condition) =>
+      replyToSender(SUCCESS)
+    case AddConditionEvt(_, condition) =>
       if (addCondition(condition)) {
-        replyToSender(Ok)
+        replyToSender(SUCCESS)
       } else {
-        replyToSender(BadCmd)
+        replyToSender(BAD_COMMAND)
       }
-    case RemoveConditionEvt(condition) =>
+    case RemoveConditionEvt(_, condition) =>
       removeCondition(condition)
-      replyToSender(Ok)
-    case ReplaceConditionEvt(old, newOne) =>
+      replyToSender(SUCCESS)
+    case ReplaceConditionEvt(_, old, newOne) =>
       if (replaceCondition(old, newOne)) {
-        replyToSender(Ok)
+        replyToSender(SUCCESS)
       } else {
-        replyToSender(BadCmd)
+        replyToSender(BAD_COMMAND)
       }
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
   }
@@ -316,7 +253,7 @@ class Alarm(signalShard: () => ActorRef,
     for (cs <- conditions) {
       var seq: mutable.Seq[AlarmCondition] = mutable.ArraySeq()
       for (c <- cs) {
-        if (!cond.equals(new AlarmConditionVo(c))) {
+        if (!cond.equals(AlarmCondition.valueObjectOf(c))) {
           seq = seq :+ c
         }
       }
@@ -327,6 +264,10 @@ class Alarm(signalShard: () => ActorRef,
   private def replaceCondition(old: AlarmConditionVo, newOne: AlarmConditionVo): Boolean = {
     removeCondition(old)
     addCondition(newOne)
+  }
+
+  def exclusiveConditions(conditions: mutable.Set[Seq[AlarmCondition]]): Option[ExclusiveConditionVo] = {
+    None
   }
 
   private def isValid(): Boolean = {

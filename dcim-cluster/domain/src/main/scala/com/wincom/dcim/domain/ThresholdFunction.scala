@@ -1,5 +1,6 @@
 package com.wincom.dcim.domain
 
+import com.wincom.dcim.message.alarm.ThresholdFunctionVo
 import com.wincom.dcim.signal.{FunctionRegistry, SetFunction}
 
 import scala.collection.JavaConverters._
@@ -20,8 +21,8 @@ object ThresholdFunction {
     }
   }
 
-  final case class ThresholdFunctionVo(name: String, params: Map[String, String]) {
-    def this(func: ThresholdFunction) = this(func.name, func.params)
+  def valueObjectOf(f: ThresholdFunction): ThresholdFunctionVo = {
+    ThresholdFunctionVo(f.name, f.params)
   }
 }
 
