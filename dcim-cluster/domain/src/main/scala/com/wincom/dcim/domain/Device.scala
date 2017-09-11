@@ -2,7 +2,9 @@ package com.wincom.dcim.domain
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.wincom.dcim.domain.Device._
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.device._
+import com.wincom.dcim.message.common.ResponseType._
 
 import scala.collection.mutable
 
@@ -13,99 +15,6 @@ object Device {
   def props = Props[Device]
 
   def name(id: String) = id
-
-  sealed trait Command {
-    def deviceId: String
-  }
-
-  sealed trait Response
-
-  sealed trait Event
-
-  /* value objects & responses */
-  final case class DeviceVo(deviceId: String,
-                            deviceName: String,
-                            deviceType: String,
-                            vendorModel: String,
-                            propertyTagCode: String,
-                            signals: Seq[String],
-                            alarms: Seq[String],
-                            children: Seq[String]
-                           ) extends Response
-  final case object Ok extends Response
-  final case object NotExist extends Response
-  final case object NotAvailable extends Response
-  /* commands */
-  final case class CreateDeviceCmd(deviceId: String,
-                                   deviceName: String,
-                                   deviceType: String,
-                                   vendorModel: String,
-                                   propertyTagCode: String,
-                                   signals: Seq[String],
-                                   alarms: Seq[String],
-                                   children: Seq[String]
-                                  ) extends Command
-
-  final case class RenameDeviceCmd(deviceId: String, newName: String) extends Command
-
-  final case class ChangeDeviceTypeCmd(deviceId: String, newType: String) extends Command
-
-  final case class ChangeVendorModelCmd(deviceId: String, newType: String) extends Command
-
-  final case class ChangePropertyTagCodeCmd(deviceId: String, newPropertyCode: String) extends Command
-
-  final case class AddSignalCmd(deviceId: String, signalId: String) extends Command
-
-  final case class RemoveSignalCmd(deviceId: String, signalId: String) extends Command
-
-  final case class AddAlarmCmd(deviceId: String, alarmId: String) extends Command
-
-  final case class RemoveAlarmCmd(deviceId: String, alarmId: String) extends Command
-
-  final case class AddChildCmd(deviceId: String, childDeviceId: String) extends Command
-
-  final case class RemoveChildCmd(deviceId: String, childDeviceId: String) extends Command
-
-  /* events */
-  final case class CreateDeviceEvt(deviceName: String,
-                                   deviceType: String,
-                                   vendorModel: String,
-                                   propertyTagCode: String,
-                                   signals: Seq[String],
-                                   alarms: Seq[String],
-                                   children: Seq[String]
-                                  ) extends Event
-
-  final case class RenameDeviceEvt(newName: String) extends Event
-
-  final case class ChangeDeviceTypeEvt(newType: String) extends Event
-
-  final case class ChangeVendorModelEvt(newModel: String) extends Event
-
-  final case class ChangePropertyTagCodeEvt(newPropertyCode: String) extends Event
-
-  final case class AddSignalEvt(signalId: String) extends Event
-
-  final case class RemoveSignalEvt(signalId: String) extends Event
-
-  final case class AddAlarmEvt(alarmId: String) extends Event
-
-  final case class RemoveAlarmEvt(alarmId: String) extends Event
-
-  final case class AddChildEvt(childDeviceId: String) extends Event
-
-  final case class RemoveChildEvt(childDeviceId: String) extends Event
-
-  /* persistent objects */
-  final case class DevicePo(deviceName: String,
-                            deviceType: String,
-                            vendorModel: String,
-                            propertyTagCode: String,
-                            signals: Seq[String],
-                            alarms: Seq[String],
-                            children: Seq[String]
-                           ) extends Event
-
 }
 
 class Device extends PersistentActor with ActorLogging {
@@ -128,8 +37,8 @@ class Device extends PersistentActor with ActorLogging {
     case SnapshotOffer(_, DevicePo(deviceName, deviceType, vendorModel, propertyTagCode, signals, alarms, children)) =>
       this.deviceName = Some(deviceName)
       this.deviceType = Some(deviceType)
-      this.vendorModel = Some(vendorModel)
-      this.propertyTagCode = Some(propertyTagCode)
+      this.vendorModel = vendorModel
+      this.propertyTagCode = propertyTagCode
       this.signals = mutable.Seq() ++ signals
       this.alarms = mutable.Seq() ++ alarms
       this.children = mutable.Seq() ++ children
@@ -137,108 +46,108 @@ class Device extends PersistentActor with ActorLogging {
   }
 
   override def receiveCommand: Receive = {
-    case CreateDeviceCmd(_, name, deviceType, model, propertyTagCode, signals, alarms, children) =>
-      persist(CreateDeviceEvt(name, deviceType, model, propertyTagCode, signals, alarms, children)) (updateState)
-    case RenameDeviceCmd(_, newName) =>
+    case CreateDeviceCmd(_, user, name, deviceType, model, propertyTagCode, signals, alarms, children) =>
+      persist(CreateDeviceEvt(user, name, deviceType, model, propertyTagCode, signals, alarms, children)) (updateState)
+    case RenameDeviceCmd(_, user, newName) =>
       if(isValid()) {
-        persist(RemoveAlarmEvt(newName))(updateState)
+        persist(RemoveAlarmEvt(user, newName))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case ChangeDeviceTypeCmd(_, newType) =>
+    case ChangeDeviceTypeCmd(_, user, newType) =>
       if(isValid()) {
-        persist(ChangeDeviceTypeEvt(newType))(updateState)
+        persist(ChangeDeviceTypeEvt(user, newType))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case ChangeVendorModelCmd(_, newModel) =>
+    case ChangeVendorModelCmd(_, user, newModel) =>
       if(isValid()) {
-        persist(ChangeVendorModelEvt(newModel))(updateState)
+        persist(ChangeVendorModelEvt(user, newModel))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case ChangePropertyTagCodeCmd(_, newCode) =>
+    case ChangePropertyTagCodeCmd(_, user, newCode) =>
       if(isValid()) {
-        persist(ChangePropertyTagCodeEvt(newCode))(updateState)
+        persist(ChangePropertyTagCodeEvt(user, newCode))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case AddSignalCmd(_, signalId) =>
+    case AddSignalCmd(_, user, signalId) =>
       if(isValid()) {
-        persist(AddSignalEvt(signalId))(updateState)
+        persist(AddSignalEvt(user, signalId))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case RemoveSignalCmd(_, signalId) =>
+    case RemoveSignalCmd(_, user, signalId) =>
       if(isValid()) {
-        persist(RemoveSignalEvt(signalId))(updateState)
+        persist(RemoveSignalEvt(user, signalId))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case AddAlarmCmd(_, alarmId) =>
+    case AddAlarmCmd(_, user, alarmId) =>
       if(isValid()) {
-        persist(AddAlarmEvt(alarmId))(updateState)
+        persist(AddAlarmEvt(user, alarmId))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case RemoveAlarmCmd(_, alarmId) =>
+    case RemoveAlarmCmd(_, user, alarmId) =>
       if(isValid()) {
-        persist(RemoveAlarmEvt(alarmId))(updateState)
+        persist(RemoveAlarmEvt(user, alarmId))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case AddChildCmd(_, deviceId) =>
+    case AddChildCmd(_, user, deviceId) =>
       if(isValid()) {
-        persist(AddChildEvt(deviceId))(updateState)
+        persist(AddChildEvt(user, deviceId))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case RemoveChildCmd(_, deviceId) =>
+    case RemoveChildCmd(_, user, deviceId) =>
       if(isValid()) {
-        persist(RemoveChildEvt(deviceId))(updateState)
+        persist(RemoveChildEvt(user, deviceId))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
     case x => log.info("COMMAND: {} {}", this, x)
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateDeviceEvt(deviceName, deviceType, vendorModel, propertyTagCode, signals, alarms, children) =>
+    case CreateDeviceEvt(user, deviceName, deviceType, vendorModel, propertyTagCode, signals, alarms, children) =>
       this.deviceName = Some(deviceName)
       this.deviceType = Some(deviceType)
-      this.vendorModel = Some(vendorModel)
-      this.propertyTagCode = Some(propertyTagCode)
+      this.vendorModel = vendorModel
+      this.propertyTagCode = propertyTagCode
       this.signals = mutable.Seq() ++ signals
       this.alarms = mutable.Seq() ++ alarms
       this.children = mutable.Seq() ++ children
-      replyToSender(Ok)
-    case RenameDeviceEvt(newName) =>
+      replyToSender(SUCCESS)
+    case RenameDeviceEvt(user, newName) =>
       this.deviceName = Some(newName)
-      replyToSender(Ok)
-    case ChangeDeviceTypeEvt(newType) =>
+      replyToSender(SUCCESS)
+    case ChangeDeviceTypeEvt(user, newType) =>
       this.deviceType = Some(newType)
-      replyToSender(Ok)
-    case ChangeVendorModelEvt(newModel) =>
+      replyToSender(SUCCESS)
+    case ChangeVendorModelEvt(user, newModel) =>
       this.vendorModel = Some(newModel)
-      replyToSender(Ok)
-    case ChangePropertyTagCodeEvt(newPropertyCode) =>
+      replyToSender(SUCCESS)
+    case ChangePropertyTagCodeEvt(user, newPropertyCode) =>
       this.propertyTagCode = Some(newPropertyCode)
-      replyToSender(Ok)
-    case AddSignalEvt(signalId) =>
+      replyToSender(SUCCESS)
+    case AddSignalEvt(user, signalId) =>
       this.signals :+= signalId
-      replyToSender(Ok)
-    case RemoveSignalEvt(signalId) =>
+      replyToSender(SUCCESS)
+    case RemoveSignalEvt(user, signalId) =>
       this.signals = this.signals.filter(!_.eq(signalId))
-      replyToSender(Ok)
-    case AddAlarmEvt(alarmId) =>
+      replyToSender(SUCCESS)
+    case AddAlarmEvt(user, alarmId) =>
       this.alarms :+= alarmId
-      replyToSender(Ok)
-    case AddChildEvt(childDeviceId) =>
+      replyToSender(SUCCESS)
+    case AddChildEvt(user, childDeviceId) =>
       this.children :+= childDeviceId
-      replyToSender(Ok)
-    case RemoveChildEvt(childDeviceId) =>
+      replyToSender(SUCCESS)
+    case RemoveChildEvt(user, childDeviceId) =>
       this.children = this.children.filter(!_.equals(childDeviceId))
-      replyToSender(Ok)
+      replyToSender(SUCCESS)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 
