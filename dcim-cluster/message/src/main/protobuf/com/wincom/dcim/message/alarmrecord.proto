@@ -1,14 +1,18 @@
 syntax = "proto2";
+import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
 import "scalapb/scalapb.proto";
 option(scalapb.options) = {
     flat_package: true
+    import: "com.wincom.dcim.message.common._"
 };
 
 package com.wincom.dcim.message.alarmrecord;
 
+import "com/wincom/dcim/message/common.proto";
 import "com/wincom/dcim/message/alarm.proto";
+import "com/wincom/dcim/message/signal.proto";
 
 enum EventType {
   RAISE = 0;
@@ -18,12 +22,143 @@ enum EventType {
   MUTE = 4;
 };
 
+// value objects
 message AlarmRecordVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string alarmId = 1;
-    required google.protobuf.Timestamp begin = 2;
+    required google.protobuf.Timestamp beginTime = 2;
     required string name = 3;
     required com.wincom.dcim.message.alarm.AlarmLevel level = 4;
     required string signalId = 5;
     optional string desc = 6;
+    optional com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 7;
+    optional google.protobuf.Timestamp ackTime = 8;
+    optional string ackByPerson = 9;
+    optional string ackDesc = 10;
+    optional google.protobuf.Timestamp muteTime = 11;
+    optional string muteByPerson = 12;
+    optional string muteDesc = 13;
+    repeated google.protobuf.Any transitions = 14 [(scalapb.field).collection_type="Seq"];
+    optional google.protobuf.Timestamp endTime = 15;
 };
+
+// command and responses
+message RaiseAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarmrecord.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required google.protobuf.Timestamp beginTime = 3;
+    required string name = 4;
+    required com.wincom.dcim.message.alarm.AlarmLevel level = 5;
+    required com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 6;
+    optional string desc = 7;
+};
+
+message TransitAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarmrecord.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required google.protobuf.Timestamp beginTime = 3;
+    required google.protobuf.Timestamp transTime = 4;
+    required com.wincom.dcim.message.alarm.AlarmLevel level = 5;
+    required com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 6;
+    optional string desc = 7;
+};
+
+message EndAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarmrecord.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required google.protobuf.Timestamp beginTime = 3;
+    required google.protobuf.Timestamp endTime = 4;
+    required com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 5;
+    optional string desc = 6;
+};
+
+message AckAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarmrecord.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required google.protobuf.Timestamp beginTime = 3;
+    optional google.protobuf.Timestamp transTime = 4;
+    required google.protobuf.Timestamp ackTime = 5;
+    required string byPerson = 6;
+    optional string desc = 7;
+};
+
+message MuteAlarmCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarmrecord.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required google.protobuf.Timestamp beginTime = 3;
+    optional google.protobuf.Timestamp transTime = 4;
+    required google.protobuf.Timestamp muteTime = 5;
+    required string byPerson = 6;
+    optional string desc = 7;
+};
+
+// transient commands
+message RetrieveAlarmRecordCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarmrecord.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required google.protobuf.Timestamp beginTime = 3;
+};
+
+message PassivateAlarmRecordCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarmrecord.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required google.protobuf.Timestamp beginTime = 3;
+};
+
+// events
+message RaiseAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required google.protobuf.Timestamp beginTime = 2;
+    required string name = 3;
+    required com.wincom.dcim.message.alarm.AlarmLevel level = 4;
+    required com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 5;
+    optional string desc = 6;
+};
+
+message TransitAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required google.protobuf.Timestamp beginTime = 2;
+    required google.protobuf.Timestamp transTime = 3;
+    required com.wincom.dcim.message.alarm.AlarmLevel level = 4;
+    required com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 5;
+    optional string desc = 6;
+};
+
+message EndAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required google.protobuf.Timestamp beginTime = 2;
+    required google.protobuf.Timestamp endTime = 3;
+    required com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 4;
+    optional string desc = 5;
+};
+
+message AckAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required google.protobuf.Timestamp beginTime = 2;
+    optional google.protobuf.Timestamp transTime = 3;
+    required google.protobuf.Timestamp ackTime = 4;
+    required string byPerson = 5;
+    optional string desc = 6;
+};
+
+message MuteAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required google.protobuf.Timestamp beginTime = 2;
+    optional google.protobuf.Timestamp transTime = 3;
+    required google.protobuf.Timestamp muteTime = 4;
+    required string byPerson = 5;
+    optional string desc = 6;
+};
+

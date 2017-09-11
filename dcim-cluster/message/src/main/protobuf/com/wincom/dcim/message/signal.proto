@@ -7,6 +7,8 @@ option(scalapb.options) = {
 };
 package com.wincom.dcim.message.signal;
 
+import "com/wincom/dcim/message/common.proto";
+
 enum SignalType {
     AI = 0;
     DI = 1;
@@ -14,7 +16,7 @@ enum SignalType {
     AO = 3;
     DO = 4;
     SO = 5;
-}
+};
 
 // value objects
 message TransFuncVo {
@@ -27,18 +29,18 @@ message SignalVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string id = 1;
     required string name = 2;
-    required SignalType t = 3;
+    required SignalType signalType = 3;
     required string driverId = 4;
     required string key = 5;
-    repeated TransFuncVo funcs = 6;
+    repeated TransFuncVo funcs = 6 [(scalapb.field).collection_type="Seq"];
 };
 
 message SignalValueVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.SignalValue";
-    required SignalType signalType = 3;
-    optional bool digitalValue = 4;
-    optional double analogValue = 5;
-    optional string stringValue = 6;
+    required SignalType signalType = 1;
+    optional bool digitalValue = 2;
+    optional double analogValue = 3;
+    optional string stringValue = 4;
 };
 
 message SignalSnapshotValueVo {
@@ -51,16 +53,26 @@ message SignalSnapshotValueVo {
     optional string stringValue = 6;
 };
 
+message SupportedFuncsVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string funcNames = 1 [(scalapb.field).collection_type="Seq"];
+};
+
+message FuncParamsVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string paramNames = 1 [(scalapb.field).collection_type="Seq"];
+};
+
 // configuration commands
 message CreateSignalCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
     required string name = 3;
-    required SignalType t = 4;
+    required SignalType signalType = 4;
     required string driverId = 5;
     required string key = 6;
-    repeated TransFuncVo funcs = 7;
+    repeated TransFuncVo funcs = 7 [(scalapb.field).collection_type="Seq"];
 };
 
 message RenameSignalCmd {
@@ -95,7 +107,7 @@ message UpdateFuncsCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
-    repeated TransFuncVo funcs = 3;
+    repeated TransFuncVo funcs = 3 [(scalapb.field).collection_type="Seq"];
 };
 
 message SaveSnapshotCmd {
@@ -123,12 +135,13 @@ message SetValueCmd {
     required string id = 1;
     optional string user = 2;
     required SignalValueVo value = 3;
-}
+};
 
 message SetValueRsp {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    optional string result = 1;
-}
+    required com.wincom.dcim.message.common.ResponseType status = 1;
+    optional string result = 2;
+};
 
 message GetValueCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
@@ -154,11 +167,6 @@ message GetSupportedFuncsCmd {
     optional string user = 2;
 };
 
-message GetSupportedFuncsRsp {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string funcNames = 1;
-}
-
 message GetFuncParamsCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
@@ -166,12 +174,17 @@ message GetFuncParamsCmd {
     required string funcName = 3;
 };
 
-message GetFuncParamsRsp {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string paramNames = 1;
+// persistent events
+message CreateSignalEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string name = 2;
+    required SignalType signalType = 3;
+    required string driverId = 4;
+    required string key = 5;
+    repeated TransFuncPo funcs = 6 [(scalapb.field).collection_type="Seq"];
 };
 
-// persistent events
 message RenameSignalEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
@@ -199,7 +212,7 @@ message SelectKeyEvt {
 message UpdateFuncsEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
-    repeated TransFuncVo funcs = 2;
+    repeated TransFuncPo funcs = 2 [(scalapb.field).collection_type="Seq"];
 };
 
 // persistent objects
@@ -212,8 +225,10 @@ message TransFuncPo {
 message SignalPo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string name = 1;
-    required SignalType t = 2;
+    required SignalType signalType = 2;
     required string driverId = 3;
     required string key = 4;
-    repeated TransFuncPo funcs = 5;
+    repeated TransFuncPo funcs = 5 [(scalapb.field).collection_type="Seq"];
 };
+
+

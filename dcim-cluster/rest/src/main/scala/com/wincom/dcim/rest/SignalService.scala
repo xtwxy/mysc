@@ -39,7 +39,7 @@ trait SignalRoutes extends SignalMarshaling {
         pathEnd {
           onSuccess(signals.ask(
             RetrieveSignalCmd(signalId)
-          ).mapTo[Response]) {
+          ).mapTo[ValueObject]) {
             case v: SignalVo => complete(v)
             case _ => complete(NotFound)
           }
@@ -51,7 +51,7 @@ trait SignalRoutes extends SignalMarshaling {
           pathEnd {
             entity(as[CreateSignalCmd]) { v =>
               if(validateSignalType(v.t)) {
-                onSuccess(signals.ask(v).mapTo[Response]) {
+                onSuccess(signals.ask(v).mapTo[ValueObject]) {
                   case Ok => complete(NoContent)
                   case _ => complete(NotFound)
                 }
@@ -64,7 +64,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("rename-signal") {
             pathEnd {
               entity(as[RenameSignalCmd]) { v =>
-                onSuccess(signals.ask(v).mapTo[Response]) {
+                onSuccess(signals.ask(v).mapTo[ValueObject]) {
                   case Ok => complete(NoContent)
                   case _ => complete(NotFound)
                 }
@@ -74,7 +74,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("select-driver") {
             pathEnd {
               entity(as[SelectDriverCmd]) { v =>
-                onSuccess(signals.ask(v).mapTo[Response]) {
+                onSuccess(signals.ask(v).mapTo[ValueObject]) {
                   case Ok => complete(NoContent)
                   case _ => complete(NotFound)
                 }
@@ -84,7 +84,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("select-key") {
             pathEnd {
               entity(as[SelectKeyCmd]) { v =>
-                onSuccess(signals.ask(v).mapTo[Response]) {
+                onSuccess(signals.ask(v).mapTo[ValueObject]) {
                   case Ok => complete(NoContent)
                   case _ => complete(NotFound)
                 }
@@ -94,7 +94,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("update-funcs") {
             pathEnd {
               entity(as[UpdateFuncsCmd]) { v =>
-                onSuccess(signals.ask(v).mapTo[Response]) {
+                onSuccess(signals.ask(v).mapTo[ValueObject]) {
                   case Ok => complete(NoContent)
                   case _ => complete(NotFound)
                 }
@@ -104,7 +104,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("retrieve-signal") {
             pathEnd {
               entity(as[RetrieveSignalCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Response]) {
+                onSuccess(signals.ask(x).mapTo[ValueObject]) {
                   case v: SignalVo => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -114,7 +114,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("save-snapshot") {
             pathEnd {
               entity(as[SaveSnapshotCmd]) { v =>
-                onSuccess(signals.ask(v).mapTo[Response]) {
+                onSuccess(signals.ask(v).mapTo[ValueObject]) {
                   case Ok =>
                     complete(NoContent)
                   case _ =>
@@ -134,7 +134,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("set-value") {
             pathEnd {
               entity(as[SetValueCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Response]) {
+                onSuccess(signals.ask(x).mapTo[ValueObject]) {
                   case v: SetValueRsp => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -144,7 +144,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("get-value") {
             pathEnd {
               entity(as[GetValueCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Response]) {
+                onSuccess(signals.ask(x).mapTo[ValueObject]) {
                   case v: SignalValueVo => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -170,7 +170,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("get-supported-funcs") {
             pathEnd {
               entity(as[GetSupportedFuncsCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Response]) {
+                onSuccess(signals.ask(x).mapTo[ValueObject]) {
                   case v: GetSupportedFuncsRsp => complete(v)
                   case _ => complete(NotFound)
                 }
@@ -180,7 +180,7 @@ trait SignalRoutes extends SignalMarshaling {
           path("get-func-params") {
             pathEnd {
               entity(as[GetFuncParamsCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[Response]) {
+                onSuccess(signals.ask(x).mapTo[ValueObject]) {
                   case v: GetFuncParamsRsp => complete(v)
                   case _ => complete(NotFound)
                 }

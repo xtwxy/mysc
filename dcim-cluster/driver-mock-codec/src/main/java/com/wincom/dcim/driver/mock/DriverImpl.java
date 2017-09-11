@@ -88,7 +88,7 @@ public class DriverImpl extends AbstractActor {
 				.match(Signal.GetValueCmd.class, o -> {
 					getSender().tell(
 							new Signal.SignalValueVo(
-								o.signalId(),
+								o.id(),
 								DateTime.apply(System.currentTimeMillis()),
 								Double.valueOf(Math.random())
 							),

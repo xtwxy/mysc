@@ -43,12 +43,12 @@ message AlarmValueVo {
 
 message InclusiveConditionVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated AlarmConditionVo ordered = 1 [(scalapb.field).collection_type="List"];
+    repeated AlarmConditionVo ordered = 1 [(scalapb.field).collection_type="Seq"];
 }
 
 message ExclusiveConditionVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated InclusiveConditionVo exclusive = 1 [(scalapb.field).collection_type="Set"];
+    repeated InclusiveConditionVo exclusive = 1 [(scalapb.field).collection_type="Seq"];
 }
 
 message AlarmVo {

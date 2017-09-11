@@ -1,9 +1,10 @@
 syntax = "proto2";
 import "scalapb/scalapb.proto";
 option(scalapb.options) = {
-    package_name: "com.wincom.dcim.message.common"
     flat_package: true
 };
+
+package com.wincom.dcim.message.common;
 
 enum ResponseType {
     option(scalapb.enum_options).extends = "com.wincom.dcim.message.common.ValueObject";
@@ -12,5 +13,14 @@ enum ResponseType {
     ALREADY_EXISTS = 2;
     NOT_AVAILABLE = 3;
     BAD_COMMAND = 4;
-}
+};
 
+message SupportedModelsVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string modelNames = 1 [(scalapb.field).collection_type="Seq"];
+};
+
+message ModelParamsVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string paramNames = 1 [(scalapb.field).collection_type="Seq"];
+};

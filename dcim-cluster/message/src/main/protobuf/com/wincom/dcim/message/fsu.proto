@@ -6,6 +6,7 @@ option(scalapb.options) = {
 
 package com.wincom.dcim.message.fsu;
 
+import "com/wincom/dcim/message/common.proto";
 
 message FsuVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
@@ -15,6 +16,17 @@ message FsuVo {
     map<string, string> params = 4;
 };
 
+message SupportedModelsVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string modelNames = 1  [(scalapb.field).collection_type="Seq"];
+};
+
+message ModelParamsVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated string paramNames = 1  [(scalapb.field).collection_type="Seq"];
+};
+
+// commands
 message CreateFsuCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
@@ -66,7 +78,7 @@ message GetPortCmd {
 };
 
 message SendBytesCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
     required bytes bytes = 3;
@@ -96,21 +108,11 @@ message GetSupportedFsuModelsCmd {
     optional string user = 2;
 };
 
-message GetSupportedFsuModelsRsp {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string modelNames = 2;
-};
-
 message GetModelParamsCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
-    repeated string modelName = 3;
-};
-
-message GetModelParamsRsp {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string paramNames = 3;
+    repeated string modelName = 3  [(scalapb.field).collection_type="Seq"];
 };
 
 // events

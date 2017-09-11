@@ -1,9 +1,192 @@
 syntax = "proto2";
 import "scalapb/scalapb.proto";
 option(scalapb.options) = {
-    package_name: "com.wincom.dcim.message.fsu"
     flat_package: true
 };
 
+package com.wincom.dcim.message.device;
 
+import "com/wincom/dcim/message/signal.proto";
 
+// value objects
+message DeviceVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string id = 1;
+    required string name = 2;
+    required string deviceType = 3;
+    optional string vendorModel = 4;
+    optional string propertyTagCode = 5;
+    repeated string signals = 6 [(scalapb.field).collection_type="Seq"];
+    repeated string alarms = 7 [(scalapb.field).collection_type="Seq"];
+    repeated string children = 8 [(scalapb.field).collection_type="Seq"];
+};
+
+// command and responses
+message CreateDeviceCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string name = 3;
+    required string deviceType = 4;
+    optional string vendorModel = 5;
+    optional string propertyTagCode = 6;
+    repeated string signals = 7 [(scalapb.field).collection_type="Seq"];
+    repeated string alarms = 8 [(scalapb.field).collection_type="Seq"];
+    repeated string children = 9 [(scalapb.field).collection_type="Seq"];
+};
+
+message RenameDeviceCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string name = 3;
+};
+
+message ChangeDeviceTypeCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string newType = 3;
+};
+
+message ChangeVendorModelCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string newModel = 3;
+};
+
+message ChangePropertyTagCodeCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string newPropertyCode = 3;
+};
+
+message AddSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string signalId = 3;
+};
+
+message RemoveSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string signalId = 3;
+};
+
+message AddAlarmCmd {
+      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+      required string id = 1;
+      optional string user = 2;
+      required string alarmId = 3;
+};
+
+message RemoveAlarmCmd {
+      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+      required string id = 1;
+      optional string user = 2;
+      required string alarmId = 3;
+};
+
+message AddChildCmd {
+      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+      required string id = 1;
+      optional string user = 2;
+      required string childId = 3;
+};
+
+message RemoveChildCmd {
+      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+      required string id = 1;
+      optional string user = 2;
+      required string childId = 3;
+};
+
+// events
+message CreateDeviceEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string name = 2;
+    required string deviceType = 3;
+    optional string vendorModel = 4;
+    optional string propertyTagCode = 5;
+    repeated string signals = 6 [(scalapb.field).collection_type="Seq"];
+    repeated string alarms = 7 [(scalapb.field).collection_type="Seq"];
+    repeated string children = 8 [(scalapb.field).collection_type="Seq"];
+};
+
+message RenameDeviceEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string name = 2;
+};
+
+message ChangeDeviceTypeEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newType = 2;
+};
+
+message ChangeVendorModelEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newModel = 2;
+};
+
+message ChangePropertyTagCodeEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newPropertyCode = 2;
+};
+
+message AddSignalEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string signalId = 2;
+};
+
+message RemoveSignalEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string signalId = 2;
+};
+
+message AddAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string alarmId = 2;
+};
+
+message RemoveAlarmEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string alarmId = 2;
+};
+
+message AddChildEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string childId = 2;
+};
+
+message RemoveChildEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string childId = 2;
+};
+
+// persistent objects
+
+message DevicePo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string name = 1;
+    required string deviceType = 2;
+    optional string vendorModel = 3;
+    optional string propertyTagCode = 4;
+    repeated string signals = 5 [(scalapb.field).collection_type="Seq"];
+    repeated string alarms = 6 [(scalapb.field).collection_type="Seq"];
+    repeated string children = 7 [(scalapb.field).collection_type="Seq"];
+};

@@ -11,17 +11,17 @@ trait FunctionFactory {
 }
 
 trait InverseFunction {
-  def inverse(input: AnyVal): AnyVal
+  def inverse(input: Any): Any
 }
 
 trait SetFunction {
-  def contains(e: AnyVal): Boolean
+  def contains(e: Any): Boolean
   def subsetOf(f: SetFunction): Boolean
   def intersects(f: SetFunction): Boolean
 }
 
 trait UnaryFunction {
-  def transform(input: AnyVal): AnyVal
+  def transform(input: Any): Any
 }
 
 trait UnaryFunctionFactory extends  FunctionFactory {
@@ -29,7 +29,7 @@ trait UnaryFunctionFactory extends  FunctionFactory {
 }
 
 trait BinaryFunction {
-  def transform(lhs: AnyVal, rhs: AnyVal): AnyVal
+  def transform(lhs: Any, rhs: Any): Any
 }
 
 trait BinaryFunctionFactory extends  FunctionFactory {

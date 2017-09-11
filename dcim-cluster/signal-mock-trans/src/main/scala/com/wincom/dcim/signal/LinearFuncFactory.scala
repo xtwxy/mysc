@@ -14,7 +14,7 @@ class LinerFuncImpl(val params: Map[String, String]) extends UnaryFunction with 
     }
   }
 
-  override def inverse(input: AnyVal): AnyVal = {
+  override def inverse(input: AnyVal): Any = {
     input match {
       case x: Boolean => !x
       case x: Double => x / 2;
