@@ -1,18 +1,17 @@
 package com.wincom.dcim.domain
 
-import java.io.Serializable
 
 import akka.actor.{ActorRef, Props, ReceiveTimeout}
 import akka.event.Logging
-import akka.http.scaladsl.model.DateTime
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap.create
-import com.wincom.dcim.domain.Driver._
-import com.wincom.dcim.domain.Signal.UpdateValueCmd
 import com.wincom.dcim.driver.DriverCodecRegistry
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.driver._
+import com.wincom.dcim.message.common.ResponseType._
 
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.ExecutionContext
@@ -28,98 +27,6 @@ object Driver {
   def props(shardedSignal: () => ActorRef, registry: DriverCodecRegistry) = Props(new Driver(shardedSignal, registry))
 
   def name(driverId: String) = s"$driverId"
-
-  sealed trait Command {
-    def driverId: String
-  }
-
-  sealed trait Response
-
-  sealed trait Event
-
-  /* value objects */
-  final case class DriverVo(driverId: String,
-                            name: String,
-                            model: String,
-                            initParams: Map[String, String],
-                            signalIdMap: Map[String, String]) extends Response
-
-  final case class SignalValue(key: String, ts: DateTime, value: AnyVal) extends Serializable
-
-  final case class SignalValueVo(driverId: String, key: String, ts: DateTime, value: AnyVal) extends Response
-
-  final case class SignalValuesVo(driverId: String, signalValues: Seq[SignalValue]) extends Response
-
-  final case object Ok extends Response
-
-  final case object NotAvailable extends Response
-
-  final case object NotExist extends Response
-
-  final case object AlreadyExists extends Response
-
-  /* commands */
-  final case class CreateDriverCmd(driverId: String, name: String, model: String, initParams: Map[String, String], signalIdMap: Map[String, String]) extends Command
-
-  final case class RenameDriverCmd(driverId: String, newName: String) extends Command
-
-  final case class ChangeModelCmd(driverId: String, newModel: String) extends Command
-
-  final case class SaveSnapshotCmd(driverId: String) extends Command
-
-  final case class AddParamsCmd(driverId: String, params: Map[String, String]) extends Command
-
-  final case class RemoveParamsCmd(driverId: String, params: Map[String, String]) extends Command
-
-  final case class MapSignalKeyIdCmd(driverId: String, key: String, signalId: String) extends Command
-
-  /* transient commands */
-  final case class GetSignalValueCmd(driverId: String, key: String) extends Command
-
-  final case class GetSignalValuesCmd(driverId: String, keys: Set[String]) extends Command
-
-  final case class SetSignalValueCmd(driverId: String, key: String, value: AnyVal) extends Command
-
-  final case class SetSignalValueRsp(driverId: String, key: String, result: String) extends Response
-
-  final case class SetSignalValuesCmd(driverId: String, values: Map[String, AnyVal]) extends Command
-
-  final case class SetSignalValuesRsp(driverId: String, results: Map[String, String]) extends Response
-
-  final case class UpdateSignalValuesCmd(driverId: String, values: Seq[SignalValue]) extends Command
-
-  final case class SendBytesCmd(driverId: String, bytes: Array[Byte]) extends Command
-
-  final case class RetrieveDriverCmd(driverId: String) extends Command
-
-  final case class StartDriverCmd(driverId: String) extends Command
-
-  final case class StopDriverCmd(driverId: String) extends Command
-
-  final case class GetSupportedModelsCmd(driverId: String) extends Command
-
-  final case class GetSupportedModelsRsp(driverId: String, modelNames: Set[String]) extends Response
-
-  final case class GetModelParamsCmd(driverId: String, modelName: String) extends Command
-
-  final case class GetModelParamsRsp(driverId: String, paramNames: Set[String]) extends Response
-
-  /* events */
-  final case class CreateDriverEvt(name: String, model: String, initParams: Map[String, String], signalIdMap: Map[String, String]) extends Event
-
-  final case class RenameDriverEvt(newName: String) extends Event
-
-  final case class ChangeModelEvt(newModel: String) extends Event
-
-  final case class AddParamsEvt(params: Map[String, String]) extends Event
-
-  final case class RemoveParamsEvt(params: Map[String, String]) extends Event
-
-  final case class MapSignalKeyIdEvt(key: String, signalId: String) extends Event
-
-  /* persistent objects */
-  final case class DriverPo(name: String, model: String, initParams: Map[String, String], signalIdMap: Map[String, String]) extends Serializable
-
 }
 
 class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistry) extends PersistentActor {
@@ -158,105 +65,105 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   }
 
   def receiveCommand: PartialFunction[Any, Unit] = {
-    case CreateDriverCmd(_, name, model, params, idMap) =>
-      persist(CreateDriverEvt(name, model, params, idMap))(updateState)
-    case RenameDriverCmd(_, newName) =>
+    case CreateDriverCmd(_, user, name, model, params, idMap) =>
+      persist(CreateDriverEvt(user, name, model, params, idMap))(updateState)
+    case RenameDriverCmd(_, user, newName) =>
       if (isValid) {
-        persist(RenameDriverEvt(newName))(updateState)
+        persist(RenameDriverEvt(user, newName))(updateState)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case ChangeModelCmd(_, newModel) =>
+    case ChangeModelCmd(_, user, newModel) =>
       if (isValid) {
-        persist(ChangeModelEvt(newModel))(updateState)
+        persist(ChangeModelEvt(user, newModel))(updateState)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case AddParamsCmd(_, params) =>
+    case AddParamsCmd(_, user, params) =>
       if (isValid) {
-        persist(AddParamsEvt(params))(updateState)
+        persist(AddParamsEvt(user, params))(updateState)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case RemoveParamsCmd(_, params) =>
+    case RemoveParamsCmd(_, user, params) =>
       if (isValid) {
-        persist(RemoveParamsEvt(params))(updateState)
+        persist(RemoveParamsEvt(user, params))(updateState)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case SaveSnapshotCmd(_) =>
+    case SaveSnapshotCmd(_, user) =>
       if (isValid) {
         saveSnapshot(DriverPo(driverName.get, modelName.get, initParams.toMap, signalIdMap.toMap))
-        sender() ! Ok
+        sender() ! SUCCESS
       } else {
         log.warning("Save snapshot failed - Not a valid object")
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case MapSignalKeyIdCmd(_, key, signalId) =>
+    case MapSignalKeyIdCmd(_, user, key, signalId) =>
       if (isValid) {
-        persist(MapSignalKeyIdEvt(key, signalId))(updateState)
+        persist(MapSignalKeyIdEvt(user, key, signalId))(updateState)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
 
     case cmd: GetSignalValueCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
     case cmd: GetSignalValuesCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
     case cmd: SetSignalValueCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
     case cmd: SetSignalValuesCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case UpdateSignalValuesCmd(_, values) =>
+    case UpdateSignalValuesCmd(_, user, values) =>
       if (isValid) {
         for (v <- values) {
           shardedSignal() ! UpdateValueCmd(v.key, v.ts, v.value)
         }
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
     case cmd: SendBytesCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case RetrieveDriverCmd(_) =>
+    case RetrieveDriverCmd(_, user) =>
       if (isValid) {
         sender() ! DriverVo(driverId, driverName.get, modelName.get, initParams.toMap, signalIdMap.toMap)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case StartDriverCmd(_) =>
-    case StopDriverCmd(_) =>
+    case StartDriverCmd(_, user) =>
+    case StopDriverCmd(_, user) =>
       stop()
-    case GetSupportedModelsCmd(_) =>
+    case GetSupportedModelsCmd(_, user) =>
       if (isValid) {
-        sender() ! GetSupportedModelsRsp(driverId, registry.names.toSet)
+        sender() ! SupportedModelsVo(registry.names.toSeq)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
-    case GetModelParamsCmd(_, model) =>
+    case GetModelParamsCmd(_, user, model) =>
       if (isValid) {
-        sender() ! GetSupportedModelsRsp(driverId, registry.paramNames(model).toSet)
+        sender() ! ModelParamsVo(registry.paramNames(model).toSeq)
       } else {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       }
     case _: ReceiveTimeout =>
       stop()
@@ -264,27 +171,27 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateDriverEvt(name, model, params, idMap) =>
+    case CreateDriverEvt(user, name, model, params, idMap) =>
       this.driverName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
       for ((k, v) <- idMap) this.signalIdMap.put(k, v)
-      replyToSender(Ok)
-    case RenameDriverEvt(newName) =>
+      replyToSender(SUCCESS)
+    case RenameDriverEvt(user, newName) =>
       this.driverName = Some(newName)
-      replyToSender(Ok)
-    case ChangeModelEvt(newModel) =>
+      replyToSender(SUCCESS)
+    case ChangeModelEvt(user, newModel) =>
       this.modelName = Some(newModel)
-      replyToSender(Ok)
-    case AddParamsEvt(params) =>
+      replyToSender(SUCCESS)
+    case AddParamsEvt(user, params) =>
       this.initParams = this.initParams ++ params
-      replyToSender(Ok)
-    case RemoveParamsEvt(params) =>
+      replyToSender(SUCCESS)
+    case RemoveParamsEvt(user, params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
-      replyToSender(Ok)
-    case MapSignalKeyIdEvt(key, signalId) =>
+      replyToSender(SUCCESS)
+    case MapSignalKeyIdEvt(user, key, signalId) =>
       this.signalIdMap.put(key, signalId)
-      replyToSender(Ok)
+      replyToSender(SUCCESS)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 

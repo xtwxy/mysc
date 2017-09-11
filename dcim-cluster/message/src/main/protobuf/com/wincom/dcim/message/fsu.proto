@@ -6,8 +6,6 @@ option(scalapb.options) = {
 
 package com.wincom.dcim.message.fsu;
 
-import "com/wincom/dcim/message/common.proto";
-
 message FsuVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string id = 1;
@@ -102,7 +100,7 @@ message StopFsuCmd {
     optional string user = 2;
 };
 
-message GetSupportedFsuModelsCmd {
+message GetSupportedModelsCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
@@ -112,7 +110,7 @@ message GetModelParamsCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
-    repeated string modelName = 3  [(scalapb.field).collection_type="Seq"];
+    required string modelName = 3;
 };
 
 // events

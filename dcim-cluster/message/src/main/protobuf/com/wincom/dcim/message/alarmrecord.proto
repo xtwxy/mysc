@@ -10,7 +10,6 @@ option(scalapb.options) = {
 
 package com.wincom.dcim.message.alarmrecord;
 
-import "com/wincom/dcim/message/common.proto";
 import "com/wincom/dcim/message/alarm.proto";
 import "com/wincom/dcim/message/signal.proto";
 

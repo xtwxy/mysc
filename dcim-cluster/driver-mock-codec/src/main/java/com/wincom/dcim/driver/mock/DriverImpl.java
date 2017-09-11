@@ -28,7 +28,7 @@ public class DriverImpl extends AbstractActor {
 					log.info("sender(): {}, msg: {}", sender(), o);
 					getSender().tell(
 							new Driver.SignalValueVo(
-									o.driverId(),
+									o.id(),
 									o.key(),
 									DateTime.apply(System.currentTimeMillis()),
 									Double.valueOf(1997.71)
@@ -48,7 +48,7 @@ public class DriverImpl extends AbstractActor {
 					}
 					getSender().tell(
 							new Driver.SignalValuesVo(
-									o.driverId(),
+									o.id(),
 									JavaConverters.asScalaBuffer(values).toSeq()
 							),
 							getSelf()
@@ -57,7 +57,7 @@ public class DriverImpl extends AbstractActor {
 				.match(Driver.SetSignalValueCmd.class, o -> {
 					getSender().tell(
 							new Driver.SetSignalValueRsp(
-									o.driverId(),
+									o.id(),
 									o.key(),
 									"OK"
 							),
@@ -71,7 +71,7 @@ public class DriverImpl extends AbstractActor {
 					}
 					getSender().tell(
 							new Driver.SetSignalValuesRsp(
-									o.driverId(),
+									o.id(),
 									CollectionCoverter.toImmutableMap(results)
 							),
 							getSelf()

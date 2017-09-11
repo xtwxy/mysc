@@ -19,11 +19,11 @@ object ShardedDriver {
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
     case cmd: Command =>
-      (cmd.driverId.toString, cmd)
+      (cmd.id.toString, cmd)
   }
   val extractShardId: ShardRegion.ExtractShardId = {
     case cmd: Command =>
-      (abs(cmd.driverId.hashCode) % numberOfShards).toString
+      (abs(cmd.id.hashCode) % numberOfShards).toString
   }
 }
 

@@ -6,8 +6,10 @@ import akka.pattern.ask
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-import com.wincom.dcim.domain.Fsu._
 import com.wincom.dcim.fsu.FsuCodecRegistry
+import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.fsu._
 
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.ExecutionContext
@@ -22,71 +24,6 @@ object Fsu {
   def props(registry: FsuCodecRegistry) = Props(new Fsu(registry))
 
   def name(fsuId: String) = s"$fsuId"
-
-  sealed trait Command {
-    def fsuId: String
-  }
-
-  sealed trait Response
-
-  sealed trait Event
-
-  /* value objects */
-  final case class FsuVo(fsuId: String, name: String, model: String, params: Map[String, String]) extends Response
-
-  final case object Ok extends Response
-
-  final case object NotAvailable extends Response
-
-  final case object NotExist extends Response
-
-  final case object AlreadyExists extends Response
-
-  /* commands */
-  final case class CreateFsuCmd(fsuId: String, name: String, model: String, params: Map[String, String]) extends Command
-
-  final case class RenameFsuCmd(fsuId: String, newName: String) extends Command
-
-  final case class ChangeModelCmd(fsuId: String, newModel: String) extends Command
-
-  final case class SaveSnapshotCmd(fsuId: String) extends Command
-
-  final case class AddParamsCmd(fsuId: String, params: Map[String, String]) extends Command
-
-  final case class RemoveParamsCmd(fsuId: String, params: Map[String, String]) extends Command
-
-  final case class GetPortCmd(fsuId: String, params: Map[String, String]) extends Command
-
-  final case class SendBytesCmd(fsuId: String, bytes: Array[Byte]) extends Command
-
-  final case class RetrieveFsuCmd(fsuId: String) extends Command
-
-  final case class StartFsuCmd(fsuId: String) extends Command
-
-  final case class StopFsuCmd(fsuId: String) extends Command
-
-  final case class GetSupportedModelsCmd(fsuId: String) extends Command
-
-  final case class GetSupportedModelsRsp(fsuId: String, modelNames: Set[String]) extends Response
-
-  final case class GetModelParamsCmd(fsuId: String, modelName: String) extends Command
-
-  final case class GetModelParamsRsp(fsuId: String, paramNames: Set[String]) extends Response
-
-  /* events */
-  final case class CreateFsuEvt(name: String, model: String, params: Map[String, String]) extends Event
-
-  final case class RenameFsuEvt(newName: String) extends Event
-
-  final case class ChangeModelEvt(newModel: String) extends Event
-
-  final case class AddParamsEvt(params: Map[String, String]) extends Event
-
-  final case class RemoveParamsEvt(params: Map[String, String]) extends Event
-
-  /* persistent snapshot object */
-  final case class FsuPo(name: String, model: String, params: Map[String, String]) extends Serializable
-
 }
 
 class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
@@ -122,49 +59,49 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
   }
 
   override def receiveCommand: Receive = {
-    case CreateFsuCmd(_, name, model, params) =>
-      persist(CreateFsuEvt(name, model, params))(updateState)
-    case RenameFsuCmd(_, newName) =>
+    case CreateFsuCmd(_, user, name, model, params) =>
+      persist(CreateFsuEvt(user, name, model, params))(updateState)
+    case RenameFsuCmd(_, user, newName) =>
       if (isValid()) {
-        persist(RenameFsuEvt(newName))(updateState)
+        persist(RenameFsuEvt(user, newName))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case ChangeModelCmd(_, newModel) =>
+    case ChangeModelCmd(_, user, newModel) =>
       if (isValid()) {
-        persist(ChangeModelEvt(newModel))(updateState)
+        persist(ChangeModelEvt(user, newModel))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case SaveSnapshotCmd(_) =>
+    case SaveSnapshotCmd =>
       if (isValid()) {
         saveSnapshot(FsuPo(fsuName.get, modelName.get, initParams.toMap))
-        replyToSender(Ok)
+        replyToSender(SUCCESS)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case AddParamsCmd(_, params) =>
+    case AddParamsCmd(_, user, params) =>
       if (isValid()) {
-        persist(AddParamsEvt(params))(updateState)
+        persist(AddParamsEvt(user, params))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case RemoveParamsCmd(_, params) =>
+    case RemoveParamsCmd(_, user, params) =>
       if (isValid()) {
-        persist(RemoveParamsEvt(params))(updateState)
+        persist(RemoveParamsEvt(user, params))(updateState)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
     case cmd: GetPortCmd =>
       val theSender = sender()
       if (!isValid()) {
-        theSender ! NotExist
+        theSender ! NOT_EXIST
       } else {
         this.fsuCodec.get.ask(cmd).mapTo[ActorRef].onComplete {
           case f: Success[ActorRef] =>
             theSender ! f.value
           case _ =>
-            theSender ! NotAvailable
+            theSender ! NOT_AVAILABLE
         }
       }
     case cmd: SendBytesCmd =>
@@ -175,28 +112,28 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
           log.warning("Message CANNOT be delivered because codec not started: {} {}", this, cmd)
         }
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case RetrieveFsuCmd(_) =>
+    case RetrieveFsuCmd(_, user) =>
       if (!isValid()) {
-        sender() ! NotExist
+        sender() ! NOT_EXIST
       } else {
         sender() ! FsuVo(fsuId, fsuName.get, modelName.get, initParams.toMap)
       }
-    case StartFsuCmd(_) =>
-    case StopFsuCmd(_) =>
+    case StartFsuCmd(_, user) =>
+    case StopFsuCmd(_, user) =>
       stop()
-    case GetSupportedModelsCmd(_) =>
+    case GetSupportedModelsCmd(_, user) =>
       if (isValid()) {
-        sender() ! GetSupportedModelsRsp(fsuId, registry.names.toSet)
+        sender() ! SupportedModelsVo(registry.names.toSeq)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
-    case GetModelParamsCmd(_, model) =>
+    case GetModelParamsCmd(_, user, model) =>
       if (isValid()) {
-        sender() ! GetSupportedModelsRsp(fsuId, registry.paramNames(model).toSet)
+        sender() ! ModelParamsVo(registry.paramNames(model).toSeq)
       } else {
-        replyToSender(NotExist)
+        replyToSender(NOT_EXIST)
       }
     case _: ReceiveTimeout =>
       stop()
@@ -204,23 +141,23 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateFsuEvt(name, model, params) =>
+    case CreateFsuEvt(user, name, model, params) =>
       this.fsuName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
-      replyToSender(Ok)
-    case RenameFsuEvt(newName) =>
+      replyToSender(SUCCESS)
+    case RenameFsuEvt(user, newName) =>
       this.fsuName = Some(newName)
-      replyToSender(Ok)
-    case ChangeModelEvt(newModel) =>
+      replyToSender(SUCCESS)
+    case ChangeModelEvt(user, newModel) =>
       this.modelName = Some(newModel)
-      replyToSender(Ok)
-    case AddParamsEvt(params) =>
+      replyToSender(SUCCESS)
+    case AddParamsEvt(user, params) =>
       this.initParams = this.initParams ++ params
-      replyToSender(Ok)
-    case RemoveParamsEvt(params) =>
+      replyToSender(SUCCESS)
+    case RemoveParamsEvt(user, params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
-      replyToSender(Ok)
+      replyToSender(SUCCESS)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 
