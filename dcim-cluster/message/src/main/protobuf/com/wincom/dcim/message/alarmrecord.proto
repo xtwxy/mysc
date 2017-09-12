@@ -51,6 +51,7 @@ message RaiseAlarmCmd {
     required com.wincom.dcim.message.alarm.AlarmLevel level = 5;
     required com.wincom.dcim.message.signal.SignalSnapshotValueVo value = 6;
     optional string desc = 7;
+    required EventType event = 8 [default = RAISE];
 };
 
 message TransitAlarmCmd {

@@ -36,7 +36,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
     get {
       path(Segment / TimestampSegment) { (alarmId, begin) =>
         pathEnd {
-          onSuccess(alarmRecords.ask(RetrieveAlarmRecordCmd(alarmId, begin)).mapTo[Response]) {
+          onSuccess(alarmRecords.ask(RetrieveAlarmRecordCmd(alarmId, begin)).mapTo[ObjectValue]) {
             case alarm: AlarmRecordVo =>
               complete(alarm)
             case _ =>
@@ -72,7 +72,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
         path("ack-alarm") {
           pathEnd {
             entity(as[AckAlarmCmd]) { v =>
-              onSuccess(alarmRecords.ask(v).mapTo[Response]) {
+              onSuccess(alarmRecords.ask(v).mapTo[ObjectValue]) {
                 case Ok =>
                   complete(NoContent)
                 case _ =>
@@ -84,7 +84,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
         path("mute-alarm") {
           pathEnd {
             entity(as[MuteAlarmCmd]) { v =>
-              onSuccess(alarmRecords.ask(v).mapTo[Response]) {
+              onSuccess(alarmRecords.ask(v).mapTo[ObjectValue]) {
                 case Ok =>
                   complete(NoContent)
                 case _ =>
