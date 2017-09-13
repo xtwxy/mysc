@@ -2,16 +2,12 @@ package com.wincom.dcim.domain
 
 import akka.actor.{ActorRef, Props}
 import akka.event.Logging
-import akka.http.scaladsl.model.DateTime
 import akka.persistence.PersistentActor
 import akka.util.Timeout
 import com.google.protobuf.timestamp.Timestamp
-import com.wincom.dcim.domain.Alarm._
 import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.common.ResponseType._
 import com.wincom.dcim.message.alarm._
-import com.wincom.dcim.domain.AlarmCondition.AlarmConditionVo
-import com.wincom.dcim.domain.Signal.SignalValueVo
 import com.wincom.dcim.signal.FunctionRegistry
 
 import scala.collection.mutable

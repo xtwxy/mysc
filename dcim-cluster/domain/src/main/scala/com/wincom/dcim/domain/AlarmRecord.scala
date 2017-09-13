@@ -4,12 +4,14 @@ import akka.actor.{ActorRef, Props}
 import akka.event.Logging
 import akka.http.scaladsl.model.DateTime
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import com.wincom.dcim.domain.AlarmRecord.EventType._
-import com.wincom.dcim.domain.AlarmRecord._
-import com.wincom.dcim.domain.Signal.SignalValueVo
+import com.google.protobuf.any.Any
+import com.google.protobuf.timestamp.Timestamp
 import com.wincom.dcim.util.DateFormat._
-
-import scala.collection.mutable
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.alarm._
+import com.wincom.dcim.message.alarmrecord._
+import com.wincom.dcim.message.signal.SignalSnapshotValueVo
 
 /**
   * Created by wangxy on 17-8-28.
@@ -25,67 +27,62 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
 
   val id = (s"${self.path.name}").split(",")
   val alarmId: String = id(0)
-  val beginTs: DateTime = DateTime(parseTimestamp(id(1)).getTime)
+  val beginTks: Long = parseTimestamp(id(1)).getTime
+
+  val beginTs: Timestamp = Timestamp(beginTks/1000, (beginTs % 1000) * 1000000)
   var alarmName: Option[String] = None
-  var alarmLevel: Option[Int] = None
+  var alarmLevel: Option[AlarmLevel] = None
   var signalId: Option[String] = None
   var alarmDesc: Option[String] = None
-  var currentValue: Option[AnyVal] = None
-  var valueTs: Option[DateTime] = None
-  var endTs: Option[DateTime] = None
+  var currentValue: Option[SignalSnapshotValueVo] = None
+  var endTs: Option[Timestamp] = None
 
-  var ackTime: Option[DateTime] = None
+  var ackTime: Option[Timestamp] = None
   var ackByPerson: Option[String] = None
   var ackDesc: Option[String] = None
 
-  var muteTime: Option[DateTime] = None
+  var muteTime: Option[Timestamp] = None
   var muteByPerson: Option[String] = None
   var muteDesc: Option[String] = None
 
-  var transitions: mutable.Seq[Event] = mutable.ArraySeq()
+  var transitions: Seq[Event] = Seq()
 
   override def persistenceId: String = s"${self.path.name}"
 
   override def receiveRecover: Receive = {
     case evt: Event =>
       updateState(evt)
-    case SnapshotOffer(_, AlarmRecordPo(name, level, signalId, trans, end)) =>
-      this.alarmName = Some(name)
-      this.alarmLevel = Some(level)
-      this.signalId = Some(signalId)
-      this.transitions = this.transitions ++ trans
-      this.endTs = end
     case x => log.info("RECOVER *IGNORED*: {} {}", this, x)
   }
 
   override def receiveCommand: Receive = {
-    case RaiseAlarmCmd(_, begin, name, level, sv, desc) =>
-      persist(new RaiseAlarmEvt(begin, name, level, sv, desc))(updateState)
-    case TransitAlarmCmd(_, _, trans, level, sv, desc) =>
+    case RaiseAlarmCmd(_, user, begin, name, level, sv, desc, event) =>
+      persist(RaiseAlarmEvt(user, name, level, sv, desc, event))(updateState)
+    case TransitAlarmCmd(_, user, begin, trans, level, sv, desc, event) =>
       if (isValid()) {
-        persist(new TransitAlarmEvt(trans, level, sv, desc))(updateState)
+        persist(new TransitAlarmEvt(user, trans, level, sv, desc, event))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case EndAlarmCmd(_, _, trans, sv, desc) =>
+    case EndAlarmCmd(_, user, begin, trans, sv, desc, event) =>
       if (isValid()) {
-        persist(new EndAlarmEvt(trans, sv, desc))(updateState)
+        persist(new EndAlarmEvt(user, trans, sv, desc, event))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case AckAlarmCmd(_, _, trans, time, person, desc) =>
+    case AckAlarmCmd(_, user, begin, trans, time, person, desc, event) =>
       if (isValid()) {
-        persist(new AckAlarmEvt(trans, time, person, desc))(updateState)
+        persist(new AckAlarmEvt(user, trans, time, person, desc, event))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case MuteAlarmCmd(_, _, trans, time, person, desc) =>
+    case MuteAlarmCmd(_, user, begin, trans, time, person, desc, event) =>
       if (isValid()) {
-        persist(new MuteAlarmEvt(trans, time, person, desc))(updateState)
+        persist(new MuteAlarmEvt(user, trans, time, person, desc, event))(updateState)
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
-    case RetrieveAlarmRecordCmd(_, _) =>
+    case RetrieveAlarmRecordCmd(_, user, _) =>
       if (isValid()) {
         sender() ! AlarmRecordVo(
           alarmId,
@@ -93,20 +90,19 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
           alarmName.get,
           alarmLevel.get,
           signalId.get,
-          alarmDesc.get,
-          currentValue.get,
-          valueTs.get,
+          alarmDesc,
+          currentValue,
           ackTime,
           ackByPerson,
           ackDesc,
           muteTime,
           muteByPerson,
           muteDesc,
-          transitions: Seq[Event],
+          (for(t <- transitions) yield Any(t.getClass.getName, t.toByteString)),
           endTs
         )
       } else {
-        sender() ! NotAvailable
+        sender() ! NOT_AVAILABLE
       }
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }

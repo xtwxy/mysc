@@ -17,7 +17,6 @@ message DriverVo {
     required string name = 2;
     required string model = 3;
     map<string, string> initParams = 4;
-    map<string, string> signalIdMap = 5;
 };
 
 message SignalSnapshotValueVo {
