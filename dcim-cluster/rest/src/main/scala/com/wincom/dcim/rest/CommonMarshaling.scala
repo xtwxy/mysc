@@ -1,9 +1,12 @@
 package com.wincom.dcim.rest
 
-import akka.http.scaladsl.model.DateTime
+import com.google.protobuf.ByteString
+import com.google.protobuf.timestamp.Timestamp
+import com.wincom.dcim.message.alarm.AlarmLevel
+import com.wincom.dcim.message.common.ResponseType
+import com.wincom.dcim.message.signal.SignalType
 import com.wincom.dcim.util.DateFormat
-import org.joda.time.format.DateTimeFormat
-import spray.json.{JsBoolean, JsNumber, JsObject, JsString, JsValue, RootJsonFormat}
+import spray.json.{DefaultJsonProtocol, JsBoolean, JsNumber, JsObject, JsString, JsValue, JsonFormat, RootJsonFormat}
 /**
   * Created by wangxy on 17-8-15.
   */
@@ -46,18 +49,89 @@ object AnyValFormat extends RootJsonFormat[AnyVal] {
   }
 }
 
-object DateTimeJsonFormat extends RootJsonFormat[DateTime] {
-  override def read(json: JsValue): DateTime = {
+object DateTimeJsonFormat extends RootJsonFormat[Timestamp] {
+  override def read(json: JsValue): Timestamp = {
     json match {
       case JsString(value) =>
-        val d = DateFormat.parseTimestamp(value)
-        DateTime(d.getTime)
+        DateFormat.parseTimestamp(value)
       case x =>
         throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
     }
   }
 
-  override def write(obj: DateTime): JsValue = {
-    JsString(Symbol(DateFormat.formatTimestamp(obj.clicks)))
+  override def write(obj: Timestamp): JsValue = {
+    JsString(DateFormat.formatTimestamp(obj))
+  }
+}
+
+object ResponseTypeJsonFormat extends RootJsonFormat[ResponseType] {
+  override def read(json: JsValue): ResponseType = {
+    json match {
+      case JsString(value) =>
+        val v = ResponseType.fromName(value)
+        if(v.isDefined) {
+          v.get
+        } else {
+          throw new IllegalArgumentException("Unknown JsValue: '%s'".format(value))
+        }
+      case x =>
+        throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
+    }
+  }
+
+  override def write(obj: ResponseType): JsValue = {
+    JsString(obj.name)
+  }
+}
+
+object AlarmLevelJsonFormat extends RootJsonFormat[AlarmLevel] {
+  override def write(obj: AlarmLevel): JsValue = {
+   JsString(obj.name)
+  }
+
+  override def read(json: JsValue): AlarmLevel = {
+    json match {
+      case JsString(value) =>
+        val v = AlarmLevel.fromName(value)
+        if(v.isDefined) {
+          v.get
+        } else {
+          throw new IllegalArgumentException("Unknown JsValue: '%s'".format(value))
+        }
+      case x =>
+        throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
+    }
+  }
+}
+
+object SignalTypeJsonFormat extends RootJsonFormat[SignalType] {
+  override def write(obj: SignalType): JsValue = {
+    JsString(obj.name)
+  }
+
+  override def read(json: JsValue): SignalType = {
+    json match {
+      case JsString(value) =>
+        val v = SignalType.fromName(value)
+        if(v.isDefined) {
+          v.get
+        } else {
+          throw new IllegalArgumentException("Unknown JsValue: '%s'".format(value))
+        }
+      case x =>
+        throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
+    }
+  }
+}
+
+object ByteStringJsonFormat extends RootJsonFormat[ByteString] with DefaultJsonProtocol {
+
+  override def write(obj: ByteString): JsValue = {
+    listFormat[Byte].write(obj.toByteArray.toList)
+  }
+
+  override def read(json: JsValue): ByteString = {
+    val bytes = listFormat[Byte].read(json)
+    ByteString.copyFrom(bytes.toArray)
   }
 }

@@ -12,8 +12,10 @@ import com.wincom.dcim.driver.DriverCodecRegistry
 import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.driver._
 import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.signal
 
 import scala.collection.convert.ImplicitConversions._
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
@@ -38,7 +40,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   var initParams: collection.mutable.Map[String, String] = new collection.mutable.HashMap()
   var driverCodec: Option[ActorRef] = None
   // key => id
-  val signalIdMap: BiMap[String, String] = create()
+  var signalIdMap: mutable.Map[String, Seq[String]] = mutable.Map()
 
   val driverId: String = s"${self.path.name}"
 
@@ -51,11 +53,6 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   def receiveRecover: PartialFunction[Any, Unit] = {
     case evt: Event =>
       updateState(evt)
-    case SnapshotOffer(_, DriverPo(name, model, params, idMap)) =>
-      this.driverName = Some(name)
-      this.modelName = Some(model)
-      this.initParams = this.initParams ++ params
-      for ((k, v) <- idMap) this.signalIdMap.put(k, v)
     case x: RecoveryCompleted =>
       log.info("RECOVERY Completed: {} {}", this, x)
       if (!isValid || !createCodec()) {
@@ -65,8 +62,8 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   }
 
   def receiveCommand: PartialFunction[Any, Unit] = {
-    case CreateDriverCmd(_, user, name, model, params, idMap) =>
-      persist(CreateDriverEvt(user, name, model, params, idMap))(updateState)
+    case CreateDriverCmd(_, user, name, model, params) =>
+      persist(CreateDriverEvt(user, name, model, params))(updateState)
     case RenameDriverCmd(_, user, newName) =>
       if (isValid) {
         persist(RenameDriverEvt(user, newName))(updateState)
@@ -89,14 +86,6 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       if (isValid) {
         persist(RemoveParamsEvt(user, params))(updateState)
       } else {
-        sender() ! NOT_EXIST
-      }
-    case SaveSnapshotCmd(_, user) =>
-      if (isValid) {
-        saveSnapshot(DriverPo(driverName.get, modelName.get, initParams.toMap, signalIdMap.toMap))
-        sender() ! SUCCESS
-      } else {
-        log.warning("Save snapshot failed - Not a valid object")
         sender() ! NOT_EXIST
       }
     case MapSignalKeyIdCmd(_, user, key, signalId) =>
@@ -133,7 +122,11 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     case UpdateSignalValuesCmd(_, user, values) =>
       if (isValid) {
         for (v <- values) {
-          shardedSignal() ! UpdateValueCmd(v.key, v.ts, v.value)
+          val ids = signalIdMap.getOrElse(v.key, Seq[String]())
+          for(id <- ids) {
+            val signalSnapshotValue = signal.SignalSnapshotValueVo(id, v.ts, v.value)
+            shardedSignal() ! signal.UpdateValueCmd(id, user, signalSnapshotValue)
+          }
         }
       } else {
         sender() ! NOT_EXIST
@@ -146,7 +139,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       }
     case RetrieveDriverCmd(_, user) =>
       if (isValid) {
-        sender() ! DriverVo(driverId, driverName.get, modelName.get, initParams.toMap, signalIdMap.toMap)
+        sender() ! DriverVo(driverId, driverName.get, modelName.get, initParams.toMap)
       } else {
         sender() ! NOT_EXIST
       }
@@ -175,7 +168,6 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       this.driverName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
-      for ((k, v) <- idMap) this.signalIdMap.put(k, v)
       replyToSender(SUCCESS)
     case RenameDriverEvt(user, newName) =>
       this.driverName = Some(newName)
@@ -190,7 +182,9 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
       replyToSender(SUCCESS)
     case MapSignalKeyIdEvt(user, key, signalId) =>
-      this.signalIdMap.put(key, signalId)
+      var seq = this.signalIdMap.getOrElse(key, Seq[String]())
+      seq = seq :+ signalId
+      this.signalIdMap.put(key, seq)
       replyToSender(SUCCESS)
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }

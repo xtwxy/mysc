@@ -3,9 +3,9 @@ package com.wincom.dcim.sharded
 import akka.actor.{Actor, ActorRef, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import akka.event.Logging
-import com.wincom.dcim.domain.Fsu.Command
 import com.wincom.dcim.domain.Settings
 import com.wincom.dcim.fsu.FsuCodecRegistry
+import com.wincom.dcim.message.common.Command
 
 object ShardedFsus {
   def props = Props(new ShardedFsus)

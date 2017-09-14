@@ -9,6 +9,7 @@ import akka.util.Timeout.durationToTimeout
 import com.wincom.dcim.fsu.FsuCodecRegistry
 import com.wincom.dcim.message.common.ResponseType._
 import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.driver.SendBytesCmd
 import com.wincom.dcim.message.fsu._
 
 import scala.collection.convert.ImplicitConversions._

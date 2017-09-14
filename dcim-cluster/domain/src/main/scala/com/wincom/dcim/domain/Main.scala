@@ -1,8 +1,8 @@
 package com.wincom.dcim.domain
 
 import akka.event.NoLogging
-import com.wincom.dcim.domain.AlarmCondition.AlarmConditionVo
-import com.wincom.dcim.domain.ThresholdFunction.ThresholdFunctionVo
+import com.wincom.dcim.message.alarm.AlarmLevel.LEVEL_1
+import com.wincom.dcim.message.alarm._
 import com.wincom.dcim.signal.FunctionRegistry
 
 import scala.collection.mutable
@@ -16,12 +16,12 @@ object Main extends App {
   val ordering = Ordering.fromLessThan[AlarmCondition]((x, y) => x != y && x.subsetOf(y))
 
   var set2: mutable.Set[AlarmCondition] = mutable.Set()
-  val ac0 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "1.0", "insensitivity-zone" -> "0.1")), 1, "Critical", "Normal")
-  val ac1 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "1.0", "insensitivity-zone" -> "0.1")), 1, "Critical", "Normal")
-  val ac2 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "2.0", "insensitivity-zone" -> "0.1")), 1, "Critical", "Normal")
-  val ac3 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "-2.0", "insensitivity-zone" -> "0.1")), 1, "Critical", "Normal")
-  val ac4 = new AlarmConditionVo(ThresholdFunctionVo("GreaterThan", Map("threshold" -> "-2.0", "insensitivity-zone" -> "0.1")), 1, "Critical", "Normal")
-  val ac5 = new AlarmConditionVo(ThresholdFunctionVo("GreaterThan", Map("threshold" -> "2.0", "insensitivity-zone" -> "0.1")), 1, "Critical", "Normal")
+  val ac0 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "1.0", "insensitivity-zone" -> "0.1")), LEVEL_1, "Critical", "Normal")
+  val ac1 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "1.0", "insensitivity-zone" -> "0.1")), LEVEL_1, "Critical", "Normal")
+  val ac2 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "2.0", "insensitivity-zone" -> "0.1")), LEVEL_1, "Critical", "Normal")
+  val ac3 = new AlarmConditionVo(ThresholdFunctionVo("LessThan", Map("threshold" -> "-2.0", "insensitivity-zone" -> "0.1")), LEVEL_1, "Critical", "Normal")
+  val ac4 = new AlarmConditionVo(ThresholdFunctionVo("GreaterThan", Map("threshold" -> "-2.0", "insensitivity-zone" -> "0.1")), LEVEL_1, "Critical", "Normal")
+  val ac5 = new AlarmConditionVo(ThresholdFunctionVo("GreaterThan", Map("threshold" -> "2.0", "insensitivity-zone" -> "0.1")), LEVEL_1, "Critical", "Normal")
   set2 += AlarmCondition(ac0)
   set2 += AlarmCondition(ac1)
   set2 += AlarmCondition(ac2)

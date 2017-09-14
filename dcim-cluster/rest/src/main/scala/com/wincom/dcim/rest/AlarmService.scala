@@ -1,13 +1,15 @@
 package com.wincom.dcim.rest
 
 import akka.actor._
-import akka.pattern._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.pattern._
 import akka.util.Timeout
-import com.wincom.dcim.domain.Alarm._
+import com.wincom.dcim.message.alarm._
+import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.common._
 
 import scala.concurrent.ExecutionContext
 
@@ -45,7 +47,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[CreateAlarmCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -57,7 +59,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[RenameAlarmCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -70,7 +72,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[SelectSignalCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -82,7 +84,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[AddConditionCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -94,7 +96,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[RemoveConditionCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -106,7 +108,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[ReplaceConditionCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -118,7 +120,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[GetAlarmValueCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -130,7 +132,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[EvalAlarmValueCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)
@@ -142,7 +144,7 @@ trait AlarmRoutes extends AlarmMarshaling {
         pathEnd {
           entity(as[PassivateAlarmCmd]) { v =>
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
-              case Ok =>
+              case SUCCESS =>
                 complete(Created)
               case _ =>
                 complete(NotFound)

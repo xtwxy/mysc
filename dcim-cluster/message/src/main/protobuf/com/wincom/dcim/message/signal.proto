@@ -44,13 +44,10 @@ message SignalValueVo {
 };
 
 message SignalSnapshotValueVo {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.SignalValue";
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string id = 1;
     required google.protobuf.Timestamp ts = 2;
-    required SignalType signalType = 3;
-    optional bool digitalValue = 4;
-    optional double analogValue = 5;
-    optional string stringValue = 6;
+    required SignalValueVo value = 3;
 };
 
 message SupportedFuncsVo {

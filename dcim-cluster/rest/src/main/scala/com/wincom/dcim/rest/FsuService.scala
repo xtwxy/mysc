@@ -7,7 +7,10 @@ import akka.http.scaladsl.server.Directives.{path, _}
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.wincom.dcim.domain.Fsu._
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.driver.SendBytesCmd
+import com.wincom.dcim.message.fsu._
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
@@ -48,7 +51,7 @@ trait FsuRoutes extends FsuMarshaling {
           path("create-fsu") {
             entity(as[CreateFsuCmd]) { v =>
               onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                case Ok => complete(NoContent)
+                case SUCCESS => complete(NoContent)
                 case _ => complete(NotFound)
               }
             }
@@ -57,7 +60,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[RenameFsuCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case Ok => complete(NoContent)
+                    case SUCCESS => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }
@@ -67,7 +70,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[ChangeModelCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case Ok => complete(NoContent)
+                    case SUCCESS => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }
@@ -77,7 +80,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[AddParamsCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case Ok => complete(NoContent)
+                    case SUCCESS => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }
@@ -87,7 +90,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[RemoveParamsCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case Ok => complete(NoContent)
+                    case SUCCESS => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }
@@ -145,7 +148,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[GetSupportedModelsCmd]) { x =>
                   onSuccess(fsus.ask(x).mapTo[ValueObject]) {
-                    case v: GetSupportedModelsRsp => complete(v)
+                    case v: SupportedModelsVo => complete(v)
                     case _ => complete(NotFound)
                   }
                 }
@@ -155,7 +158,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[GetModelParamsCmd]) { x =>
                   onSuccess(fsus.ask(x).mapTo[ValueObject]) {
-                    case v: GetModelParamsRsp => complete(v)
+                    case v: ModelParamsVo => complete(v)
                     case _ => complete(NotFound)
                   }
                 }

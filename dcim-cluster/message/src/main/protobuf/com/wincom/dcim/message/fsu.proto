@@ -75,13 +75,6 @@ message GetPortCmd {
     map<string, string> params = 3;
 };
 
-message SendBytesCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
-    optional string user = 2;
-    required bytes bytes = 3;
-};
-
 message RetrieveFsuCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;

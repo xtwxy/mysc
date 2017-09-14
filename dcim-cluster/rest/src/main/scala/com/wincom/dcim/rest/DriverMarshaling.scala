@@ -1,7 +1,9 @@
 package com.wincom.dcim.rest
 
-import com.wincom.dcim.domain.Driver._
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.driver._
+import com.wincom.dcim.message.signal
+import spray.json._
 
 /**
   * Created by wangxy on 17-8-15.
@@ -10,39 +12,44 @@ trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val anyValFormat: AnyValFormat.type = AnyValFormat
   implicit val dateTimeFormat: DateTimeJsonFormat.type = DateTimeJsonFormat
 
-  implicit val driverVoFormat: RootJsonFormat[DriverVo] = jsonFormat5(DriverVo)
-  implicit val signalValueFormat: RootJsonFormat[SignalValue] = jsonFormat3(SignalValue)
-  implicit val signalValueVoFormat: RootJsonFormat[SignalValueVo] = jsonFormat4(SignalValueVo)
-  implicit val signalValuesVoFormat: RootJsonFormat[SignalValuesVo] = jsonFormat2(SignalValuesVo)
+  implicit val signalTypeJsonFormat = SignalTypeJsonFormat
+  implicit val responseTypeJsonFormat = ResponseTypeJsonFormat
 
-  implicit val renameDriverCmdFormat: RootJsonFormat[RenameDriverCmd] = jsonFormat2(RenameDriverCmd)
-  implicit val createDriverCmdFormat: RootJsonFormat[CreateDriverCmd] = jsonFormat5(CreateDriverCmd)
-  implicit val changeModelCmdFormat: RootJsonFormat[ChangeModelCmd] = jsonFormat2(ChangeModelCmd)
-  implicit val saveSnapshotCmdFormat: RootJsonFormat[SaveSnapshotCmd] = jsonFormat1(SaveSnapshotCmd)
-  implicit val addParamsCmdFormat: RootJsonFormat[AddParamsCmd] = jsonFormat2(AddParamsCmd)
-  implicit val removeParamsCmdFormat: RootJsonFormat[RemoveParamsCmd] = jsonFormat2(RemoveParamsCmd)
-  implicit val mapSignalKeyIdCmdFormat: RootJsonFormat[MapSignalKeyIdCmd] = jsonFormat3(MapSignalKeyIdCmd)
+  implicit val driverVoFormat = jsonFormat4(DriverVo.apply)
+  implicit val signalValueVoFormat = jsonFormat4(signal.SignalValueVo.apply)
+  implicit val signalSnapshotValueVoFormat = jsonFormat3(signal.SignalSnapshotValueVo.apply)
+  implicit val driverSignalSnapshotValueVoFormat = jsonFormat4(SignalSnapshotValueVo.apply)
+  implicit val signalSnapshotValuesVoFormat = jsonFormat1(SignalSnapshotValuesVo.apply)
 
-  implicit val getSignalValueCmdFormat: RootJsonFormat[GetSignalValueCmd] = jsonFormat2(GetSignalValueCmd)
-  implicit val getSignalValuesCmdFormat: RootJsonFormat[GetSignalValuesCmd] = jsonFormat2(GetSignalValuesCmd)
+  implicit val renameDriverCmdFormat = jsonFormat3(RenameDriverCmd.apply)
+  implicit val createDriverCmdFormat = jsonFormat5(CreateDriverCmd.apply)
+  implicit val changeModelCmdFormat = jsonFormat3(ChangeModelCmd.apply)
+  implicit val saveSnapshotCmdFormat = jsonFormat2(SaveSnapshotCmd.apply)
+  implicit val addParamsCmdFormat = jsonFormat3(AddParamsCmd.apply)
+  implicit val removeParamsCmdFormat = jsonFormat3(RemoveParamsCmd.apply)
+  implicit val mapSignalKeyIdCmdFormat = jsonFormat4(MapSignalKeyIdCmd.apply)
 
-  implicit val setSignalValueCmdFormat: RootJsonFormat[SetSignalValueCmd] = jsonFormat3(SetSignalValueCmd)
-  implicit val setSignalValueRspFormat: RootJsonFormat[SetSignalValueRsp] = jsonFormat3(SetSignalValueRsp)
-  implicit val setSignalValuesCmdFormat: RootJsonFormat[SetSignalValuesCmd] = jsonFormat2(SetSignalValuesCmd)
-  implicit val setSignalValuesRspFormat: RootJsonFormat[SetSignalValuesRsp] = jsonFormat2(SetSignalValuesRsp)
+  implicit val getSignalValueCmdFormat = jsonFormat3(GetSignalValueCmd.apply)
+  implicit val getSignalValuesCmdFormat = jsonFormat3(GetSignalValuesCmd.apply)
 
-  implicit val updateSignalValuesCmdFormat: RootJsonFormat[UpdateSignalValuesCmd] = jsonFormat2(UpdateSignalValuesCmd)
+  implicit val setSignalValueCmdFormat = jsonFormat4(SetSignalValueCmd.apply)
+  implicit val setSignalValueRspFormat = jsonFormat2(signal.SetValueRsp.apply)
+  implicit val setSignalValuesCmdFormat = jsonFormat3(SetSignalValuesCmd.apply)
+  implicit val setSignalValuesRspFormat = jsonFormat1(SetSignalValuesRsp.apply)
 
-  implicit val sendBytesCmdFormat: RootJsonFormat[SendBytesCmd] = jsonFormat2(SendBytesCmd)
+  implicit val updateSignalValuesCmdFormat = jsonFormat3(UpdateSignalValuesCmd.apply)
 
-  implicit val retrieveDriverCmdFormat: RootJsonFormat[RetrieveDriverCmd] = jsonFormat1(RetrieveDriverCmd)
-  implicit val startDriverCmdFormat: RootJsonFormat[StartDriverCmd] = jsonFormat1(StartDriverCmd)
-  implicit val stopDriverCmdFormat: RootJsonFormat[StopDriverCmd] = jsonFormat1(StopDriverCmd)
+  implicit val byteStringJsonFormat = ByteStringJsonFormat
+  implicit val sendBytesCmdFormat = jsonFormat3(SendBytesCmd.apply)
 
-  implicit val getSupportedModelsCmdFormat: RootJsonFormat[GetSupportedModelsCmd] = jsonFormat1(GetSupportedModelsCmd)
-  implicit val getSupportedModelsRspFormat: RootJsonFormat[GetSupportedModelsRsp] = jsonFormat2(GetSupportedModelsRsp)
-  implicit val getSupportedParamsCmdFormat: RootJsonFormat[GetModelParamsCmd] = jsonFormat2(GetModelParamsCmd)
-  implicit val getSupportedParamsRspFormat: RootJsonFormat[GetModelParamsRsp] = jsonFormat2(GetModelParamsRsp)
+  implicit val retrieveDriverCmdFormat = jsonFormat2(RetrieveDriverCmd.apply)
+  implicit val startDriverCmdFormat = jsonFormat2(StartDriverCmd.apply)
+  implicit val stopDriverCmdFormat = jsonFormat2(StopDriverCmd.apply)
+
+  implicit val getSupportedModelsCmdFormat = jsonFormat2(GetSupportedModelsCmd.apply)
+  implicit val getSupportedModelsRspFormat = jsonFormat1(SupportedModelsVo.apply)
+  implicit val getSupportedParamsCmdFormat = jsonFormat3(GetModelParamsCmd.apply)
+  implicit val getSupportedParamsRspFormat = jsonFormat1(ModelParamsVo.apply)
 }
 
 object DriverMarshaling extends DriverMarshaling

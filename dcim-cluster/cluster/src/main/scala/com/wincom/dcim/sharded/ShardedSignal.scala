@@ -3,8 +3,9 @@ package com.wincom.dcim.sharded
 import akka.actor.{ActorRef, Props, ReceiveTimeout}
 import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.Passivate
-import com.wincom.dcim.domain.Signal.{Command, StopSignalCmd}
 import com.wincom.dcim.domain.{Settings, Signal}
+import com.wincom.dcim.message.common.Command
+import com.wincom.dcim.message.signal.StopSignalCmd
 import com.wincom.dcim.signal.FunctionRegistry
 
 import scala.math.Numeric.IntIsIntegral._
@@ -36,7 +37,7 @@ class ShardedSignal(driverShard: () => ActorRef, registry: FunctionRegistry) ext
 
   override def unhandled(message: Any): Unit = message match {
     case ReceiveTimeout =>
-      context.parent ! Passivate(stopMessage = Signal.StopSignalCmd)
+      context.parent ! Passivate(stopMessage = StopSignalCmd)
     case StopSignalCmd =>
       context.stop(self)
   }

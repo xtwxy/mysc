@@ -1,5 +1,7 @@
 package com.wincom.dcim.util;
 
+import com.google.protobuf.timestamp.Timestamp;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,9 +27,16 @@ public class DateFormat {
         return timestampFormat.format(d);
     }
 
-    public static Date parseTimestamp(String str) {
+    public static String formatTimestamp(Timestamp d) {
+        return timestampFormat.format(new Date(d.seconds() * 1000 + d.nanos() / 1000000));
+    }
+
+    public static Timestamp parseTimestamp(String str) {
         try {
-            return timestampFormat.parse(str);
+            Date d = timestampFormat.parse(str);
+            long seconds = d.getTime() / 1000;
+            long nanos = (d.getTime() - seconds * 1000) * 1000000;
+            return Timestamp.apply(seconds, (int)nanos);
         } catch (ParseException e) {
             throw new IllegalArgumentException(e);
         }

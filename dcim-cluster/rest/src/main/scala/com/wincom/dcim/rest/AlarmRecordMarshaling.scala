@@ -1,8 +1,10 @@
 package com.wincom.dcim.rest
 
-import com.wincom.dcim.domain.AlarmRecord.EventType._
-import com.wincom.dcim.domain.AlarmRecord._
-import com.wincom.dcim.domain.Signal
+import com.google.protobuf.any
+import com.wincom.dcim.message.alarmrecord.EventType._
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.signal._
+import com.wincom.dcim.message.alarmrecord._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 /**
@@ -12,17 +14,23 @@ trait AlarmRecordMarshaling extends DefaultJsonProtocol {
   implicit val anyValFormat = AnyValFormat
   implicit val dateTimeFormat = DateTimeJsonFormat
 
-  implicit val signalValueVoFormat = jsonFormat3(Signal.SignalValueVo)
+  implicit val responseTypeJsonFormat = ResponseTypeJsonFormat
+  implicit val signalTypeJsonFormat = SignalTypeJsonFormat
+  implicit val alarmLevelJsonFormat = AlarmLevelJsonFormat
+
+  implicit val signalValueVoFormat = jsonFormat4(SignalValueVo.apply)
+  implicit val signalSnapshotValueVoFormat = jsonFormat3(SignalSnapshotValueVo.apply)
 
   implicit val alarmEventFormat = AlarmEventFormat
-  implicit val alarmRecordVoFormat = jsonFormat16(AlarmRecordVo)
-  implicit val raiseAlarmCmdFormat = jsonFormat6(RaiseAlarmCmd)
-  implicit val transitAlarmCmdFormat = jsonFormat6(TransitAlarmCmd)
-  implicit val endAlarmCmdFormat = jsonFormat5(EndAlarmCmd)
-  implicit val ackAlarmCmdFormat = jsonFormat6(AckAlarmCmd)
-  implicit val muteAlarmCmdFormat = jsonFormat6(MuteAlarmCmd)
-  implicit val retrieveAlarmCmdFormat = jsonFormat2(RetrieveAlarmRecordCmd)
-  implicit val passivateAlarmCmdFormat = jsonFormat2(PassivateAlarmRecordCmd)
+  implicit val anyAlarmEventFormat = AnyAlarmEventFormat
+  implicit val alarmRecordVoFormat = jsonFormat14(AlarmRecordVo.apply)
+  implicit val raiseAlarmCmdFormat = jsonFormat7(RaiseAlarmCmd.apply)
+  implicit val transitAlarmCmdFormat = jsonFormat7(TransitAlarmCmd.apply)
+  implicit val endAlarmCmdFormat = jsonFormat6(EndAlarmCmd.apply)
+  implicit val ackAlarmCmdFormat = jsonFormat6(AckAlarmCmd.apply)
+  implicit val muteAlarmCmdFormat = jsonFormat6(MuteAlarmCmd.apply)
+  implicit val retrieveAlarmCmdFormat = jsonFormat3(RetrieveAlarmRecordCmd.apply)
+  implicit val passivateAlarmCmdFormat = jsonFormat3(PassivateAlarmRecordCmd.apply)
 }
 
 object AlarmRecordMarshaling extends AlarmRecordMarshaling
@@ -32,39 +40,44 @@ object EventTypeFormat extends RootJsonFormat[EventType] {
   }
 
   override def read(json: JsValue): EventType = json match {
-    case JsString(Raise.name) => Raise
-    case JsString(Transit.name) => Transit
-    case JsString(End.name) => End
-    case JsString(Ack.name) => Ack
-    case JsString(Mute.name) => Mute
+    case JsString(RAISE.name) => RAISE
+    case JsString(TRANSIT.name) => TRANSIT
+    case JsString(END.name) => END
+    case JsString(ACK.name) => ACK
+    case JsString(MUTE.name) => MUTE
     case x =>
       throw new IllegalArgumentException("Unknown event: '%s'".format(x))
   }
 }
 
-object AlarmEventFormat extends RootJsonFormat[Event] {
+object AlarmEventFormat extends RootJsonFormat[AlarmEvent] {
   implicit val anyValFormat = AnyValFormat
   implicit val dateTimeFormat = DateTimeJsonFormat
   implicit val eventTypeFormat = EventTypeFormat
-  implicit val signalValueVoFormat = jsonFormat3(Signal.SignalValueVo)
-  implicit val raiseAlarmEvtFormat = jsonFormat6(RaiseAlarmEvt)
-  implicit val transitAlarmEvtFormat = jsonFormat5(TransitAlarmEvt)
-  implicit val endAlarmEvtFormat = jsonFormat4(EndAlarmEvt)
-  implicit val ackAlarmEvtFormat = jsonFormat5(AckAlarmEvt)
-  implicit val muteAlarmEvtFormat = jsonFormat5(MuteAlarmEvt)
 
-  override def read(json: JsValue): Event = json match {
+  implicit val alarmLevelJsonFormat = AlarmLevelJsonFormat
+  implicit val signalTypeJsonFormat = SignalTypeJsonFormat
+
+  implicit val signalValueVoFormat = jsonFormat4(SignalValueVo.apply)
+  implicit val signalSnapshotValueVoFormat = jsonFormat3(SignalSnapshotValueVo.apply)
+  implicit val raiseAlarmEvtFormat = jsonFormat5(RaiseAlarmEvt.apply)
+  implicit val transitAlarmEvtFormat = jsonFormat5(TransitAlarmEvt.apply)
+  implicit val endAlarmEvtFormat = jsonFormat4(EndAlarmEvt.apply)
+  implicit val ackAlarmEvtFormat = jsonFormat4(AckAlarmEvt.apply)
+  implicit val muteAlarmEvtFormat = jsonFormat4(MuteAlarmEvt.apply)
+
+  override def read(json: JsValue): AlarmEvent = json match {
     case JsObject(fields) =>
       fields("event") match {
-        case JsString(Raise.name) =>
+        case JsString(RAISE.name) =>
           raiseAlarmEvtFormat.read(json)
-        case JsString(Transit.name) =>
+        case JsString(TRANSIT.name) =>
           transitAlarmEvtFormat.read(json)
-        case JsString(End.name) =>
+        case JsString(END.name) =>
           endAlarmEvtFormat.read(json)
-        case JsString(Ack.name) =>
+        case JsString(ACK.name) =>
           ackAlarmEvtFormat.read(json)
-        case JsString(Mute.name) =>
+        case JsString(MUTE.name) =>
           muteAlarmEvtFormat.read(json)
         case x =>
           throw new IllegalArgumentException("Unknown event: '%s'".format(x))
@@ -73,7 +86,7 @@ object AlarmEventFormat extends RootJsonFormat[Event] {
       throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
   }
 
-  override def write(obj: Event): JsValue = obj match {
+  override def write(obj: AlarmEvent): JsValue = obj match {
     case e: RaiseAlarmEvt =>
       raiseAlarmEvtFormat.write(e)
     case e: TransitAlarmEvt =>
@@ -84,5 +97,18 @@ object AlarmEventFormat extends RootJsonFormat[Event] {
       ackAlarmEvtFormat.write(e)
     case e: MuteAlarmEvt =>
       muteAlarmEvtFormat.write(e)
+  }
+}
+
+object AnyAlarmEventFormat extends RootJsonFormat[com.google.protobuf.any.Any] {
+  implicit val alarmEventFormat = AlarmEventFormat
+  override def write(obj: any.Any): JsValue = {
+    val event = AlarmEvent.apply(obj)
+    alarmEventFormat.write(event)
+  }
+
+  override def read(json: JsValue): any.Any = {
+    val event = alarmEventFormat.read(json)
+    any.Any(event.event.name, event.toByteString)
   }
 }

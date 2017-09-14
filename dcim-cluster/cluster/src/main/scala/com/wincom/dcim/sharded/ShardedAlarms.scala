@@ -2,8 +2,8 @@ package com.wincom.dcim.sharded
 
 import akka.actor._
 import akka.cluster.sharding._
-import com.wincom.dcim.domain.Alarm._
 import com.wincom.dcim.domain.Settings
+import com.wincom.dcim.message.common.Command
 import com.wincom.dcim.signal.FunctionRegistry
 
 object ShardedAlarms {

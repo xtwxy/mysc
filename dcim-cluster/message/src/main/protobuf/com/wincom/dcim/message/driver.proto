@@ -50,7 +50,6 @@ message CreateDriverCmd {
     required string name = 3;
     required string model = 4;
     map<string, string> initParams = 5;
-    map<string, string> signalIdMap = 6;
 };
 
 message RenameDriverCmd {
@@ -135,7 +134,7 @@ message UpdateSignalValuesCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
-    repeated com.wincom.dcim.message.signal.SignalSnapshotValueVo signalValues = 3 [(scalapb.field).collection_type="Seq"];
+    repeated com.wincom.dcim.message.driver.SignalSnapshotValueVo signalValues = 3;
 };
 
 // using fsu.SendBytesCmd as driver.SendBytesCmd?

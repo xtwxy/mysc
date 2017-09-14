@@ -3,9 +3,11 @@ package com.wincom.dcim.sharded
 import akka.actor.{ActorRef, Props, ReceiveTimeout}
 import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.Passivate
-import com.wincom.dcim.domain.Driver._
 import com.wincom.dcim.domain.{Driver, Settings}
 import com.wincom.dcim.driver.DriverCodecRegistry
+import com.wincom.dcim.message.common.Command
+import com.wincom.dcim.message.driver.StopDriverCmd
+
 import scala.math.Numeric.IntIsIntegral._
 
 object ShardedDriver {
@@ -33,7 +35,7 @@ class ShardedDriver(shardedSignal: () => ActorRef, registry: DriverCodecRegistry
 
   override def unhandled(message: Any): Unit = message match {
     case ReceiveTimeout =>
-      context.parent ! Passivate(stopMessage = Driver.StopDriverCmd)
+      context.parent ! Passivate(stopMessage = StopDriverCmd)
     case StopDriverCmd =>
       context.stop(self)
     case x => log.info("unhandled COMMAND: {} {}", this, x)

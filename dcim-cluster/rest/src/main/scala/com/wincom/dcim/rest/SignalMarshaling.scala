@@ -1,7 +1,7 @@
 package com.wincom.dcim.rest
 
-import com.wincom.dcim.domain.Signal._
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import com.wincom.dcim.message.signal._
+import spray.json._
 
 /**
   * Created by wangxy on 17-8-16.
@@ -10,31 +10,34 @@ trait SignalMarshaling extends DefaultJsonProtocol {
   implicit val dateTimeFormat = DateTimeJsonFormat
   implicit val anyValFormat = AnyValFormat
 
-  implicit val transVoFormat = jsonFormat2(TransFuncVo)
-  implicit val signalVoFormat = jsonFormat6(SignalVo)
-  implicit val signalValueFormat = jsonFormat3(SignalValueVo)
+  implicit val signalTypeJsonFormat = SignalTypeJsonFormat
+  implicit val responseTypeJsonFormat = ResponseTypeJsonFormat
+  implicit val transVoFormat = jsonFormat2(TransFuncVo.apply)
+  implicit val signalVoFormat = jsonFormat6(SignalVo.apply)
 
-  implicit val createSignalCmdFormat = jsonFormat6(CreateSignalCmd)
-  implicit val renameSignalCmdFormat = jsonFormat2(RenameSignalCmd)
-  implicit val selectDriverCmdFormat = jsonFormat2(SelectDriverCmd)
-  implicit val selectTypeCmdFormat = jsonFormat2(SelectTypeCmd)
-  implicit val selectKeyCmdFormat = jsonFormat2(SelectKeyCmd)
-  implicit val updateFuncsCmdFormat = jsonFormat2(UpdateFuncsCmd)
-  implicit val retrieveSignalCmdFormat = jsonFormat1(RetrieveSignalCmd)
-  implicit val saveSnapshotCmdFormat = jsonFormat1(SaveSnapshotCmd)
+  implicit val createSignalCmdFormat = jsonFormat7(CreateSignalCmd.apply)
+  implicit val renameSignalCmdFormat = jsonFormat3(RenameSignalCmd.apply)
+  implicit val selectDriverCmdFormat = jsonFormat3(SelectDriverCmd.apply)
+  implicit val selectTypeCmdFormat = jsonFormat3(SelectTypeCmd.apply)
+  implicit val selectKeyCmdFormat = jsonFormat3(SelectKeyCmd.apply)
+  implicit val updateFuncsCmdFormat = jsonFormat3(UpdateFuncsCmd.apply)
+  implicit val retrieveSignalCmdFormat = jsonFormat2(RetrieveSignalCmd.apply)
+  implicit val saveSnapshotCmdFormat = jsonFormat2(SaveSnapshotCmd.apply)
 
-  implicit val updateValueCmdFormat = jsonFormat3(UpdateValueCmd)
-  implicit val setValueCmdFormat = jsonFormat2(SetValueCmd)
-  implicit val setValueRspFormat = jsonFormat2(SetValueRsp)
-  implicit val getValueCmdFormat = jsonFormat1(GetValueCmd)
+  implicit val signalValueVoFormat = jsonFormat4(SignalValueVo.apply)
+  implicit val signalSnapshotValueVoFormat = jsonFormat3(SignalSnapshotValueVo.apply)
+  implicit val updateValueCmdFormat = jsonFormat3(UpdateValueCmd.apply)
+  implicit val setValueCmdFormat = jsonFormat3(SetValueCmd.apply)
+  implicit val setValueRspFormat = jsonFormat2(SetValueRsp.apply)
+  implicit val getValueCmdFormat = jsonFormat2(GetValueCmd.apply)
 
-  implicit val startSignalCmdFormat = jsonFormat1(StartSignalCmd)
-  implicit val stopSignalCmdFormat = jsonFormat1(StopSignalCmd)
+  implicit val startSignalCmdFormat = jsonFormat2(StartSignalCmd.apply)
+  implicit val stopSignalCmdFormat = jsonFormat2(StopSignalCmd.apply)
 
-  implicit val getSupportedFuncsCmdFormat: RootJsonFormat[GetSupportedFuncsCmd] = jsonFormat1(GetSupportedFuncsCmd)
-  implicit val getSupportedFuncsRspFormat: RootJsonFormat[GetSupportedFuncsRsp] = jsonFormat2(GetSupportedFuncsRsp)
-  implicit val getSupportedParamsCmdFormat: RootJsonFormat[GetFuncParamsCmd] = jsonFormat2(GetFuncParamsCmd)
-  implicit val getSupportedParamsRspFormat: RootJsonFormat[GetFuncParamsRsp] = jsonFormat2(GetFuncParamsRsp)
+  implicit val getSupportedFuncsCmdFormat = jsonFormat2(GetSupportedFuncsCmd.apply)
+  implicit val getSupportedFuncsRspFormat = jsonFormat1(SupportedFuncsVo.apply)
+  implicit val getSupportedParamsCmdFormat = jsonFormat3(GetFuncParamsCmd.apply)
+  implicit val getSupportedParamsRspFormat = jsonFormat1(FuncParamsVo.apply)
 }
 
 object SignalMarshaling extends SignalMarshaling

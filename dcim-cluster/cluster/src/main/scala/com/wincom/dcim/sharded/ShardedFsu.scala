@@ -3,9 +3,11 @@ package com.wincom.dcim.sharded
 import akka.actor.{Props, ReceiveTimeout}
 import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.Passivate
-import com.wincom.dcim.domain.Fsu._
 import com.wincom.dcim.domain.{Fsu, Settings}
 import com.wincom.dcim.fsu.FsuCodecRegistry
+import com.wincom.dcim.message.common.Command
+import com.wincom.dcim.message.fsu.StopFsuCmd
+
 import scala.math.Numeric.IntIsIntegral._
 
 /**
@@ -35,7 +37,7 @@ class ShardedFsu(registry: FsuCodecRegistry) extends Fsu(registry) {
 
   override def unhandled(message: Any): Unit = message match {
     case ReceiveTimeout =>
-      context.parent ! Passivate(stopMessage = Fsu.StopFsuCmd)
+      context.parent ! Passivate(stopMessage = StopFsuCmd)
     case StopFsuCmd =>
       context.stop(self)
     case x => log.info("unhandled COMMAND: {} {}", this, x)

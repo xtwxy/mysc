@@ -3,11 +3,12 @@ package com.wincom.dcim.rest
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
-import com.wincom.dcim.domain.Signal._
+import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.signal._
 
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
@@ -29,10 +30,6 @@ trait SignalRoutes extends SignalMarshaling {
 
   implicit def executionContext: ExecutionContext
 
-  private def validateSignalType(t: String): Boolean = {
-    t matches("AI|DI|SI|AO|DO|SO")
-  }
-
   def routes = pathPrefix("signal") {
     get {
       path(Segment) { signalId =>
@@ -50,13 +47,9 @@ trait SignalRoutes extends SignalMarshaling {
         path("create-signal") {
           pathEnd {
             entity(as[CreateSignalCmd]) { v =>
-              if(validateSignalType(v.t)) {
-                onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case Ok => complete(NoContent)
-                  case _ => complete(NotFound)
-                }
-              } else {
-                complete(BadRequest)
+              onSuccess(signals.ask(v).mapTo[ValueObject]) {
+                case SUCCESS => complete(NoContent)
+                case _ => complete(NotFound)
               }
             }
           }
@@ -65,7 +58,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[RenameSignalCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case Ok => complete(NoContent)
+                  case SUCCESS => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -75,7 +68,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[SelectDriverCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case Ok => complete(NoContent)
+                  case SUCCESS => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -85,7 +78,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[SelectKeyCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case Ok => complete(NoContent)
+                  case SUCCESS => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -95,7 +88,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[UpdateFuncsCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case Ok => complete(NoContent)
+                  case SUCCESS => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -115,7 +108,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[SaveSnapshotCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case Ok =>
+                  case SUCCESS =>
                     complete(NoContent)
                   case _ =>
                     complete(NotFound)
@@ -171,7 +164,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[GetSupportedFuncsCmd]) { x =>
                 onSuccess(signals.ask(x).mapTo[ValueObject]) {
-                  case v: GetSupportedFuncsRsp => complete(v)
+                  case v: SupportedFuncsVo => complete(v)
                   case _ => complete(NotFound)
                 }
               }
@@ -181,12 +174,16 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[GetFuncParamsCmd]) { x =>
                 onSuccess(signals.ask(x).mapTo[ValueObject]) {
-                  case v: GetFuncParamsRsp => complete(v)
+                  case v: FuncParamsVo => complete(v)
                   case _ => complete(NotFound)
                 }
               }
             }
           }
       }
+  }
+
+  private def validateSignalType(t: String): Boolean = {
+    t matches ("AI|DI|SI|AO|DO|SO")
   }
 }

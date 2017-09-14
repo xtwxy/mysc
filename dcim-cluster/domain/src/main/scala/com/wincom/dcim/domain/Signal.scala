@@ -122,7 +122,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
               case _ =>
             }
           }
-          driverShard().ask(driver.SetSignalValueCmd(this.driverId.get, user, this.key.get, SignalValue.create(v.signalType, x).get)).mapTo[Driver.ValueObject].onComplete {
+          driverShard().ask(driver.SetSignalValueCmd(this.driverId.get, user, this.key.get, SignalValue.create(v.signalType, x))).mapTo[ValueObject].onComplete {
             case f: Success[ValueObject] =>
               f.value match {
                 case x: SetValueRsp =>
@@ -154,7 +154,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
                     for (f <- this.funcs) {
                       x = f.transform(x)
                     }
-                    this.value = SignalValue.create(signalId, ts, v.signalType, x)
+                    this.value = Some(SignalValue.create(signalId, ts, v.signalType, x))
                     theSender ! this.value.get
                   } else {
                     theSender ! NOT_AVAILABLE

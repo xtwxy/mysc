@@ -1,10 +1,9 @@
 package com.wincom.dcim.sharded
 
-import akka.actor.{Actor, ActorRef, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
-import akka.event.Logging
 import com.wincom.dcim.domain.Settings
-import com.wincom.dcim.domain.Signal.Command
+import com.wincom.dcim.message.common.Command
 import com.wincom.dcim.signal.FunctionRegistry
 
 /**

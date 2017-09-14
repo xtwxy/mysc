@@ -8,6 +8,8 @@ import com.google.protobuf.timestamp.Timestamp
 import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.common.ResponseType._
 import com.wincom.dcim.message.alarm._
+import com.wincom.dcim.message.alarmrecord
+import com.wincom.dcim.message.signal
 import com.wincom.dcim.signal.FunctionRegistry
 
 import scala.collection.mutable
@@ -97,9 +99,9 @@ class Alarm(signalShard: () => ActorRef,
       }
     case EvalAlarmValueCmd(_, _) =>
       if (isValid()) {
-        signalShard() ! Signal.GetValueCmd(signalId.get)
+        signalShard() ! signal.GetValueCmd(signalId.get)
       }
-    case sv: Signal.SignalValueVo =>
+    case sv: signal.SignalSnapshotValueVo =>
       evalConditionsWith(sv)
     case RetrieveAlarmCmd(_, _) =>
       if (isValid()) {
@@ -132,7 +134,7 @@ class Alarm(signalShard: () => ActorRef,
     case CreateAlarmEvt(_, name, signalId, conds) =>
       this.alarmName = Some(name)
       this.signalId = signalId
-      createConditions(conds)
+      if(conds.isDefined) createConditions(conds.get)
       replyToSender(SUCCESS)
     case SelectSignalEvt(_, newSignalId) =>
       this.signalId = Some(newSignalId)
@@ -159,7 +161,7 @@ class Alarm(signalShard: () => ActorRef,
     if ("deadLetters" != sender().path.name) sender() ! msg
   }
 
-  private def evalConditionsWith(sv: SignalValueVo): Unit = {
+  private def evalConditionsWith(sv: signal.SignalSnapshotValueVo): Unit = {
     for (a <- conditions) {
       for (c <- a) {
         if (c.contains(sv.value)) {
@@ -169,14 +171,14 @@ class Alarm(signalShard: () => ActorRef,
             } else {
               // transition.
               matched = Some(c)
-              alarmRecordShard() ! AlarmRecord.TransitAlarmCmd(alarmId, beginTs.get, sv.ts, c.level, sv, c.positiveDesc)
+              alarmRecordShard() ! alarmrecord.TransitAlarmCmd(alarmId, None, beginTs.get, sv.ts, c.level, sv, Some(c.positiveDesc))
             }
           } else {
             // new alarm.
             value = Some(true)
             matched = Some(c)
             beginTs = Some(sv.ts)
-            alarmRecordShard() ! AlarmRecord.RaiseAlarmCmd(alarmId, beginTs.get, alarmName.get, c.level, sv, c.positiveDesc)
+            alarmRecordShard() ! alarmrecord.RaiseAlarmCmd(alarmId, None, beginTs.get, alarmName.get, c.level, sv, Some(c.positiveDesc))
           }
           // break the iterations. only the first match matters.
           return
@@ -187,14 +189,14 @@ class Alarm(signalShard: () => ActorRef,
     if (value.isDefined && value.get) {
       value = Some(false)
       endTs = Some(sv.ts)
-      alarmRecordShard() ! AlarmRecord.EndAlarmCmd(alarmId, beginTs.get, endTs.get, sv, matched.get.negativeDesc)
+      alarmRecordShard() ! alarmrecord.EndAlarmCmd(alarmId, None, beginTs.get, endTs.get, sv, Some(matched.get.negativeDesc))
     }
   }
 
-  private def createConditions(conds: Set[Seq[AlarmConditionVo]]): Unit = {
-    for (cs <- conds) {
+  private def createConditions(conds: ExclusiveConditionVo): Unit = {
+    for (cs <- conds.exclusive) {
       var seq: mutable.Seq[AlarmCondition] = mutable.ArraySeq()
-      for (c <- cs) {
+      for (c <- cs.ordered) {
         seq = seq :+ AlarmCondition(c)
       }
       if (!seq.isEmpty) this.conditions = this.conditions + seq

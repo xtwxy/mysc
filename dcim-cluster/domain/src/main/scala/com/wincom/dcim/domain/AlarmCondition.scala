@@ -19,7 +19,7 @@ object AlarmCondition {
 }
 
 final class AlarmCondition(val func: ThresholdFunction, val level: AlarmLevel, val positiveDesc: String, val negativeDesc: String) extends SetFunction {
-  override def contains(e: AnyVal): Boolean = func.contains(e)
+  override def contains(e: Any): Boolean = func.contains(e)
 
   override def subsetOf(f: SetFunction): Boolean = {
     f match {

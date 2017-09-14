@@ -27,7 +27,7 @@ object ThresholdFunction {
 }
 
 final case class ThresholdFunction(name: String, params: Map[String, String], func: SetFunction) extends SetFunction {
-  override def contains(e: AnyVal): Boolean = func.contains(e)
+  override def contains(e: Any): Boolean = func.contains(e)
 
   override def subsetOf(f: SetFunction): Boolean = func.subsetOf(f)
 
