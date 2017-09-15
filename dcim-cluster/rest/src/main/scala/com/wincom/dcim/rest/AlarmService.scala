@@ -49,6 +49,7 @@ trait AlarmRoutes extends AlarmMarshaling {
             onSuccess(alarms.ask(v).mapTo[ValueObject]) {
               case SUCCESS =>
                 complete(Created)
+              case ALREADY_EXISTS => complete(NotModified)
               case _ =>
                 complete(NotFound)
             }
