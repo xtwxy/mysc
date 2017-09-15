@@ -15,3 +15,8 @@ enum ResponseType {
     BAD_COMMAND = 4;
 };
 
+message Response {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required ResponseType status = 1;
+    optional string result = 2;
+};
