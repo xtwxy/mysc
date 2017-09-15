@@ -54,6 +54,7 @@ trait DriverRoutes extends DriverMarshaling {
               print(v)
               onSuccess(drivers.ask(v).mapTo[ValueObject]) {
                 case SUCCESS => complete(Created)
+                case ALREADY_EXISTS => complete(NotModified)
                 case _ => complete(NotFound)
               }
             }
