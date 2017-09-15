@@ -24,7 +24,7 @@ fork := true
 lazy val message = (project in file("message"))
 lazy val domain = (project in file("domain")).dependsOn(message)
 lazy val cluster = (project in file("cluster")).dependsOn(domain, rest)
-    //.dependsOn(fsuMockCodec, driverMockCodec, signalTransformMock)
+    .dependsOn(fsuMockCodec, driverMockCodec, signalTransformMock)
 lazy val signalTransformMock = (project in file("signal-mock-trans")).dependsOn(domain)
 lazy val driverMockCodec = (project in file("driver-mock-codec")).dependsOn(domain)
 lazy val fsuMockCodec = (project in file("fsu-mock-codec")).dependsOn(domain)

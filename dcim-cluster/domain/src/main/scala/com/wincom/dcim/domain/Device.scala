@@ -47,7 +47,11 @@ class Device extends PersistentActor with ActorLogging {
 
   override def receiveCommand: Receive = {
     case CreateDeviceCmd(_, user, name, deviceType, model, propertyTagCode, signals, alarms, children) =>
-      persist(CreateDeviceEvt(user, name, deviceType, model, propertyTagCode, signals, alarms, children)) (updateState)
+      if(isValid) {
+        sender() ! ALREADY_EXISTS
+      } else {
+        persist(CreateDeviceEvt(user, name, deviceType, model, propertyTagCode, signals, alarms, children))(updateState)
+      }
     case RenameDeviceCmd(_, user, newName) =>
       if(isValid()) {
         persist(RemoveAlarmEvt(user, newName))(updateState)

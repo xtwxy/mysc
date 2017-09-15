@@ -51,6 +51,7 @@ trait DriverRoutes extends DriverMarshaling {
         path("create-driver") {
           pathEnd {
             entity(as[CreateDriverCmd]) { v =>
+              print(v)
               onSuccess(drivers.ask(v).mapTo[ValueObject]) {
                 case SUCCESS => complete(Created)
                 case _ => complete(NotFound)

@@ -69,9 +69,9 @@ class Alarm(signalShard: () => ActorRef,
   override def receiveCommand: Receive = {
     case CreateAlarmCmd(_, user, name, signalId, conds) =>
       if (isValid()) {
-        persist(CreateAlarmEvt(user, name, signalId, conds))(updateState)
+        sender() ! ALREADY_EXISTS
       } else {
-        sender() ! NOT_AVAILABLE
+        persist(CreateAlarmEvt(user, name, signalId, conds))(updateState)
       }
     case SelectSignalCmd(_, user, newSignalId) =>
       if (isValid()) {

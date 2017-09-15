@@ -61,7 +61,11 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
 
   override def receiveCommand: Receive = {
     case CreateFsuCmd(_, user, name, model, params) =>
-      persist(CreateFsuEvt(user, name, model, params))(updateState)
+      if(isValid) {
+        sender() ! ALREADY_EXISTS
+      } else {
+        persist(CreateFsuEvt(user, name, model, params))(updateState)
+      }
     case RenameFsuCmd(_, user, newName) =>
       if (isValid()) {
         persist(RenameFsuEvt(user, newName))(updateState)

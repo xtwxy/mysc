@@ -6,7 +6,7 @@ import java.util._
   */
 class LinerFuncImpl(val params: Map[String, String]) extends UnaryFunction with InverseFunction {
 
-  override def transform(input: AnyVal): AnyVal = {
+  override def transform(input: Any): Any = {
     input match {
       case x: Boolean => !x
       case x: Double => x * 2;
@@ -14,7 +14,7 @@ class LinerFuncImpl(val params: Map[String, String]) extends UnaryFunction with 
     }
   }
 
-  override def inverse(input: AnyVal): Any = {
+  override def inverse(input: Any): Any = {
     input match {
       case x: Boolean => !x
       case x: Double => x / 2;

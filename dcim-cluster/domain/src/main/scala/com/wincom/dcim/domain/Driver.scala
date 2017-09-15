@@ -63,7 +63,11 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
 
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateDriverCmd(_, user, name, model, params) =>
-      persist(CreateDriverEvt(user, name, model, params))(updateState)
+      if(isValid) {
+        sender() ! ALREADY_EXISTS
+      } else {
+        persist(CreateDriverEvt(user, name, model, params))(updateState)
+      }
     case RenameDriverCmd(_, user, newName) =>
       if (isValid) {
         persist(RenameDriverEvt(user, newName))(updateState)

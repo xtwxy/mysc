@@ -5,7 +5,7 @@ import akka.event.Logging
 import akka.pattern.ask
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.util.Timeout
-import com.wincom.dcim.message.common.ResponseType.{BAD_COMMAND, NOT_AVAILABLE, NOT_EXIST, SUCCESS}
+import com.wincom.dcim.message.common.ResponseType.{ALREADY_EXISTS, BAD_COMMAND, NOT_AVAILABLE, NOT_EXIST, SUCCESS}
 import com.wincom.dcim.signal.{FunctionRegistry, InverseFunction, UnaryFunction}
 import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.signal._
@@ -64,7 +64,11 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
 
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateSignalCmd(_, user, name, t, driverId, key, fs) =>
-      persist(CreateSignalEvt(user, name, t, driverId, key, for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
+      if(isValid) {
+        sender() ! ALREADY_EXISTS
+      } else {
+        persist(CreateSignalEvt(user, name, t, driverId, key, for (f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
+      }
     case RenameSignalCmd(_, user, newName) =>
       if (isValid()) {
         persist(RenameSignalEvt(user, newName))(updateState)
