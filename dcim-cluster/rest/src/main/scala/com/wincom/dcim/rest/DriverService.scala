@@ -122,7 +122,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[GetSignalValueCmd]) { x =>
                 onSuccess(drivers.ask(x).mapTo[ValueObject]) {
-                  case v: SignalSnapshotValueVo =>
+                  case v: DriverSignalSnapshotVo =>
                     complete(v)
                   case _ =>
                     complete(NotFound)
@@ -134,7 +134,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[GetSignalValuesCmd]) { x =>
                 onSuccess(drivers.ask(x).mapTo[ValueObject]) {
-                  case v: SignalSnapshotValuesVo =>
+                  case v: DriverSignalSnapshotsVo =>
                     complete(v)
                   case _ =>
                     complete(NotFound)

@@ -147,7 +147,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
         driverShard().ask(driver.GetSignalValueCmd(driverId.get, user, key.get)).mapTo[ValueObject].onComplete {
           case f: Success[ValueObject] =>
             f.value match {
-              case driver.SignalSnapshotValueVo(driverId, key, ts, v) =>
+              case driver.DriverSignalSnapshotVo(driverId, key, ts, v) =>
                 if (this.driverId.get.equals(driverId) && this.key.get.equals(key)) {
                   if (v.value.isDefined) {
                     var x = v.value.get

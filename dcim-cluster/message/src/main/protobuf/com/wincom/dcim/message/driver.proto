@@ -19,7 +19,7 @@ message DriverVo {
     map<string, string> initParams = 4;
 };
 
-message SignalSnapshotValueVo {
+message DriverSignalSnapshotVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string driverId = 1;
     required string key = 2;
@@ -27,19 +27,19 @@ message SignalSnapshotValueVo {
     required com.wincom.dcim.message.signal.SignalValueVo value = 4;
 };
 
-message SignalSnapshotValuesVo {
+message DriverSignalSnapshotsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated SignalSnapshotValueVo values = 1 [(scalapb.field).collection_type="Seq"];
+    repeated DriverSignalSnapshotVo values = 1;
 };
 
 message SupportedModelsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string modelNames = 1 [(scalapb.field).collection_type="Seq"];
+    repeated string modelNames = 1;
 };
 
 message ModelParamsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string paramNames = 1  [(scalapb.field).collection_type="Seq"];
+    repeated string paramNames = 1;
 };
 
 // command & responses
@@ -106,7 +106,7 @@ message GetSignalValuesCmd {
     option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
-    repeated string keys = 3  [(scalapb.field).collection_type="Seq"];
+    repeated string keys = 3;
 };
 
 // response with SetValueRsp
@@ -134,7 +134,7 @@ message UpdateSignalValuesCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
     optional string user = 2;
-    repeated com.wincom.dcim.message.driver.SignalSnapshotValueVo signalValues = 3;
+    repeated DriverSignalSnapshotVo signalValues = 3;
 };
 
 // using fsu.SendBytesCmd as driver.SendBytesCmd?
