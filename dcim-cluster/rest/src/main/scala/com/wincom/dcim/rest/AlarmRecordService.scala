@@ -74,7 +74,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
           pathEnd {
             entity(as[AckAlarmCmd]) { v =>
               onSuccess(alarmRecords.ask(v).mapTo[ValueObject]) {
-                case SUCCESS =>
+                case Response(SUCCESS, _) =>
                   complete(NoContent)
                 case _ =>
                   complete(NotFound)
@@ -86,7 +86,7 @@ trait AlarmRecordRoutes extends AlarmRecordMarshaling {
           pathEnd {
             entity(as[MuteAlarmCmd]) { v =>
               onSuccess(alarmRecords.ask(v).mapTo[ValueObject]) {
-                case SUCCESS =>
+                case Response(SUCCESS, _) =>
                   complete(NoContent)
                 case _ =>
                   complete(NotFound)

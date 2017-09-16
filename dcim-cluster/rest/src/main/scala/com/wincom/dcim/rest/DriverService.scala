@@ -53,8 +53,8 @@ trait DriverRoutes extends DriverMarshaling {
             entity(as[CreateDriverCmd]) { v =>
               print(v)
               onSuccess(drivers.ask(v).mapTo[ValueObject]) {
-                case SUCCESS => complete(Created)
-                case ALREADY_EXISTS => complete(NotModified)
+                case Response(SUCCESS, _) => complete(Created)
+                case Response(ALREADY_EXISTS, _) => complete(NotModified)
                 case _ => complete(NotFound)
               }
             }
@@ -64,7 +64,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[RenameDriverCmd]) { v =>
                 onSuccess(drivers.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -74,7 +74,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[ChangeModelCmd]) { v =>
                 onSuccess(drivers.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -84,7 +84,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[SaveSnapshotCmd]) { v =>
                 onSuccess(drivers.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -94,7 +94,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[AddParamsCmd]) { v =>
                 onSuccess(drivers.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -104,7 +104,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[RemoveParamsCmd]) { v =>
                 onSuccess(drivers.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -114,7 +114,7 @@ trait DriverRoutes extends DriverMarshaling {
             pathEnd {
               entity(as[MapSignalKeyIdCmd]) { v =>
                 onSuccess(drivers.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }

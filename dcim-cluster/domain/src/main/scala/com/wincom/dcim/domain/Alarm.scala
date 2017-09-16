@@ -69,7 +69,7 @@ class Alarm(signalShard: () => ActorRef,
   override def receiveCommand: Receive = {
     case CreateAlarmCmd(_, user, name, signalId, conds) =>
       if (isValid()) {
-        sender() ! ALREADY_EXISTS
+        sender() ! Response(ALREADY_EXISTS, None)
       } else {
         persist(CreateAlarmEvt(user, name, signalId, conds))(updateState)
       }
@@ -77,25 +77,25 @@ class Alarm(signalShard: () => ActorRef,
       if (isValid()) {
         persist(SelectSignalEvt(user, newSignalId))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case AddConditionCmd(_, user, condition) =>
       if (isValid()) {
         persist(AddConditionEvt(user, condition))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case RemoveConditionCmd(_, user, condition) =>
       if (isValid()) {
         persist(RemoveConditionEvt(user, condition))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case ReplaceConditionCmd(_, user, old, newOne) =>
       if (isValid()) {
         persist(ReplaceConditionEvt(user, old, newOne))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case EvalAlarmValueCmd(_, _) =>
       if (isValid()) {
@@ -107,13 +107,13 @@ class Alarm(signalShard: () => ActorRef,
       if (isValid()) {
         sender() ! AlarmVo(alarmId, alarmName.get, signalId.get, exclusiveConditions(conditions))
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case GetAlarmValueCmd(_, _) =>
       if (isValid()) {
         sender() ! AlarmValueVo(alarmId, value, if (matched.isDefined) Some(AlarmCondition.valueObjectOf(matched.get)) else None, beginTs, endTs)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
@@ -135,24 +135,24 @@ class Alarm(signalShard: () => ActorRef,
       this.alarmName = Some(name)
       this.signalId = signalId
       if(conds.isDefined) createConditions(conds.get)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case SelectSignalEvt(_, newSignalId) =>
       this.signalId = Some(newSignalId)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case AddConditionEvt(_, condition) =>
       if (addCondition(condition)) {
-        replyToSender(SUCCESS)
+        replyToSender(Response(SUCCESS, None))
       } else {
-        replyToSender(BAD_COMMAND)
+        replyToSender(Response(BAD_COMMAND, None))
       }
     case RemoveConditionEvt(_, condition) =>
       removeCondition(condition)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case ReplaceConditionEvt(_, old, newOne) =>
       if (replaceCondition(old, newOne)) {
-        replyToSender(SUCCESS)
+        replyToSender(Response(SUCCESS, None))
       } else {
-        replyToSender(BAD_COMMAND)
+        replyToSender(Response(BAD_COMMAND, None))
       }
     case x => log.info("EVENT *IGNORED*: {} {}", this, x)
   }

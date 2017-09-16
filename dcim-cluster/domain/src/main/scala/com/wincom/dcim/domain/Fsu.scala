@@ -62,7 +62,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
   override def receiveCommand: Receive = {
     case CreateFsuCmd(_, user, name, model, params) =>
       if(isValid) {
-        sender() ! ALREADY_EXISTS
+        sender() ! Response(ALREADY_EXISTS, None)
       } else {
         persist(CreateFsuEvt(user, name, model, params))(updateState)
       }
@@ -70,43 +70,43 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       if (isValid()) {
         persist(RenameFsuEvt(user, newName))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case ChangeModelCmd(_, user, newModel) =>
       if (isValid()) {
         persist(ChangeModelEvt(user, newModel))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case SaveSnapshotCmd =>
       if (isValid()) {
         saveSnapshot(FsuPo(fsuName.get, modelName.get, initParams.toMap))
-        replyToSender(SUCCESS)
+        sender() ! Response(SUCCESS, None)
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case AddParamsCmd(_, user, params) =>
       if (isValid()) {
         persist(AddParamsEvt(user, params))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case RemoveParamsCmd(_, user, params) =>
       if (isValid()) {
         persist(RemoveParamsEvt(user, params))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case cmd: GetPortCmd =>
       val theSender = sender()
       if (!isValid()) {
-        theSender ! NOT_EXIST
+        theSender ! Response(NOT_EXIST, None)
       } else {
         this.fsuCodec.get.ask(cmd).mapTo[ActorRef].onComplete {
           case f: Success[ActorRef] =>
             theSender ! f.value
           case _ =>
-            theSender ! NOT_AVAILABLE
+            theSender ! Response(NOT_AVAILABLE, None)
         }
       }
     case cmd: SendBytesCmd =>
@@ -117,11 +117,11 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
           log.warning("Message CANNOT be delivered because codec not started: {} {}", this, cmd)
         }
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case RetrieveFsuCmd(_, user) =>
       if (!isValid()) {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       } else {
         sender() ! FsuVo(fsuId, fsuName.get, modelName.get, initParams.toMap)
       }
@@ -132,13 +132,13 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       if (isValid()) {
         sender() ! SupportedModelsVo(registry.names.toSeq)
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case GetModelParamsCmd(_, user, model) =>
       if (isValid()) {
         sender() ! ModelParamsVo(registry.paramNames(model).toSeq)
       } else {
-        replyToSender(NOT_EXIST)
+        sender() ! Response(NOT_EXIST, None)
       }
     case _: ReceiveTimeout =>
       stop()
@@ -150,19 +150,19 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
       this.fsuName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RenameFsuEvt(user, newName) =>
       this.fsuName = Some(newName)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case ChangeModelEvt(user, newModel) =>
       this.modelName = Some(newModel)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case AddParamsEvt(user, params) =>
       this.initParams = this.initParams ++ params
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RemoveParamsEvt(user, params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 

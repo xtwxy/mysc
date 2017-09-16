@@ -48,7 +48,7 @@ class Device extends PersistentActor with ActorLogging {
   override def receiveCommand: Receive = {
     case CreateDeviceCmd(_, user, name, deviceType, model, propertyTagCode, signals, alarms, children) =>
       if(isValid) {
-        sender() ! ALREADY_EXISTS
+        sender() ! Response(ALREADY_EXISTS, None)
       } else {
         persist(CreateDeviceEvt(user, name, deviceType, model, propertyTagCode, signals, alarms, children))(updateState)
       }
@@ -56,61 +56,61 @@ class Device extends PersistentActor with ActorLogging {
       if(isValid()) {
         persist(RemoveAlarmEvt(user, newName))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case ChangeDeviceTypeCmd(_, user, newType) =>
       if(isValid()) {
         persist(ChangeDeviceTypeEvt(user, newType))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case ChangeVendorModelCmd(_, user, newModel) =>
       if(isValid()) {
         persist(ChangeVendorModelEvt(user, newModel))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case ChangePropertyTagCodeCmd(_, user, newCode) =>
       if(isValid()) {
         persist(ChangePropertyTagCodeEvt(user, newCode))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case AddSignalCmd(_, user, signalId) =>
       if(isValid()) {
         persist(AddSignalEvt(user, signalId))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case RemoveSignalCmd(_, user, signalId) =>
       if(isValid()) {
         persist(RemoveSignalEvt(user, signalId))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case AddAlarmCmd(_, user, alarmId) =>
       if(isValid()) {
         persist(AddAlarmEvt(user, alarmId))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case RemoveAlarmCmd(_, user, alarmId) =>
       if(isValid()) {
         persist(RemoveAlarmEvt(user, alarmId))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case AddChildCmd(_, user, deviceId) =>
       if(isValid()) {
         persist(AddChildEvt(user, deviceId))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case RemoveChildCmd(_, user, deviceId) =>
       if(isValid()) {
         persist(RemoveChildEvt(user, deviceId))(updateState)
       } else {
-        replyToSender(NOT_EXIST)
+        replyToSender(Response(NOT_EXIST, None))
       }
     case x => log.info("COMMAND: {} {}", this, x)
   }
@@ -124,34 +124,34 @@ class Device extends PersistentActor with ActorLogging {
       this.signals = mutable.Seq() ++ signals
       this.alarms = mutable.Seq() ++ alarms
       this.children = mutable.Seq() ++ children
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RenameDeviceEvt(user, newName) =>
       this.deviceName = Some(newName)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case ChangeDeviceTypeEvt(user, newType) =>
       this.deviceType = Some(newType)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case ChangeVendorModelEvt(user, newModel) =>
       this.vendorModel = Some(newModel)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case ChangePropertyTagCodeEvt(user, newPropertyCode) =>
       this.propertyTagCode = Some(newPropertyCode)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case AddSignalEvt(user, signalId) =>
       this.signals :+= signalId
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RemoveSignalEvt(user, signalId) =>
       this.signals = this.signals.filter(!_.eq(signalId))
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case AddAlarmEvt(user, alarmId) =>
       this.alarms :+= alarmId
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case AddChildEvt(user, childDeviceId) =>
       this.children :+= childDeviceId
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RemoveChildEvt(user, childDeviceId) =>
       this.children = this.children.filter(!_.equals(childDeviceId))
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 

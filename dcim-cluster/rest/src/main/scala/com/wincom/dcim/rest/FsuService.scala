@@ -51,8 +51,8 @@ trait FsuRoutes extends FsuMarshaling {
           path("create-fsu") {
             entity(as[CreateFsuCmd]) { v =>
               onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                case SUCCESS => complete(Created)
-                case ALREADY_EXISTS => complete(NotModified)
+                case Response(SUCCESS, _) => complete(Created)
+                case Response(ALREADY_EXISTS, _) => complete(NotModified)
                 case _ => complete(NotFound)
               }
             }
@@ -61,7 +61,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[RenameFsuCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case SUCCESS => complete(NoContent)
+                    case Response(SUCCESS, _) => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }
@@ -71,7 +71,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[ChangeModelCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case SUCCESS => complete(NoContent)
+                    case Response(SUCCESS, _) => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }
@@ -81,7 +81,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[AddParamsCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case SUCCESS => complete(NoContent)
+                    case Response(SUCCESS, _) => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }
@@ -91,7 +91,7 @@ trait FsuRoutes extends FsuMarshaling {
               pathEnd {
                 entity(as[RemoveParamsCmd]) { v =>
                   onSuccess(fsus.ask(v).mapTo[ValueObject]) {
-                    case SUCCESS => complete(NoContent)
+                    case Response(SUCCESS, _) => complete(NoContent)
                     case _ => complete(NotFound)
                   }
                 }

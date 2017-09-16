@@ -58,25 +58,25 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
       if (isValid()) {
         persist(new TransitAlarmEvt(user, trans, level, sv, desc))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case EndAlarmCmd(_, user, begin, trans, sv, desc) =>
       if (isValid()) {
         persist(new EndAlarmEvt(user, trans, sv, desc))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case AckAlarmCmd(_, user, begin, time, person, desc) =>
       if (isValid()) {
         persist(new AckAlarmEvt(user, time, person, desc))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case MuteAlarmCmd(_, user, begin, time, person, desc) =>
       if (isValid()) {
         persist(new MuteAlarmEvt(user, time, person, desc))(updateState)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case RetrieveAlarmRecordCmd(_, user, _) =>
       if (isValid()) {
@@ -97,7 +97,7 @@ class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
           endTs
         )
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }

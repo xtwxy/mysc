@@ -64,7 +64,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateDriverCmd(_, user, name, model, params) =>
       if(isValid) {
-        sender() ! ALREADY_EXISTS
+        sender() ! Response(ALREADY_EXISTS, None)
       } else {
         persist(CreateDriverEvt(user, name, model, params))(updateState)
       }
@@ -72,56 +72,56 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       if (isValid) {
         persist(RenameDriverEvt(user, newName))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case ChangeModelCmd(_, user, newModel) =>
       if (isValid) {
         persist(ChangeModelEvt(user, newModel))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case AddParamsCmd(_, user, params) =>
       if (isValid) {
         persist(AddParamsEvt(user, params))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case RemoveParamsCmd(_, user, params) =>
       if (isValid) {
         persist(RemoveParamsEvt(user, params))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case MapSignalKeyIdCmd(_, user, key, signalId) =>
       if (isValid) {
         persist(MapSignalKeyIdEvt(user, key, signalId))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
 
     case cmd: GetSignalValueCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case cmd: GetSignalValuesCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case cmd: SetSignalValueCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case cmd: SetSignalValuesCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case UpdateSignalValuesCmd(_, user, values) =>
       if (isValid) {
@@ -133,19 +133,19 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
           }
         }
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case cmd: SendBytesCmd =>
       if (isValid) {
         driverCodec.get forward cmd
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case RetrieveDriverCmd(_, user) =>
       if (isValid) {
         sender() ! DriverVo(driverId, driverName.get, modelName.get, initParams.toMap)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case StartDriverCmd(_, user) =>
     case StopDriverCmd(_, user) =>
@@ -154,13 +154,13 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       if (isValid) {
         sender() ! SupportedModelsVo(registry.names.toSeq)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case GetModelParamsCmd(_, user, model) =>
       if (isValid) {
         sender() ! ModelParamsVo(registry.paramNames(model).toSeq)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case _: ReceiveTimeout =>
       stop()
@@ -172,24 +172,24 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       this.driverName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RenameDriverEvt(user, newName) =>
       this.driverName = Some(newName)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case ChangeModelEvt(user, newModel) =>
       this.modelName = Some(newModel)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case AddParamsEvt(user, params) =>
       this.initParams = this.initParams ++ params
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RemoveParamsEvt(user, params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case MapSignalKeyIdEvt(user, key, signalId) =>
       var seq = this.signalIdMap.getOrElse(key, Seq[String]())
       seq = seq :+ signalId
       this.signalIdMap.put(key, seq)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case x => log.info("UPDATE IGNORED: {} {}", this, x)
   }
 

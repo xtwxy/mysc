@@ -65,7 +65,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateSignalCmd(_, user, name, t, driverId, key, fs) =>
       if(isValid) {
-        sender() ! ALREADY_EXISTS
+        sender() ! Response(ALREADY_EXISTS, None)
       } else {
         persist(CreateSignalEvt(user, name, t, driverId, key, for (f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
       }
@@ -73,45 +73,45 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       if (isValid()) {
         persist(RenameSignalEvt(user, newName))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case SelectDriverCmd(_, user, driverId) =>
       if (isValid()) {
         persist(SelectDriverEvt(user, driverId))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case SelectTypeCmd(_, user, newType) =>
       if (isValid()) {
         persist(SelectTypeEvt(user, newType))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case SelectKeyCmd(_, user, key) =>
       if (isValid()) {
         persist(SelectKeyEvt(user, key))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case UpdateFuncsCmd(_, user, fs) =>
       if (isValid()) {
         this.funcConfigs = mutable.ArraySeq() ++ fs
         persist(UpdateFuncsEvt(user, for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case RetrieveSignalCmd(_, user) =>
       if (isValid) {
         sender() ! SignalVo(signalId, signalName.get, signalType.get, driverId.get, key.get, funcConfigs)
       } else {
-        sender() ! NOT_AVAILABLE
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case SaveSnapshotCmd(_, user) =>
       if (isValid) {
         saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for (x <- funcConfigs) yield TransFuncPo(x.name, x.params)))
-        sender() ! SUCCESS
+        sender() ! Response(SUCCESS, None)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case UpdateValueCmd(_, user, v) =>
       this.value = Some(v)
@@ -132,16 +132,16 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
                 case x: SetValueRsp =>
                   theSender ! x
                 case _ =>
-                  theSender ! NOT_AVAILABLE
+                  theSender ! Response(NOT_AVAILABLE, None)
               }
             case _ =>
-              theSender ! NOT_AVAILABLE
+              theSender ! Response(NOT_AVAILABLE, None)
           }
         } else {
-          sender() ! BAD_COMMAND
+          sender() ! Response(BAD_COMMAND, None)
         }
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case GetValueCmd(_, user) =>
       val theSender = sender()
@@ -161,16 +161,16 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
                     this.value = Some(SignalValue.create(signalId, ts, v.signalType, x))
                     theSender ! this.value.get
                   } else {
-                    theSender ! NOT_AVAILABLE
+                    theSender ! Response(NOT_AVAILABLE, None)
                   }
                 } else {
-                  theSender ! BAD_COMMAND
+                  theSender ! Response(BAD_COMMAND, None)
                 }
               case _ =>
-                theSender ! NOT_AVAILABLE
+                theSender ! Response(NOT_AVAILABLE, None)
             }
           case _ =>
-            theSender ! NOT_AVAILABLE
+            theSender ! Response(NOT_AVAILABLE, None)
         }
       }
     case StartSignalCmd(_, _) =>
@@ -180,13 +180,13 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       if (isValid()) {
         sender() ! SupportedFuncsVo(registry.names.toSeq)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case GetFuncParamsCmd(_, user, model) =>
       if (isValid()) {
         sender() ! FuncParamsVo(registry.paramNames(model).toSeq)
       } else {
-        sender() ! NOT_EXIST
+        sender() ! Response(NOT_EXIST, None)
       }
     case _: ReceiveTimeout =>
       context.stop(self)
@@ -200,22 +200,22 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.key = Some(key)
       this.signalType = Some(t)
       updateFuncs(fs)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case RenameSignalEvt(user, newName) =>
       this.signalName = Some(newName)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case SelectDriverEvt(user, driverId) =>
       this.driverId = Some(driverId)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case SelectTypeEvt(user, newType) =>
       this.signalType = Some(newType)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case SelectKeyEvt(user, key) =>
       this.key = Some(key)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case UpdateFuncsEvt(user, fs) =>
       updateFuncs(fs)
-      replyToSender(SUCCESS)
+      replyToSender(Response(SUCCESS, None))
     case x => log.info("EVENT: {} {}", this, x)
   }
 

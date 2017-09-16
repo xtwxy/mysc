@@ -48,8 +48,8 @@ trait SignalRoutes extends SignalMarshaling {
           pathEnd {
             entity(as[CreateSignalCmd]) { v =>
               onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                case SUCCESS => complete(Created)
-                case ALREADY_EXISTS => complete(NotModified)
+                case Response(SUCCESS, _) => complete(Created)
+                case Response(ALREADY_EXISTS, _) => complete(NotModified)
                 case _ => complete(NotFound)
               }
             }
@@ -59,7 +59,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[RenameSignalCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -69,7 +69,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[SelectDriverCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -79,7 +79,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[SelectKeyCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -89,7 +89,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[UpdateFuncsCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS => complete(NoContent)
+                  case Response(SUCCESS, _) => complete(NoContent)
                   case _ => complete(NotFound)
                 }
               }
@@ -109,7 +109,7 @@ trait SignalRoutes extends SignalMarshaling {
             pathEnd {
               entity(as[SaveSnapshotCmd]) { v =>
                 onSuccess(signals.ask(v).mapTo[ValueObject]) {
-                  case SUCCESS =>
+                  case Response(SUCCESS, _) =>
                     complete(NoContent)
                   case _ =>
                     complete(NotFound)
