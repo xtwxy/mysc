@@ -54,3 +54,4 @@ target
 
 .cache-main
 *.swp
+/.metadata/
