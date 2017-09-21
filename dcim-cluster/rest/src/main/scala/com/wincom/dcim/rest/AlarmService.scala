@@ -10,6 +10,7 @@ import akka.util.Timeout
 import com.wincom.dcim.message.alarm._
 import com.wincom.dcim.message.common.ResponseType._
 import com.wincom.dcim.message.common._
+import com.wincom.dcim.message.signal.{FuncParamsVo, GetFuncParamsCmd, GetSupportedFuncsCmd, SupportedFuncsVo}
 
 import scala.concurrent.ExecutionContext
 

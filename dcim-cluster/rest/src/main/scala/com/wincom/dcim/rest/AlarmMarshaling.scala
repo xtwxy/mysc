@@ -1,7 +1,7 @@
 package com.wincom.dcim.rest
 
 import com.wincom.dcim.message.alarm._
-import com.wincom.dcim.message.signal
+import com.wincom.dcim.message.signal.{FuncParamsVo, SupportedFuncsVo}
 import spray.json._
 
 trait AlarmMarshaling extends DefaultJsonProtocol {
@@ -27,6 +27,9 @@ trait AlarmMarshaling extends DefaultJsonProtocol {
   implicit val getAlarmValueCmdFormat = jsonFormat2(GetAlarmValueCmd.apply)
   implicit val evalAlarmValueCmdFormat = jsonFormat2(EvalAlarmValueCmd.apply)
   implicit val passivateAlarmCmdFormat = jsonFormat2(PassivateAlarmCmd.apply)
+
+  implicit val getSupportedFuncsRspFormat = jsonFormat1(SupportedFuncsVo.apply)
+  implicit val getSupportedParamsRspFormat = jsonFormat1(FuncParamsVo.apply)
 }
 
 object AlarmMarshaling extends AlarmMarshaling
