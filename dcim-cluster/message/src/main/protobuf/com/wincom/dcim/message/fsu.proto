@@ -93,6 +93,12 @@ message StopFsuCmd {
     optional string user = 2;
 };
 
+message RestartFsuCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
 message GetSupportedModelsCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
