@@ -164,15 +164,11 @@ message StopDriverCmd {
 };
 
 message GetSupportedModelsCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
-    optional string user = 2;
+    option(scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
 };
 
 message GetModelParamsCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
-    optional string user = 2;
+    option(scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string modelName = 3;
 }
 

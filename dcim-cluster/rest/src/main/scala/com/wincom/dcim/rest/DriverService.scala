@@ -7,10 +7,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.common.ResponseType._
-import com.wincom.dcim.message.signal
+import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.driver._
+import com.wincom.dcim.message.signal
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.language.postfixOps
@@ -214,21 +214,17 @@ trait DriverRoutes extends DriverMarshaling {
           } ~
           path("get-supported-models") {
             pathEnd {
-              entity(as[GetSupportedModelsCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[ValueObject]) {
-                  case v: SupportedModelsVo => complete(v)
-                  case _ => complete(NotFound)
-                }
+              onSuccess(drivers.ask(GetSupportedModelsCmd()).mapTo[ValueObject]) {
+                case v: SupportedModelsVo => complete(v)
+                case _ => complete(NotFound)
               }
             }
           } ~
-          path("get-model-params") {
+          path("get-model-params" / Segment) { modelName =>
             pathEnd {
-              entity(as[GetModelParamsCmd]) { x =>
-                onSuccess(drivers.ask(x).mapTo[ValueObject]) {
-                  case v: ModelParamsVo => complete(v)
-                  case _ => complete(NotFound)
-                }
+              onSuccess(drivers.ask(GetModelParamsCmd(modelName)).mapTo[ValueObject]) {
+                case v: ModelParamsVo => complete(v)
+                case _ => complete(NotFound)
               }
             }
           }

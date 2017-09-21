@@ -6,6 +6,9 @@ import akka.event.Logging
 import com.wincom.dcim.domain.Settings
 import com.wincom.dcim.fsu.FsuCodecRegistry
 import com.wincom.dcim.message.common.Command
+import com.wincom.dcim.message.fsu._
+
+import scala.collection.convert.ImplicitConversions._
 
 object ShardedFsus {
   def props = Props(new ShardedFsus)
@@ -33,6 +36,10 @@ class ShardedFsus extends Actor {
   }
 
   override def receive: Receive = {
+    case GetSupportedModelsCmd =>
+      sender() ! SupportedModelsVo(registry.names().toSeq)
+    case GetModelParamsCmd(modelName) =>
+      sender() ! ModelParamsVo(registry.paramNames(modelName).toSeq)
     case cmd: Command =>
       shardedFsu forward cmd
     case x => log.info("COMMAND: {} {}", this, x)

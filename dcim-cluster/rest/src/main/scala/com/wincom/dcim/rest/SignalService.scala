@@ -163,28 +163,20 @@ trait SignalRoutes extends SignalMarshaling {
           } ~
           path("get-supported-funcs") {
             pathEnd {
-              entity(as[GetSupportedFuncsCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[ValueObject]) {
-                  case v: SupportedFuncsVo => complete(v)
-                  case _ => complete(NotFound)
-                }
+              onSuccess(signals.ask(GetSupportedFuncsCmd()).mapTo[ValueObject]) {
+                case v: SupportedFuncsVo => complete(v)
+                case _ => complete(NotFound)
               }
             }
           } ~
-          path("get-func-params") {
+          path("get-func-params" / Segment) { funcName =>
             pathEnd {
-              entity(as[GetFuncParamsCmd]) { x =>
-                onSuccess(signals.ask(x).mapTo[ValueObject]) {
-                  case v: FuncParamsVo => complete(v)
-                  case _ => complete(NotFound)
-                }
+              onSuccess(signals.ask(GetFuncParamsCmd(funcName)).mapTo[ValueObject]) {
+                case v: FuncParamsVo => complete(v)
+                case _ => complete(NotFound)
               }
             }
           }
       }
-  }
-
-  private def validateSignalType(t: String): Boolean = {
-    t matches ("AI|DI|SI|AO|DO|SO")
   }
 }

@@ -7,8 +7,8 @@ import akka.http.scaladsl.server.Directives.{path, _}
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
-import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.driver.SendBytesCmd
 import com.wincom.dcim.message.fsu._
 
@@ -156,21 +156,17 @@ trait FsuRoutes extends FsuMarshaling {
             } ~
             path("get-supported-models") {
               pathEnd {
-                entity(as[GetSupportedModelsCmd]) { x =>
-                  onSuccess(fsus.ask(x).mapTo[ValueObject]) {
-                    case v: SupportedModelsVo => complete(v)
-                    case _ => complete(NotFound)
-                  }
+                onSuccess(fsus.ask(GetSupportedModelsCmd()).mapTo[ValueObject]) {
+                  case v: SupportedModelsVo => complete(v)
+                  case _ => complete(NotFound)
                 }
               }
             } ~
-            path("get-model-params") {
+            path("get-model-params" / Segment) { modelName =>
               pathEnd {
-                entity(as[GetModelParamsCmd]) { x =>
-                  onSuccess(fsus.ask(x).mapTo[ValueObject]) {
-                    case v: ModelParamsVo => complete(v)
-                    case _ => complete(NotFound)
-                  }
+                onSuccess(fsus.ask(GetModelParamsCmd(modelName)).mapTo[ValueObject]) {
+                  case v: ModelParamsVo => complete(v)
+                  case _ => complete(NotFound)
                 }
               }
             }

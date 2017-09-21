@@ -128,18 +128,6 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case StartFsuCmd(_, user) =>
     case StopFsuCmd(_, user) =>
       stop()
-    case GetSupportedModelsCmd(_, user) =>
-      if (isValid()) {
-        sender() ! SupportedModelsVo(registry.names.toSeq)
-      } else {
-        sender() ! Response(NOT_EXIST, None)
-      }
-    case GetModelParamsCmd(_, user, model) =>
-      if (isValid()) {
-        sender() ! ModelParamsVo(registry.paramNames(model).toSeq)
-      } else {
-        sender() ! Response(NOT_EXIST, None)
-      }
     case _: ReceiveTimeout =>
       stop()
     case x => log.info("default COMMAND: {} {}", this, x)

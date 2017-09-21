@@ -176,18 +176,6 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     case StartSignalCmd(_, _) =>
     case StopSignalCmd(_, _) =>
       context.stop(self)
-    case GetSupportedFuncsCmd(_, user) =>
-      if (isValid()) {
-        sender() ! SupportedFuncsVo(registry.names.toSeq)
-      } else {
-        sender() ! Response(NOT_EXIST, None)
-      }
-    case GetFuncParamsCmd(_, user, model) =>
-      if (isValid()) {
-        sender() ! FuncParamsVo(registry.paramNames(model).toSeq)
-      } else {
-        sender() ! Response(NOT_EXIST, None)
-      }
     case _: ReceiveTimeout =>
       context.stop(self)
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
