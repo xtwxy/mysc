@@ -8,6 +8,7 @@ option(scalapb.options) = {
 
 package com.wincom.dcim.message.driver;
 
+import "com/wincom/dcim/message/common.proto";
 import "com/wincom/dcim/message/signal.proto";
 
 // value objects
@@ -39,7 +40,7 @@ message SupportedModelsVo {
 
 message ModelParamsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string paramNames = 1;
+    repeated com.wincom.dcim.message.common.ParamMeta paramOptions = 1;
 };
 
 // command & responses

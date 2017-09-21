@@ -39,7 +39,7 @@ class ShardedFsus extends Actor {
     case _: GetSupportedModelsCmd =>
       sender() ! SupportedModelsVo(registry.names().toSeq)
     case GetModelParamsCmd(modelName) =>
-      sender() ! ModelParamsVo(registry.paramNames(modelName).toSeq)
+      sender() ! ModelParamsVo(registry.paramOptions(modelName).toSeq)
     case cmd: Command =>
       shardedFsu forward cmd
     case x => log.info("COMMAND: {} {}", this, x)

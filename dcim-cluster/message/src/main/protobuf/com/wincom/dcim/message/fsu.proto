@@ -4,6 +4,8 @@ option(scalapb.options) = {
     flat_package: true
 };
 
+import "com/wincom/dcim/message/common.proto";
+
 package com.wincom.dcim.message.fsu;
 
 message FsuVo {
@@ -16,12 +18,12 @@ message FsuVo {
 
 message SupportedModelsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string modelNames = 1  [(scalapb.field).collection_type="Seq"];
+    repeated string modelNames = 1;
 };
 
 message ModelParamsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string paramNames = 1  [(scalapb.field).collection_type="Seq"];
+    repeated com.wincom.dcim.message.common.ParamMeta paramOptions = 1;
 };
 
 // commands

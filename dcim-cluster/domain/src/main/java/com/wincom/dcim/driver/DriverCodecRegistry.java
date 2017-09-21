@@ -2,6 +2,7 @@ package com.wincom.dcim.driver;
 
 import akka.actor.Props;
 import akka.event.LoggingAdapter;
+import com.wincom.dcim.message.common.ParamMeta;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -27,10 +28,10 @@ public class DriverCodecRegistry {
         return factories.keySet();
     }
 
-    public Set<String> paramNames(String name) {
+    public Set<ParamMeta> paramOptions(String name) {
         DriverCodecFactory factory = factories.get(name);
         if (factory != null) {
-            return factory.paramNames();
+            return factory.paramOptions();
         } else {
             return new HashSet<>();
         }

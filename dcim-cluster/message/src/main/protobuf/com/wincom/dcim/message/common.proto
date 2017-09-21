@@ -20,3 +20,34 @@ message Response {
     required ResponseType status = 1;
     optional string result = 2;
 };
+
+enum ParamType {
+    option(scalapb.enum_options).extends = "com.wincom.dcim.message.common.ValueObject";
+    BOOL = 0;
+    INTEGER = 1;
+    FLOAT = 2;
+    STRING = 3;
+    DATETIME = 4;
+    ENUMERATION = 5;
+};
+
+message ParamRange {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    optional string lowerBound = 1;
+    optional string upperBound = 2;
+};
+
+message ParamEnumItem {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    optional string name = 1;
+    optional string value = 2;
+};
+
+message ParamMeta {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string name = 1;
+    required ParamType paramType = 2;
+    optional string defaultValue = 3;
+    optional ParamRange range = 4;
+    repeated ParamEnumItem options = 5;
+};

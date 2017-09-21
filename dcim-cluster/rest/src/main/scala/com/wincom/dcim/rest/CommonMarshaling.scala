@@ -3,7 +3,7 @@ package com.wincom.dcim.rest
 import com.google.protobuf.ByteString
 import com.google.protobuf.timestamp.Timestamp
 import com.wincom.dcim.message.alarm.AlarmLevel
-import com.wincom.dcim.message.common.ResponseType
+import com.wincom.dcim.message.common.{ParamType, ResponseType}
 import com.wincom.dcim.message.signal.SignalType
 import com.wincom.dcim.util.DateFormat
 import spray.json.{DefaultJsonProtocol, JsBoolean, JsNumber, JsObject, JsString, JsValue, JsonFormat, RootJsonFormat}
@@ -133,5 +133,25 @@ object ByteStringJsonFormat extends RootJsonFormat[ByteString] with DefaultJsonP
   override def read(json: JsValue): ByteString = {
     val bytes = listFormat[Byte].read(json)
     ByteString.copyFrom(bytes.toArray)
+  }
+}
+
+object ParamTypeJsonFormat extends RootJsonFormat[ParamType] {
+  override def write(obj: ParamType): JsValue = {
+    JsString(obj.name)
+  }
+
+  override def read(json: JsValue): ParamType = {
+    json match {
+      case JsString(value) =>
+        val v = ParamType.fromName(value)
+        if(v.isDefined) {
+          v.get
+        } else {
+          throw new IllegalArgumentException("Unknown JsValue: '%s'".format(value))
+        }
+      case x =>
+        throw new IllegalArgumentException("Unknown JsValue: '%s'".format(x))
+    }
   }
 }
