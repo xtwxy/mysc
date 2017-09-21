@@ -34,18 +34,22 @@ trait DriverRoutes extends DriverMarshaling {
 
   def routes: Route = pathPrefix("driver") {
     get {
-      path(Segment) { driverId =>
+      path("get-supported-models") {
         pathEnd {
-          onSuccess(drivers.ask(
-            RetrieveDriverCmd(driverId)
-          ).mapTo[ValueObject]) {
-            case v: DriverVo =>
-              complete(v)
-            case _ =>
-              complete(NotFound)
+          onSuccess(drivers.ask(GetSupportedModelsCmd()).mapTo[ValueObject]) {
+            case v: SupportedModelsVo => complete(v)
+            case _ => complete(NotFound)
           }
         }
-      }
+      } ~
+        path("get-model-params" / Segment) { modelName =>
+          pathEnd {
+            onSuccess(drivers.ask(GetModelParamsCmd(modelName)).mapTo[ValueObject]) {
+              case v: ModelParamsVo => complete(v)
+              case _ => complete(NotFound)
+            }
+          }
+        }
     } ~
       post {
         path("create-driver") {
@@ -209,22 +213,6 @@ trait DriverRoutes extends DriverMarshaling {
               entity(as[StopDriverCmd]) { v =>
                 drivers ! v
                 complete(NoContent)
-              }
-            }
-          } ~
-          path("get-supported-models") {
-            pathEnd {
-              onSuccess(drivers.ask(GetSupportedModelsCmd()).mapTo[ValueObject]) {
-                case v: SupportedModelsVo => complete(v)
-                case _ => complete(NotFound)
-              }
-            }
-          } ~
-          path("get-model-params" / Segment) { modelName =>
-            pathEnd {
-              onSuccess(drivers.ask(GetModelParamsCmd(modelName)).mapTo[ValueObject]) {
-                case v: ModelParamsVo => complete(v)
-                case _ => complete(NotFound)
               }
             }
           }

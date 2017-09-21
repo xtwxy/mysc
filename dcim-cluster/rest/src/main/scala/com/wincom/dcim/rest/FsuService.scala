@@ -34,18 +34,22 @@ trait FsuRoutes extends FsuMarshaling {
   def routes: Route =
     pathPrefix("fsu") {
       get {
-        path(Segment) { fsuId =>
+        path("get-supported-models") {
           pathEnd {
-            onSuccess(fsus.ask(
-              RetrieveFsuCmd(fsuId)
-            ).mapTo[ValueObject]) {
-              case v: FsuVo =>
-                complete(v)
-              case _ =>
-                complete(NotFound)
+            onSuccess(fsus.ask(GetSupportedModelsCmd()).mapTo[ValueObject]) {
+              case v: SupportedModelsVo => complete(v)
+              case _ => complete(NotFound)
             }
           }
-        }
+        } ~
+          path("get-model-params" / Segment) { modelName =>
+            pathEnd {
+              onSuccess(fsus.ask(GetModelParamsCmd(modelName)).mapTo[ValueObject]) {
+                case v: ModelParamsVo => complete(v)
+                case _ => complete(NotFound)
+              }
+            }
+          }
       } ~
         post {
           path("create-fsu") {
@@ -151,22 +155,6 @@ trait FsuRoutes extends FsuMarshaling {
                 entity(as[StopFsuCmd]) { f =>
                   fsus ! f
                   complete(NoContent)
-                }
-              }
-            } ~
-            path("get-supported-models") {
-              pathEnd {
-                onSuccess(fsus.ask(GetSupportedModelsCmd()).mapTo[ValueObject]) {
-                  case v: SupportedModelsVo => complete(v)
-                  case _ => complete(NotFound)
-                }
-              }
-            } ~
-            path("get-model-params" / Segment) { modelName =>
-              pathEnd {
-                onSuccess(fsus.ask(GetModelParamsCmd(modelName)).mapTo[ValueObject]) {
-                  case v: ModelParamsVo => complete(v)
-                  case _ => complete(NotFound)
                 }
               }
             }

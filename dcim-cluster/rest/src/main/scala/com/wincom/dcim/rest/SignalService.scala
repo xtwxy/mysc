@@ -32,16 +32,22 @@ trait SignalRoutes extends SignalMarshaling {
 
   def routes = pathPrefix("signal") {
     get {
-      path(Segment) { signalId =>
+      path("get-supported-funcs") {
         pathEnd {
-          onSuccess(signals.ask(
-            RetrieveSignalCmd(signalId)
-          ).mapTo[ValueObject]) {
-            case v: SignalVo => complete(v)
+          onSuccess(signals.ask(GetSupportedFuncsCmd()).mapTo[ValueObject]) {
+            case v: SupportedFuncsVo => complete(v)
             case _ => complete(NotFound)
           }
         }
-      }
+      } ~
+        path("get-func-params" / Segment) { funcName =>
+          pathEnd {
+            onSuccess(signals.ask(GetFuncParamsCmd(funcName)).mapTo[ValueObject]) {
+              case v: FuncParamsVo => complete(v)
+              case _ => complete(NotFound)
+            }
+          }
+        }
     } ~
       post {
         path("create-signal") {
@@ -158,22 +164,6 @@ trait SignalRoutes extends SignalMarshaling {
               entity(as[StopSignalCmd]) { v =>
                 signals ! v
                 complete(NoContent)
-              }
-            }
-          } ~
-          path("get-supported-funcs") {
-            pathEnd {
-              onSuccess(signals.ask(GetSupportedFuncsCmd()).mapTo[ValueObject]) {
-                case v: SupportedFuncsVo => complete(v)
-                case _ => complete(NotFound)
-              }
-            }
-          } ~
-          path("get-func-params" / Segment) { funcName =>
-            pathEnd {
-              onSuccess(signals.ask(GetFuncParamsCmd(funcName)).mapTo[ValueObject]) {
-                case v: FuncParamsVo => complete(v)
-                case _ => complete(NotFound)
               }
             }
           }
