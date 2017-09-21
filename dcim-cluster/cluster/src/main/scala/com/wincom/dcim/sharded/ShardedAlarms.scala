@@ -4,7 +4,10 @@ import akka.actor._
 import akka.cluster.sharding._
 import com.wincom.dcim.domain.Settings
 import com.wincom.dcim.message.common.Command
+import com.wincom.dcim.message.signal.{FuncParamsVo, GetFuncParamsCmd, GetSupportedFuncsCmd, SupportedFuncsVo}
 import com.wincom.dcim.signal.FunctionRegistry
+
+import scala.collection.convert.ImplicitConversions._
 
 object ShardedAlarms {
   def props = Props(new ShardedAlarms)
@@ -39,6 +42,10 @@ class ShardedAlarms extends Actor with ActorLogging {
   }
 
   override def receive: Receive = {
+    case _: GetSupportedFuncsCmd =>
+      sender() ! SupportedFuncsVo(registry.names().toSeq)
+    case GetFuncParamsCmd(modelName) =>
+      sender() ! FuncParamsVo(registry.paramNames(modelName).toSeq)
     case cmd: Command =>
       log.info("forwarded to: {} {}", shardedAlarm, cmd)
       shardedAlarm forward cmd

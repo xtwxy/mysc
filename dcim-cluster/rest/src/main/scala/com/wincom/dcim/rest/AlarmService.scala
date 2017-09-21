@@ -31,16 +31,22 @@ trait AlarmRoutes extends AlarmMarshaling {
 
   def routes: Route = pathPrefix("alarm") {
     get {
-      path(Segment) { alarmId =>
+      path("get-supported-funcs") {
         pathEnd {
-          onSuccess(alarms.ask(RetrieveAlarmCmd(alarmId)).mapTo[ValueObject]) {
-            case alarm: AlarmVo =>
-              complete(alarm)
-            case _ =>
-              complete(NotFound)
+          onSuccess(alarms.ask(GetSupportedFuncsCmd()).mapTo[ValueObject]) {
+            case v: SupportedFuncsVo => complete(v)
+            case _ => complete(NotFound)
           }
         }
-      }
+      } ~
+        path("get-func-params" / Segment) { funcName =>
+          pathEnd {
+            onSuccess(alarms.ask(GetFuncParamsCmd(funcName)).mapTo[ValueObject]) {
+              case v: FuncParamsVo => complete(v)
+              case _ => complete(NotFound)
+            }
+          }
+        }
     } ~
     post {
       path("create-alarm") {
