@@ -2,6 +2,7 @@ package com.wincom.dcim.fsu.test;
 
 import akka.actor.Props;
 import com.wincom.dcim.fsu.FsuCodecFactory;
+import com.wincom.dcim.fsu.mock.DriverImpl;
 import com.wincom.dcim.message.common.ParamMeta;
 import com.wincom.dcim.message.common.ParamRange;
 import com.wincom.dcim.message.common.ParamType;
@@ -44,7 +45,8 @@ public class TestFactory implements FsuCodecFactory {
 
 	@Override
 	public Option<Props> create(Map<String, String> params) {
-		return null;
+		Props p = Props.create(DriverImpl.class, params);
+		return Option.apply(p);
 	}
 
 }
