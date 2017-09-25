@@ -208,6 +208,15 @@ trait DriverRoutes extends DriverMarshaling {
               }
             }
           } ~
+          path("restart-driver") {
+            pathEnd {
+              entity(as[RestartDriverCmd]) { v =>
+                drivers ! StopDriverCmd(v.id, v.user)
+                drivers ! StartDriverCmd(v.id, v.user)
+                complete(NoContent)
+              }
+            }
+          } ~
           path("stop-driver") {
             pathEnd {
               entity(as[StopDriverCmd]) { v =>
