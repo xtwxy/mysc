@@ -158,6 +158,12 @@ message StartDriverCmd {
     optional string user = 2;
 };
 
+message RestartDriverCmd {
+    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+};
+
 message StopDriverCmd {
     option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
     required string id = 1;
