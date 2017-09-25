@@ -18,7 +18,7 @@ public class NotFactory implements UnaryFunctionFactory {
     }
     @Override
     public String name() {
-        return Not.class.getSimpleName();
+        return getClass().getSimpleName();
     }
 
     @Override

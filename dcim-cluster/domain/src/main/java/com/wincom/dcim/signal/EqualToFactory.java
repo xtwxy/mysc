@@ -44,7 +44,7 @@ public class EqualToFactory implements UnaryFunctionFactory {
     }
     @Override
     public String name() {
-        return EqualTo.class.getSimpleName();
+        return getClass().getSimpleName();
     }
 
     @Override

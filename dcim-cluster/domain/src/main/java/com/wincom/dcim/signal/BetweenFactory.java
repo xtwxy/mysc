@@ -72,7 +72,7 @@ public class BetweenFactory implements UnaryFunctionFactory {
 
     @Override
     public String name() {
-        return Between.class.getSimpleName();
+        return getClass().getSimpleName();
     }
 
     @Override
