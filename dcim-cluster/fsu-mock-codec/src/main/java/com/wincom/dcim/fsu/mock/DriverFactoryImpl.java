@@ -1,18 +1,16 @@
 package com.wincom.dcim.fsu.mock;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import com.wincom.dcim.fsu.FsuCodecFactory;
-
 import akka.actor.Props;
+import com.wincom.dcim.fsu.FsuCodecFactory;
 import com.wincom.dcim.message.common.ParamMeta;
 import com.wincom.dcim.message.common.ParamRange;
 import com.wincom.dcim.message.common.ParamType;
 import scala.Option;
-import scala.collection.immutable.List;
-import scala.collection.immutable.Seq$;
+import scala.collection.Map$;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class DriverFactoryImpl implements FsuCodecFactory {
 	
@@ -29,7 +27,8 @@ public class DriverFactoryImpl implements FsuCodecFactory {
 						ParamType.FLOAT$.MODULE$,
 						Option.apply("1.23456"),
 						Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),
-				Seq$.MODULE$.empty()
+						Map$.MODULE$.empty(),
+						Option.apply("Kilogram")
 				)
 		);
 		s.add(new ParamMeta(
@@ -37,7 +36,8 @@ public class DriverFactoryImpl implements FsuCodecFactory {
 						ParamType.FLOAT$.MODULE$,
 						Option.apply("2.34567"),
 						Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),
-				Seq$.MODULE$.empty()
+						Map$.MODULE$.empty(),
+						Option.apply("Kilogram")
 				)
 		);
 		return s;

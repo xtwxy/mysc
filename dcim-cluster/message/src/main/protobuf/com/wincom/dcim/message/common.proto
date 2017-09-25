@@ -37,17 +37,12 @@ message ParamRange {
     optional string upperBound = 2;
 };
 
-message ParamEnumItem {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    optional string name = 1;
-    optional string value = 2;
-};
-
 message ParamMeta {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string name = 1;
     required ParamType paramType = 2;
     optional string defaultValue = 3;
     optional ParamRange range = 4;
-    repeated ParamEnumItem enumOptions = 5;
+    map<string, string> enumOptions = 5;
+    optional string unit = 6;
 };
