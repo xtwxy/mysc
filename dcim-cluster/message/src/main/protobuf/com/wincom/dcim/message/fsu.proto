@@ -18,7 +18,7 @@ message FsuVo {
 
 message SupportedModelsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string modelNames = 1;
+    map<string, string> modelNames = 1;
 };
 
 message ModelParamsVo {

@@ -40,9 +40,9 @@ class ShardedSignals extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case _: GetSupportedFuncsCmd =>
-      sender() ! SupportedFuncsVo(registry.names().toSeq)
+      sender() ! SupportedFuncsVo(registry.names().toMap)
     case GetFuncParamsCmd(modelName) =>
-      sender() ! FuncParamsVo(registry.paramNames(modelName).toSeq)
+      sender() ! FuncParamsVo(registry.paramOptions(modelName).toSeq)
     case cmd: Command =>
       log.info("forwarded to: {} {}", shardedSignal, cmd)
       shardedSignal forward cmd

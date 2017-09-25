@@ -1,5 +1,7 @@
 package com.wincom.dcim.signal;
 
+import com.wincom.dcim.message.common.ParamMeta;
+import com.wincom.dcim.message.common.ParamType;
 import scala.Option;
 
 import java.util.HashSet;
@@ -9,6 +11,8 @@ import java.util.Set;
 import com.wincom.dcim.signal.GreaterThanFactory.*;
 import com.wincom.dcim.signal.BetweenFactory.*;
 import com.wincom.dcim.signal.EqualToFactory.*;
+import scala.Option$;
+import scala.collection.Map$;
 
 import static java.lang.Math.abs;
 
@@ -16,22 +20,59 @@ import static java.lang.Math.abs;
  * Created by wangxy on 17-8-25.
  */
 public class LessThanFactory implements UnaryFunctionFactory {
-    private final Set<String> params;
+    private final Set<ParamMeta> params;
 
     public LessThanFactory() {
         params = new HashSet<>();
-        params.add("threshold");
-        params.add("insensitivity-zone");
-        params.add("use-percentage");
-        params.add("range");
+        params.add(new ParamMeta(
+                "threshold",
+                "门限",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
+        params.add(new ParamMeta(
+                "insensitivity-zone",
+                "门限死区(非敏感区宽度)",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
+        params.add(new ParamMeta(
+                "use-percentage",
+                "使用百分比阈值",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
+        params.add(new ParamMeta(
+                "range",
+                "量程",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
     }
     @Override
     public String name() {
-        return LessThan.class.getSimpleName();
+        return EqualTo.class.getSimpleName();
     }
 
     @Override
-    public Set<String> paramNames() {
+    public String displayName() {
+        return "小于...";
+    }
+
+    @Override
+    public Set<ParamMeta> paramOptions() {
         return params;
     }
 

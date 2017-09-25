@@ -1,13 +1,16 @@
 package com.wincom.dcim.signal
 
-import java.util.{Map, Set};
+import java.util.{Map, Set}
+
+import com.wincom.dcim.message.common.ParamMeta;
 /**
   * Created by wangxy on 17-8-24.
   */
 
 trait FunctionFactory {
   def name(): String
-  def paramNames(): Set[String]
+  def displayName(): String
+  def paramOptions(): Set[ParamMeta]
 }
 
 trait InverseFunction {

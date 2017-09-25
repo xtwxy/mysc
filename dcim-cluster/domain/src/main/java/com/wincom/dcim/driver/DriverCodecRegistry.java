@@ -3,6 +3,7 @@ package com.wincom.dcim.driver;
 import akka.actor.Props;
 import akka.event.LoggingAdapter;
 import com.wincom.dcim.message.common.ParamMeta;
+import com.wincom.dcim.signal.FunctionFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -10,10 +11,7 @@ import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import scala.Option;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class DriverCodecRegistry {
     LoggingAdapter log;
@@ -24,8 +22,12 @@ public class DriverCodecRegistry {
         this.factories = new TreeMap<>();
     }
 
-    public Set<String> names() {
-        return factories.keySet();
+    public Map<String, String> names() {
+        Map<String, String> s = new HashMap<>();
+        for(DriverCodecFactory f : factories.values()) {
+            s.put(f.modelName(), f.displayName());
+        }
+        return s;
     }
 
     public Set<ParamMeta> paramOptions(String name) {

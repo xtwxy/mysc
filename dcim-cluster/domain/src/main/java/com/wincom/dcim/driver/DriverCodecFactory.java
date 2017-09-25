@@ -9,6 +9,7 @@ import akka.actor.Props;
 
 public interface DriverCodecFactory {
 	String modelName();
+	String displayName();
 	Set<ParamMeta> paramOptions();
 	Option<Props> create(Map<String, String> params);
 }

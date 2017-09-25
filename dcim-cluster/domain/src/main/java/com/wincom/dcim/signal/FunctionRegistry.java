@@ -1,6 +1,7 @@
 package com.wincom.dcim.signal;
 
 import akka.event.LoggingAdapter;
+import com.wincom.dcim.message.common.ParamMeta;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -24,20 +25,25 @@ public class FunctionRegistry {
         this.binaryFactories = new TreeMap<>();
     }
 
-    public Set<String> names() {
-        Set<String> s = new TreeSet<>(unaryFactories.keySet());
-        s.addAll(binaryFactories.keySet());
+    public Map<String, String> names() {
+        Map<String, String> s = new HashMap<>();
+        for(FunctionFactory f : unaryFactories.values()) {
+            s.put(f.name(), f.displayName());
+        }
+        for(FunctionFactory f : binaryFactories.values()) {
+            s.put(f.name(), f.displayName());
+        }
         return s;
     }
 
-    public Set<String> paramNames(String name) {
+    public Set<ParamMeta> paramOptions(String name) {
         FunctionFactory factory = unaryFactories.get(name);
         if (factory != null) {
-            return factory.paramNames();
+            return factory.paramOptions();
         }
         factory = binaryFactories.get(name);
         if (factory != null) {
-            return factory.paramNames();
+            return factory.paramOptions();
         } else {
             return new HashSet<>();
         }

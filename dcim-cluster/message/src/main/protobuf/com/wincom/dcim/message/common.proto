@@ -40,9 +40,15 @@ message ParamRange {
 message ParamMeta {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string name = 1;
-    required ParamType paramType = 2;
-    optional string defaultValue = 3;
-    optional ParamRange range = 4;
-    map<string, string> enumOptions = 5;
-    optional string unit = 6;
+    required string displayName = 2;
+    required ParamType paramType = 3;
+    optional string defaultValue = 4;
+    optional ParamRange range = 5;
+    map<string, string> enumOptions = 6;
+    optional string unit = 7;
 };
+
+message FunctionNames {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    map<string, string> funcNames = 1;
+}

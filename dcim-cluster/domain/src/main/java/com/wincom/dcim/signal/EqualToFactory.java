@@ -1,5 +1,7 @@
 package com.wincom.dcim.signal;
 
+import com.wincom.dcim.message.common.ParamMeta;
+import com.wincom.dcim.message.common.ParamType;
 import scala.Option;
 
 import java.util.HashSet;
@@ -8,6 +10,8 @@ import java.util.Set;
 import com.wincom.dcim.signal.BetweenFactory.*;
 import com.wincom.dcim.signal.GreaterThanFactory.*;
 import com.wincom.dcim.signal.LessThanFactory.*;
+import scala.Option$;
+import scala.collection.Map$;
 
 import static java.lang.Math.*;
 
@@ -15,12 +19,28 @@ import static java.lang.Math.*;
  * Created by wangxy on 17-8-25.
  */
 public class EqualToFactory implements UnaryFunctionFactory {
-    private final Set<String> params;
+    private final Set<ParamMeta> params;
 
     public EqualToFactory() {
         params = new HashSet<>();
-        params.add("reference");
-        params.add("delta");
+        params.add(new ParamMeta(
+                "reference",
+                "参考值",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
+        params.add(new ParamMeta(
+                "delta",
+                "精度",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
     }
     @Override
     public String name() {
@@ -28,7 +48,12 @@ public class EqualToFactory implements UnaryFunctionFactory {
     }
 
     @Override
-    public Set<String> paramNames() {
+    public String displayName() {
+        return "等于...";
+    }
+
+    @Override
+    public Set<ParamMeta> paramOptions() {
         return params;
     }
 

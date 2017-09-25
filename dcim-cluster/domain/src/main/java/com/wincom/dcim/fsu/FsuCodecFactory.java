@@ -9,6 +9,7 @@ import scala.Option;
 
 public interface FsuCodecFactory {
 	String modelName();
-	public Set<ParamMeta> paramOptions();
+	String displayName();
+	Set<ParamMeta> paramOptions();
 	Option<Props> create(Map<String, String> params);
 }

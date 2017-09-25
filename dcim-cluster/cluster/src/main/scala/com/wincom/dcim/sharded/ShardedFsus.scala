@@ -37,7 +37,7 @@ class ShardedFsus extends Actor {
 
   override def receive: Receive = {
     case _: GetSupportedModelsCmd =>
-      sender() ! SupportedModelsVo(registry.names().toSeq)
+      sender() ! SupportedModelsVo(registry.names().toMap)
     case GetModelParamsCmd(modelName) =>
       sender() ! ModelParamsVo(registry.paramOptions(modelName).toSeq)
     case cmd: Command =>

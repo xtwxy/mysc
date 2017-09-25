@@ -21,24 +21,31 @@ public class HelloFactory implements DriverCodecFactory {
 	}
 
 	@Override
+	public String displayName() {
+		return "欢迎驱动（测试）";
+	}
+
+	@Override
 	public Set<ParamMeta> paramOptions() {
 		Set<ParamMeta> s = new HashSet<>();
 		s.add(new ParamMeta(
-				    "a",
-					ParamType.FLOAT$.MODULE$,
-					Option.apply("1.23456"),
-					Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),
-					Map$.MODULE$.empty(),
-					Option.apply("Kilogram")
+						"a",
+						"参数1",
+						ParamType.FLOAT$.MODULE$,
+						Option.apply("1.23456"),
+						Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),
+						Map$.MODULE$.empty(),
+						Option.apply("Kilogram")
 				)
 		);
 		s.add(new ParamMeta(
-					"b",
-					ParamType.FLOAT$.MODULE$,
-					Option.apply("2.34567"),
-					Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),
-					Map$.MODULE$.empty(),
-					Option.apply("Kilogram")
+						"b",
+						"参数2",
+						ParamType.FLOAT$.MODULE$,
+						Option.apply("2.34567"),
+						Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),
+						Map$.MODULE$.empty(),
+						Option.apply("Kilogram")
 				)
 		);
 		return s;

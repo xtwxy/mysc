@@ -52,12 +52,12 @@ message SignalSnapshotValueVo {
 
 message SupportedFuncsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string funcNames = 1 [(scalapb.field).collection_type="Seq"];
+    map<string, string> funcNames = 1;
 };
 
 message FuncParamsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    repeated string paramNames = 1 [(scalapb.field).collection_type="Seq"];
+    repeated com.wincom.dcim.message.common.ParamMeta paramOptions = 1 [(scalapb.field).collection_type="Seq"];
 };
 
 // configuration commands

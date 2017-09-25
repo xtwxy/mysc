@@ -1,6 +1,10 @@
 package com.wincom.dcim.signal;
 
+import com.wincom.dcim.message.common.ParamMeta;
+import com.wincom.dcim.message.common.ParamType;
 import scala.Option;
+import scala.Option$;
+import scala.collection.Map$;
 
 import java.util.*;
 
@@ -8,21 +12,41 @@ import java.util.*;
  * Created by wangxy on 17-8-25.
  */
 public class LinearFactory implements UnaryFunctionFactory {
-    private final Set<String> params;
+    private final Set<ParamMeta> params;
 
     public LinearFactory() {
         params = new HashSet<>();
-        params.add("slope");
-        params.add("intercept");
+        params.add(new ParamMeta(
+                "slope",
+                "倍率",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
+        params.add(new ParamMeta(
+                "intercept",
+                "偏移量",
+                ParamType.FLOAT$.MODULE$,
+                Option$.MODULE$.empty(),
+                Option$.MODULE$.empty(),
+                Map$.MODULE$.empty(),
+                Option$.MODULE$.empty()
+        ));
     }
-
     @Override
     public String name() {
-        return Linear.class.getSimpleName();
+        return EqualToFactory.EqualTo.class.getSimpleName();
     }
 
     @Override
-    public Set<String> paramNames() {
+    public String displayName() {
+        return "线性变换";
+    }
+
+    @Override
+    public Set<ParamMeta> paramOptions() {
         return params;
     }
 

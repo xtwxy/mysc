@@ -20,10 +20,16 @@ public class DriverFactoryImpl implements DriverCodecFactory {
 	}
 
 	@Override
+	public String displayName() {
+		return "模拟驱动（测试）";
+	}
+
+	@Override
 	public Set<ParamMeta> paramOptions() {
 		Set<ParamMeta> s = new HashSet<>();
 		s.add(new ParamMeta(
 						"a",
+						"参数1",
 						ParamType.FLOAT$.MODULE$,
 						Option.apply("1.23456"),
 						Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),
@@ -33,6 +39,7 @@ public class DriverFactoryImpl implements DriverCodecFactory {
 		);
 		s.add(new ParamMeta(
 						"b",
+						"参数2",
 						ParamType.FLOAT$.MODULE$,
 						Option.apply("2.34567"),
 						Option.apply(ParamRange.apply(Option.apply("2.71828"), Option.apply("3.14159"))),

@@ -1,5 +1,6 @@
 package com.wincom.dcim.rest
 
+import com.wincom.dcim.message.common.{ParamMeta, ParamRange}
 import com.wincom.dcim.message.signal._
 import spray.json._
 
@@ -35,6 +36,9 @@ trait SignalMarshaling extends DefaultJsonProtocol {
   implicit val stopSignalCmdFormat = jsonFormat2(StopSignalCmd.apply)
 
   implicit val getSupportedFuncsRspFormat = jsonFormat1(SupportedFuncsVo.apply)
+  implicit val paramRangeVoFormat = jsonFormat2(ParamRange.apply)
+  implicit val paramTypeFormat = ParamTypeJsonFormat
+  implicit val paramMetaVoFormat = jsonFormat7(ParamMeta.apply)
   implicit val getSupportedParamsRspFormat = jsonFormat1(FuncParamsVo.apply)
 }
 

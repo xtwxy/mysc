@@ -1,5 +1,6 @@
 package com.wincom.dcim.signal;
 
+import com.wincom.dcim.message.common.ParamMeta;
 import scala.Option;
 
 import java.util.HashSet;
@@ -10,7 +11,7 @@ import java.util.Set;
  * Created by wangxy on 17-8-25.
  */
 public class NotFactory implements UnaryFunctionFactory {
-    private final Set<String> params;
+    private final Set<ParamMeta> params;
 
     public NotFactory() {
         params = new HashSet<>();
@@ -21,9 +22,15 @@ public class NotFactory implements UnaryFunctionFactory {
     }
 
     @Override
-    public Set<String> paramNames() {
+    public String displayName() {
+        return "取反";
+    }
+
+    @Override
+    public Set<ParamMeta> paramOptions() {
         return params;
     }
+
 
     @Override
     public Option<UnaryFunction> create(Map<String, String> params) {
