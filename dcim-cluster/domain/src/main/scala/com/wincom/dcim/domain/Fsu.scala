@@ -151,7 +151,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case RemoveParamsEvt(user, params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
       replyToSender(Response(SUCCESS, None))
-    case x => log.info("UPDATE IGNORED: {} {}", this, x)
+    case x => log.info("UPDATE IGNORED: {} {} {}", this, x.getClass.getName, x)
   }
 
   private def stop() = {

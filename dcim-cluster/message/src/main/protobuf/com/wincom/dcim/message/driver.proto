@@ -18,6 +18,7 @@ message DriverVo {
     required string name = 2;
     required string model = 3;
     map<string, string> initParams = 4;
+    optional string fsuId = 5;
 };
 
 message DriverSignalSnapshotVo {
@@ -51,6 +52,7 @@ message CreateDriverCmd {
     required string name = 3;
     required string model = 4;
     map<string, string> initParams = 5;
+    optional string fsuId = 6;
 };
 
 message RenameDriverCmd {
@@ -178,6 +180,13 @@ message GetModelParamsCmd {
     option(scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string modelName = 3;
 }
+
+message SelectFsuCmd {
+    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
+    required string id = 1;
+    optional string user = 2;
+    required string fsuId = 3;
+};
 
 // events
 message CreateDriverEvt {
