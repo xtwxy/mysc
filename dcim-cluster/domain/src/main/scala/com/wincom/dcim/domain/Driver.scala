@@ -40,7 +40,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   var initParams: collection.mutable.Map[String, String] = new collection.mutable.HashMap()
   var driverCodec: Option[ActorRef] = None
   // key => id
-  var signalIdMap: mutable.Map[String, Seq[String]] = mutable.Map()
+  var signalIdMap: Map[String, Seq[String]] = Map()
 
   val driverId: String = s"${self.path.name}"
 
@@ -62,11 +62,11 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   }
 
   def receiveCommand: PartialFunction[Any, Unit] = {
-    case CreateDriverCmd(_, user, name, model, params) =>
+    case CreateDriverCmd(_, user, name, model, params, fsuId) =>
       if(isValid) {
         sender() ! Response(ALREADY_EXISTS, None)
       } else {
-        persist(CreateDriverEvt(user, name, model, params))(updateState)
+        persist(CreateDriverEvt(user, name, model, params, signalIdMap, fsuId))(updateState)
       }
     case RenameDriverCmd(_, user, newName) =>
       if (isValid) {

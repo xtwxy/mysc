@@ -22,7 +22,7 @@ trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val signalSnapshotValuesVoFormat = jsonFormat1(DriverSignalSnapshotsVo.apply)
 
   implicit val renameDriverCmdFormat = jsonFormat3(RenameDriverCmd.apply)
-  implicit val createDriverCmdFormat = jsonFormat5(CreateDriverCmd.apply)
+  implicit val createDriverCmdFormat = jsonFormat6(CreateDriverCmd.apply)
   implicit val changeModelCmdFormat = jsonFormat3(ChangeModelCmd.apply)
   implicit val saveSnapshotCmdFormat = jsonFormat2(SaveSnapshotCmd.apply)
   implicit val addParamsCmdFormat = jsonFormat3(AddParamsCmd.apply)
