@@ -178,7 +178,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       seq = seq :+ signalId
       this.signalIdMap.put(key, seq)
       replyToSender(Response(SUCCESS, None))
-    case x => log.info("UPDATE IGNORED: {} {}", this, x)
+    case x => log.info("UPDATE IGNORED: {} {} {}", this, x.getClass.getName, x)
   }
 
   private def stop() = {
