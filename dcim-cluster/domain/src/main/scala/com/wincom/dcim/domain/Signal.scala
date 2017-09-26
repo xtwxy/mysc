@@ -181,8 +181,6 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     case StartSignalCmd(_, _) =>
     case StopSignalCmd(_, _) =>
       context.stop(self)
-    case _: ReceiveTimeout =>
-      context.stop(self)
     case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 

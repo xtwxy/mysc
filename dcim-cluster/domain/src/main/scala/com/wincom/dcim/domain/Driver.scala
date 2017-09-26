@@ -150,8 +150,6 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     case StartDriverCmd(_, user) =>
     case StopDriverCmd(_, user) =>
       stop()
-    case _: ReceiveTimeout =>
-      stop()
     case x => log.info("COMMAND: {} {}", this, x)
   }
 
