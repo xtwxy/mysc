@@ -19,7 +19,7 @@ object Device {
 
 class Device extends PersistentActor with ActorLogging {
 
-  val deviceId: String = s"$self.path.name"
+  val deviceId: String = s"${self.path.name.split(",")(1)}"
   var deviceName: Option[String] = None
   var deviceType: Option[String] = None
   var vendorModel: Option[String] = None

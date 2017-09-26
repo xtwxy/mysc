@@ -25,7 +25,7 @@ object Alarm {
             alarmRecordShard: () => ActorRef,
             registry: FunctionRegistry) = Props(new Alarm(signalShard, alarmRecordShard, registry))
 
-  def name(alarmId: String) = s"$alarmId"
+  def name(alarmId: String) = s"${alarmId.split(",")(1)}"
 }
 
 class Alarm(signalShard: () => ActorRef,

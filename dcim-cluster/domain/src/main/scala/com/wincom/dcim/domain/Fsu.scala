@@ -35,7 +35,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
   var initParams: collection.mutable.Map[String, String] = collection.mutable.HashMap()
   var fsuCodec: Option[ActorRef] = None
 
-  def fsuId: String = s"${self.path.name}"
+  def fsuId: String = s"${self.path.name.split(",")(1)}"
 
   override def persistenceId: String = s"${self.path.name}"
 

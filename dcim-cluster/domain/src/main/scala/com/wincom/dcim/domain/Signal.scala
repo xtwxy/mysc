@@ -43,7 +43,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
   var funcs: collection.mutable.Seq[UnaryFunction] = mutable.ArraySeq()
   var value: Option[SignalSnapshotValueVo] = None
 
-  val signalId: String = s"${self.path.name}"
+  val signalId: String = s"${self.path.name.split(",")(1)}"
 
   override def persistenceId: String = s"${self.path.name}"
 
