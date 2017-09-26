@@ -42,7 +42,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   // key => id
   var signalIdMap: Map[String, Seq[String]] = Map()
 
-  val driverId: String = s"${self.path.name.split(",")(1)}"
+  val driverId: String = s"${self.path.name.split("_")(1)}"
 
   override def persistenceId: String = s"${self.path.name}"
 

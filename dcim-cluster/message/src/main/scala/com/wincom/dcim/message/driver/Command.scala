@@ -6,6 +6,6 @@ package com.wincom.dcim.message.driver;
 trait Command extends com.wincom.dcim.message.common.Command {
   def driverId: String
   override def entityId: String = {
-    s"driver,${driverId}"
+    s"driver_${driverId}"
   }
 }

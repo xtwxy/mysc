@@ -6,6 +6,6 @@ package com.wincom.dcim.message.device;
 trait Command extends com.wincom.dcim.message.common.Command {
   def deviceId: String
   override def entityId: String = {
-    s"device,${deviceId}"
+    s"device_${deviceId}"
   }
 }

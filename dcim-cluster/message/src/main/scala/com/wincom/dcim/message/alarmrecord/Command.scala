@@ -9,6 +9,6 @@ trait Command extends com.wincom.dcim.message.common.Command {
   def alarmId: String
   def beginTime: Timestamp
   override def entityId: String = {
-    s"${alarmId},${formatTimestamp(beginTime.seconds * 1000 + beginTime.nanos / 1000000)}"
+    s"${alarmId}_${formatTimestamp(beginTime.seconds * 1000 + beginTime.nanos / 1000000)}"
   }
 }

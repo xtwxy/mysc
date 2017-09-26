@@ -9,6 +9,6 @@ import com.wincom.dcim.message.util.DateFormat._;
 trait Command extends com.wincom.dcim.message.common.Command {
   def alarmId: String
   override def entityId: String = {
-    s"alarm,${alarmId}"
+    s"alarm_${alarmId}"
   }
 }

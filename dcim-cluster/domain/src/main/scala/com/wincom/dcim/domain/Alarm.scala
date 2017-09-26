@@ -25,7 +25,7 @@ object Alarm {
             alarmRecordShard: () => ActorRef,
             registry: FunctionRegistry) = Props(new Alarm(signalShard, alarmRecordShard, registry))
 
-  def name(alarmId: String) = s"${alarmId.split(",")(1)}"
+  def name(alarmId: String) = s"${alarmId}"
 }
 
 class Alarm(signalShard: () => ActorRef,
@@ -33,7 +33,7 @@ class Alarm(signalShard: () => ActorRef,
             implicit val registry: FunctionRegistry) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
-  val alarmId = s"${self.path.name}"
+  val alarmId = s"${self.path.name.split(",")(1)}"
   var alarmName: Option[String] = None
   var signalId: Option[String] = None
 

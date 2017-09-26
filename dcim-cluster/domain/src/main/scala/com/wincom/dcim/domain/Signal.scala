@@ -42,8 +42,8 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
   // transient values
   var funcs: collection.mutable.Seq[UnaryFunction] = mutable.ArraySeq()
   var value: Option[SignalSnapshotValueVo] = None
-
-  val signalId: String = s"${self.path.name.split(",")(1)}"
+  log.warning("{}", self.path.name)
+  val signalId: String = s"${self.path.name.split("_")(1)}"
 
   override def persistenceId: String = s"${self.path.name}"
 

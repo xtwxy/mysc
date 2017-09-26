@@ -18,13 +18,13 @@ import com.wincom.dcim.message.signal.SignalSnapshotValueVo
 object AlarmRecord {
   def props(notifier: () => ActorRef) = Props(new AlarmRecord(notifier))
 
-  def name(alarmId: String, begin: Timestamp) = s"${alarmId},${formatTimestamp(begin)}"
+  def name(alarmId: String, begin: Timestamp) = s"${alarmId}_${formatTimestamp(begin)}"
 }
 
 class AlarmRecord(notifier: () => ActorRef) extends PersistentActor {
   val log = Logging(context.system.eventStream, "sharded-alarms")
 
-  val id = (s"${self.path.name}").split(",")
+  val id = (s"${self.path.name}").split("_")
   val alarmId: String = id(0)
   val beginTs: Timestamp = parseTimestamp(id(1))
   var alarmName: Option[String] = None

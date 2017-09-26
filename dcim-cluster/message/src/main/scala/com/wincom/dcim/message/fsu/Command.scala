@@ -6,6 +6,6 @@ package com.wincom.dcim.message.fsu;
 trait Command extends com.wincom.dcim.message.common.Command {
   def fsuId: String
   override def entityId: String = {
-    s"fsu,${fsuId}"
+    s"fsu_${fsuId}"
   }
 }
