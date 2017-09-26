@@ -96,7 +96,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       if (isValid) {
         var seq = this.signalIdMap.getOrElse(key, Seq[String]())
         seq = seq :+ signalId
-        this.signalIdMap.put(key, seq)
+        signalIdMap += (key -> seq)
       }
 
     case cmd: GetSignalValueCmd =>

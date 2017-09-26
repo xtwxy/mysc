@@ -38,7 +38,6 @@ class ShardedAlarmRecords extends Actor {
   override def receive: Receive = {
     case cmd: Command =>
       shardedAlarmRecord forward cmd
-      log.info("forwarded to: {} {}", shardedAlarmRecord, cmd)
     case x => log.info("COMMAND: {} {}", this, x)
   }
 }

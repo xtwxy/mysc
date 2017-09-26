@@ -44,7 +44,6 @@ class ShardedSignals extends Actor with ActorLogging {
     case GetFuncParamsCmd(modelName) =>
       sender() ! FuncParamsVo(registry.paramOptions(modelName).toSeq)
     case cmd: Command =>
-      log.info("forwarded to: {} {}", shardedSignal, cmd)
       shardedSignal forward cmd
     case x => log.info("COMMAND: {} {}", this, x)
   }
