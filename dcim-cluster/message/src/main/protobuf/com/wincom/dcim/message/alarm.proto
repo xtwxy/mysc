@@ -34,7 +34,7 @@ message AlarmConditionVo {
 
 message AlarmValueVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string alarmId = 1;
     optional bool value = 2;
     optional AlarmConditionVo matched = 3;
     optional google.protobuf.Timestamp beginTs = 4;
@@ -53,7 +53,7 @@ message ExclusiveConditionVo {
 
 message AlarmVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string alarmId = 1;
     required string name = 2;
     required string signalId = 3;
     optional ExclusiveConditionVo conditions = 4;
@@ -61,8 +61,8 @@ message AlarmVo {
 
 // commands
 message CreateAlarmCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
     required string name = 3;
     optional string signalId = 4;
@@ -70,62 +70,62 @@ message CreateAlarmCmd {
 }
 
 message RenameAlarmCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
     required string newName = 3;
 }
 
 message SelectSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
     required string newSignalId = 3;
 }
 
 message AddConditionCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
     required AlarmConditionVo condition = 3;
 }
 
 message RemoveConditionCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
     required AlarmConditionVo condition = 3;
 }
 
 message ReplaceConditionCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
     required AlarmConditionVo oldCondition = 3;
     required AlarmConditionVo newCondition = 4;
 }
 
 message RetrieveAlarmCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
 }
 
 message GetAlarmValueCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
 }
 
 message EvalAlarmValueCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
 }
 
 message PassivateAlarmCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
     optional string user = 2;
 }
 
@@ -133,7 +133,7 @@ message PassivateAlarmCmd {
 
 message AlarmPo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string alarmId = 1;
     required string name = 2;
     required string signalId = 3;
     optional ExclusiveConditionVo conditions = 4;

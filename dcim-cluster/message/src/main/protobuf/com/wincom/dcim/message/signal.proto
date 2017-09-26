@@ -27,7 +27,7 @@ message TransFuncVo {
 
 message SignalVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string signalId = 1;
     required string name = 2;
     required SignalType signalType = 3;
     required string driverId = 4;
@@ -45,7 +45,7 @@ message SignalValueVo {
 
 message SignalSnapshotValueVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string signalId = 1;
     required google.protobuf.Timestamp ts = 2;
     required SignalValueVo value = 3;
 };
@@ -62,8 +62,8 @@ message FuncParamsVo {
 
 // configuration commands
 message CreateSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     required string name = 3;
     required SignalType signalType = 4;
@@ -73,63 +73,63 @@ message CreateSignalCmd {
 };
 
 message RenameSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     required string newName = 3;
 };
 
 message SelectDriverCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     required string driverId = 3;
 };
 
 message SelectTypeCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     required SignalType newType = 3;
 };
 
 message SelectKeyCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     required string key = 3;
 };
 
 message UpdateFuncsCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     repeated TransFuncVo funcs = 3 [(scalapb.field).collection_type="Seq"];
 };
 
 message SaveSnapshotCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
 };
 
 // transient commands
 message RetrieveSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
 };
 
 message UpdateValueCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     required SignalSnapshotValueVo value = 3;
 };
 
 message SetValueCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
     required SignalValueVo value = 3;
 };
@@ -141,20 +141,20 @@ message SetValueRsp {
 };
 
 message GetValueCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
 };
 
 message StartSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
 };
 
 message StopSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
     optional string user = 2;
 };
 

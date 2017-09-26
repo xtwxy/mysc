@@ -31,7 +31,7 @@ public class DriverImpl extends AbstractActor {
                     log.info("sender(): {}, msg: {}", sender(), o);
                     getSender().tell(
                             new DriverSignalSnapshotVo(
-                                    o.id(),
+                                    o.driverId(),
                                     o.key(),
                                     Timestamp.defaultInstance(),
                                     SignalValueVo.apply(SignalType.AI$.MODULE$, Option.empty(), Option.apply(1.414), Option.empty())
@@ -44,7 +44,7 @@ public class DriverImpl extends AbstractActor {
                     for (String key : JavaConverters.asJavaIterable(o.keys())) {
                         values.add(
                                 new DriverSignalSnapshotVo(
-                                        o.id(),
+                                        o.driverId(),
                                         key,
                                         Timestamp.defaultInstance(),
                                         SignalValueVo.apply(SignalType.AI$.MODULE$, Option.empty(), Option.apply(1.414), Option.empty())

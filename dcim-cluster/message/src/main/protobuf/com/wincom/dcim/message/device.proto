@@ -11,7 +11,7 @@ import "com/wincom/dcim/message/signal.proto";
 // value objects
 message DeviceVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string deviceId = 1;
     required string name = 2;
     required string deviceType = 3;
     optional string vendorModel = 4;
@@ -23,8 +23,8 @@ message DeviceVo {
 
 // command and responses
 message CreateDeviceCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
     optional string user = 2;
     required string name = 3;
     required string deviceType = 4;
@@ -36,71 +36,71 @@ message CreateDeviceCmd {
 };
 
 message RenameDeviceCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
     optional string user = 2;
     required string name = 3;
 };
 
 message ChangeDeviceTypeCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
     optional string user = 2;
     required string newType = 3;
 };
 
 message ChangeVendorModelCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
     optional string user = 2;
     required string newModel = 3;
 };
 
 message ChangePropertyTagCodeCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
     optional string user = 2;
     required string newPropertyCode = 3;
 };
 
 message AddSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
     optional string user = 2;
     required string signalId = 3;
 };
 
 message RemoveSignalCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
     optional string user = 2;
     required string signalId = 3;
 };
 
 message AddAlarmCmd {
-      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-      required string id = 1;
+      option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+      required string deviceId = 1;
       optional string user = 2;
       required string alarmId = 3;
 };
 
 message RemoveAlarmCmd {
-      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-      required string id = 1;
+      option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+      required string deviceId = 1;
       optional string user = 2;
       required string alarmId = 3;
 };
 
 message AddChildCmd {
-      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-      required string id = 1;
+      option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+      required string deviceId = 1;
       optional string user = 2;
       required string childId = 3;
 };
 
 message RemoveChildCmd {
-      option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-      required string id = 1;
+      option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+      required string deviceId = 1;
       optional string user = 2;
       required string childId = 3;
 };

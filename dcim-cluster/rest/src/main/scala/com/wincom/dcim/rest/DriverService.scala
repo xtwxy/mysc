@@ -211,8 +211,8 @@ trait DriverRoutes extends DriverMarshaling {
           path("restart-driver") {
             pathEnd {
               entity(as[RestartDriverCmd]) { v =>
-                drivers ! StopDriverCmd(v.id, v.user)
-                drivers ! StartDriverCmd(v.id, v.user)
+                drivers ! StopDriverCmd(v.driverId, v.user)
+                drivers ! StartDriverCmd(v.driverId, v.user)
                 complete(NoContent)
               }
             }

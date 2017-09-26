@@ -10,7 +10,7 @@ package com.wincom.dcim.message.fsu;
 
 message FsuVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string fsuId = 1;
     required string name = 2;
     required string model = 3;
     map<string, string> params = 4;
@@ -28,8 +28,8 @@ message ModelParamsVo {
 
 // commands
 message CreateFsuCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
     required string name = 3;
     required string model = 4;
@@ -37,67 +37,67 @@ message CreateFsuCmd {
 };
 
 message RenameFsuCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
     required string newName = 3;
 };
 
 message ChangeModelCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
     required string newModel = 3;
 };
 
 message SaveSnapshotCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
 };
 
 message AddParamsCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
     map<string, string> params = 3;
 };
 
 message RemoveParamsCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
     map<string, string> params = 3;
 };
 
 message GetPortCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
     map<string, string> params = 3;
 };
 
 message RetrieveFsuCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
 };
 
 message StartFsuCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
 };
 
 message StopFsuCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
 };
 
 message RestartFsuCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.fsu.Command";
+    required string fsuId = 1;
     optional string user = 2;
 };
 

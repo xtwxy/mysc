@@ -14,7 +14,7 @@ import "com/wincom/dcim/message/signal.proto";
 // value objects
 message DriverVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string id = 1;
+    required string driverId = 1;
     required string name = 2;
     required string model = 3;
     map<string, string> initParams = 4;
@@ -46,8 +46,8 @@ message ModelParamsVo {
 
 // command & responses
 message CreateDriverCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required string name = 3;
     required string model = 4;
@@ -56,42 +56,42 @@ message CreateDriverCmd {
 };
 
 message RenameDriverCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required string newName = 3;
 };
 
 message ChangeModelCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required string newModel = 3;
 };
 
 message SaveSnapshotCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
 };
 
 message AddParamsCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     map<string, string> params = 3;
 };
 
 message RemoveParamsCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     map<string, string> params = 3;
 };
 
 message MapSignalKeyIdCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required string key = 3;
     required string signalId = 4;
@@ -99,31 +99,31 @@ message MapSignalKeyIdCmd {
 
 // transient command & responses.
 message GetSignalValueCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required string key = 3;
 };
 
 message GetSignalValuesCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     repeated string keys = 3;
 };
 
 // response with SetValueRsp
 message SetSignalValueCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required string key = 3;
     required com.wincom.dcim.message.signal.SignalValueVo value = 4;
 };
 
 message SetSignalValuesCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     map<string, com.wincom.dcim.message.signal.SignalValueVo> values = 3;
 };
@@ -134,41 +134,41 @@ message SetSignalValuesRsp {
 };
 
 message UpdateSignalValuesCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     repeated DriverSignalSnapshotVo signalValues = 3;
 };
 
 // using fsu.SendBytesCmd as driver.SendBytesCmd?
 message SendBytesCmd {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option (scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required bytes bytes = 3;
 };
 
 message RetrieveDriverCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
 };
 
 message StartDriverCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
 };
 
 message RestartDriverCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
 };
 
 message StopDriverCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
 };
 
@@ -182,8 +182,8 @@ message GetModelParamsCmd {
 }
 
 message SelectFsuCmd {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Command";
-    required string id = 1;
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
     optional string user = 2;
     required string fsuId = 3;
 };

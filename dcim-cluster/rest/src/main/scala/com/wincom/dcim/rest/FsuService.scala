@@ -144,8 +144,8 @@ trait FsuRoutes extends FsuMarshaling {
             path("restart-fsu") {
               pathEnd {
                 entity(as[RestartFsuCmd]) { f =>
-                  fsus ! StopFsuCmd(f.id, f.user)
-                  fsus ! StartFsuCmd(f.id, f.user)
+                  fsus ! StopFsuCmd(f.fsuId, f.user)
+                  fsus ! StartFsuCmd(f.fsuId, f.user)
                   complete(NoContent)
                 }
               }

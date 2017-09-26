@@ -40,6 +40,6 @@ object SignalValue {
   }
 
   def create(id: String, ts: Timestamp, t: SignalType, v: Any): SignalSnapshotValueVo = {
-    SignalSnapshotValueVo(id = id, ts = ts, create(t, v))
+    SignalSnapshotValueVo(signalId = id, ts = ts, create(t, v))
   }
 }
