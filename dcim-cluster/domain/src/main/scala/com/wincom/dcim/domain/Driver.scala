@@ -150,7 +150,7 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     case StartDriverCmd(_, user) =>
     case StopDriverCmd(_, user) =>
       stop()
-    case x => log.info("COMMAND: {} {}", this, x)
+    case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
   private def updateState: (Event => Unit) = {

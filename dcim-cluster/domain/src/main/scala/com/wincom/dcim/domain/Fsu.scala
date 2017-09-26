@@ -128,9 +128,7 @@ class Fsu(val registry: FsuCodecRegistry) extends PersistentActor {
     case StartFsuCmd(_, user) =>
     case StopFsuCmd(_, user) =>
       stop()
-    case _: ReceiveTimeout =>
-      stop()
-    case x => log.info("default COMMAND: {} {}", this, x)
+    case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
   private def updateState: (Event => Unit) = {

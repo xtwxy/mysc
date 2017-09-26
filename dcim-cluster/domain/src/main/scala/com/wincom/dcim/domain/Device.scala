@@ -112,7 +112,7 @@ class Device extends PersistentActor with ActorLogging {
       } else {
         replyToSender(Response(NOT_EXIST, None))
       }
-    case x => log.info("COMMAND: {} {}", this, x)
+    case x => log.info("COMMAND *IGNORED*: {} {}", this, x)
   }
 
   private def updateState: (Event => Unit) = {
