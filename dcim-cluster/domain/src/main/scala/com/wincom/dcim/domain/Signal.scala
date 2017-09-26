@@ -3,13 +3,14 @@ package com.wincom.dcim.domain
 import akka.actor.{ActorRef, Props, ReceiveTimeout}
 import akka.event.Logging
 import akka.pattern.ask
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.util.Timeout
 import com.wincom.dcim.message.common.ResponseType.{ALREADY_EXISTS, BAD_COMMAND, NOT_AVAILABLE, NOT_EXIST, SUCCESS}
 import com.wincom.dcim.signal.{FunctionRegistry, InverseFunction, UnaryFunction}
 import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.signal._
 import com.wincom.dcim.message.driver
+import com.wincom.dcim.message.driver.MapSignalKeyIdCmd
 import org.joda.time.{DateTime, Duration}
 
 import scala.collection.JavaConverters._
@@ -59,55 +60,59 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.key = Some(key)
       this.signalType = Some(signalType)
       tf.foreach(x => this.funcConfigs = this.funcConfigs :+ TransFuncVo(x.name, x.params))
+    case _: RecoveryCompleted =>
+      if(isValid()) {
+        driverShard() ! MapSignalKeyIdCmd(driverId.get, None, key.get, signalId)
+      }
     case x => log.info("RECOVER *IGNORED*: {} {}", this, x)
   }
 
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateSignalCmd(_, user, name, t, driverId, key, fs) =>
-      if(isValid) {
+      if(signalName.isDefined) {
         sender() ! Response(ALREADY_EXISTS, None)
       } else {
         persist(CreateSignalEvt(user, name, t, driverId, key, for (f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
       }
     case RenameSignalCmd(_, user, newName) =>
-      if (isValid()) {
+      if(signalName.isDefined) {
         persist(RenameSignalEvt(user, newName))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case SelectDriverCmd(_, user, driverId) =>
-      if (isValid()) {
+      if(signalName.isDefined) {
         persist(SelectDriverEvt(user, driverId))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case SelectTypeCmd(_, user, newType) =>
-      if (isValid()) {
+      if(signalName.isDefined) {
         persist(SelectTypeEvt(user, newType))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case SelectKeyCmd(_, user, key) =>
-      if (isValid()) {
+      if(driverId.isDefined && signalName.isDefined) {
         persist(SelectKeyEvt(user, key))(updateState)
       } else {
-        sender() ! Response(NOT_EXIST, None)
+        sender() ! Response(NOT_AVAILABLE, None)
       }
     case UpdateFuncsCmd(_, user, fs) =>
-      if (isValid()) {
+      if(signalName.isDefined) {
         this.funcConfigs = mutable.ArraySeq() ++ fs
         persist(UpdateFuncsEvt(user, for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case RetrieveSignalCmd(_, user) =>
-      if (isValid) {
+      if(signalName.isDefined) {
         sender() ! SignalVo(signalId, signalName.get, signalType.get, driverId.get, key.get, funcConfigs)
       } else {
         sender() ! Response(NOT_AVAILABLE, None)
       }
     case SaveSnapshotCmd(_, user) =>
-      if (isValid) {
+      if(signalName.isDefined) {
         saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for (x <- funcConfigs) yield TransFuncPo(x.name, x.params)))
         sender() ! Response(SUCCESS, None)
       } else {
@@ -200,6 +205,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       replyToSender(Response(SUCCESS, None))
     case SelectKeyEvt(user, key) =>
       this.key = Some(key)
+      driverShard() ! MapSignalKeyIdCmd(driverId.get, user, key, signalId)
       replyToSender(Response(SUCCESS, None))
     case UpdateFuncsEvt(user, fs) =>
       updateFuncs(fs)

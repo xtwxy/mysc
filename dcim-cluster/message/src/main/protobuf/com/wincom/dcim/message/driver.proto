@@ -195,8 +195,7 @@ message CreateDriverEvt {
     required string name = 2;
     required string model = 3;
     map<string, string> initParams = 4;
-    map<string, string> signalIdMap = 5;
-    optional string fsuId = 6;
+    optional string fsuId = 5;
 };
 
 message RenameDriverEvt {
@@ -221,13 +220,6 @@ message RemoveParamsEvt {
     option(scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
     map<string, string> params = 2;
-};
-
-message MapSignalKeyIdEvt {
-    option(scalapb.message).extends = "com.wincom.dcim.message.common.Event";
-    optional string user = 1;
-    required string key = 2;
-    required string signalId = 3;
 };
 
 message SelectFsuEvt {
