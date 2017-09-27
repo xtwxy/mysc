@@ -39,8 +39,10 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   var modelName: Option[String] = None
   var initParams: collection.mutable.Map[String, String] = new collection.mutable.HashMap()
   var driverCodec: Option[ActorRef] = None
+  var fsuId: Option[String] = None
   // key => id
   var signalIdMap: Map[String, Seq[String]] = Map()
+  var alarmIdMap: Map[String, Seq[String]] = Map()
 
   val driverId: String = s"${self.path.name.split("_")(1)}"
 
@@ -62,11 +64,11 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   }
 
   def receiveCommand: PartialFunction[Any, Unit] = {
-    case CreateDriverCmd(_, user, name, model, params, fsuId) =>
+    case CreateDriverCmd(_, user, name, model, params, fsuId, signalIdMap, alarmIdMap) =>
       if(isValid) {
         sender() ! Response(ALREADY_EXISTS, None)
       } else {
-        persist(CreateDriverEvt(user, name, model, params, fsuId))(updateState)
+        persist(CreateDriverEvt(user, name, model, params, fsuId, signalIdMap, alarmIdMap))(updateState)
       }
     case RenameDriverCmd(_, user, newName) =>
       if (isValid) {
@@ -94,11 +96,16 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       }
     case MapSignalKeyIdCmd(_, user, key, signalId) =>
       if (isValid) {
-        var seq = this.signalIdMap.getOrElse(key, Seq[String]())
-        seq = seq :+ signalId
-        signalIdMap += (key -> seq)
+        persist(MapSignalKeyIdEvt(user, key, signalId))(updateState)
+      } else {
+        sender() ! Response(NOT_EXIST, None)
       }
-
+    case MapAlarmKeyIdCmd(_, user, key, alarmId) =>
+      if (isValid) {
+        persist(MapAlarmKeyIdEvt(user, key, alarmId))(updateState)
+      } else {
+        sender() ! Response(NOT_EXIST, None)
+      }
     case cmd: GetSignalValueCmd =>
       if (isValid) {
         driverCodec.get forward cmd
@@ -154,10 +161,22 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateDriverEvt(user, name, model, params, idMap) =>
+    case CreateDriverEvt(user, name, model, params, fsuId, signals, alarms) =>
       this.driverName = Some(name)
       this.modelName = Some(model)
       this.initParams = this.initParams ++ params
+      this.fsuId = fsuId
+      this.signalIdMap = Map()
+      for(s <- signals) {
+        var ids = this.signalIdMap.getOrElse(s.key, Seq[String]())
+        ids :+= s.id
+        this.signalIdMap += (s.key -> ids)
+      }
+      for(s <- alarms) {
+        var ids = this.alarmIdMap.getOrElse(s.key, Seq[String]())
+        ids :+= s.id
+        this.alarmIdMap += (s.key -> ids)
+      }
       replyToSender(Response(SUCCESS, None))
     case RenameDriverEvt(user, newName) =>
       this.driverName = Some(newName)
@@ -171,6 +190,14 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
     case RemoveParamsEvt(user, params) =>
       this.initParams = this.initParams.filter(p => !params.contains(p._1))
       replyToSender(Response(SUCCESS, None))
+    case MapSignalKeyIdEvt(user, key, signalId) =>
+        var seq = signalIdMap.getOrElse(key, Seq[String]())
+        seq = seq :+ signalId
+        signalIdMap += (key -> seq)
+    case MapAlarmKeyIdEvt(user, key, signalId) =>
+        var seq = alarmIdMap.getOrElse(key, Seq[String]())
+        seq = seq :+ signalId
+        alarmIdMap += (key -> seq)
     case x => log.info("UPDATE IGNORED: {} {} {}", this, x.getClass.getName, x)
   }
 

@@ -61,7 +61,7 @@ class Device(signalShard: () => ActorRef, alarmShard: () => ActorRef, deviceShar
         var alarmIds: Seq[String] = Seq()
         for(a <- alarms) {
           alarmIds :+= a.alarmId
-          alarmShard() ! CreateAlarmCmd(a.alarmId, user, a.name, Some(a.signalId), a.conditions)
+          alarmShard() ! CreateAlarmCmd(a.alarmId, user, a.name, a.signalId, a.conditions, a.driverId, a.alarmKey)
         }
         var childrenIds: Seq[String] = Seq()
         for(c <- children) {

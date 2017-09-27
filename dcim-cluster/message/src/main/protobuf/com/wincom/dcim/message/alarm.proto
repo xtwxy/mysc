@@ -44,19 +44,21 @@ message AlarmValueVo {
 message InclusiveConditionVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     repeated AlarmConditionVo ordered = 1 [(scalapb.field).collection_type="Seq"];
-}
+};
 
 message ExclusiveConditionVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     repeated InclusiveConditionVo exclusive = 1 [(scalapb.field).collection_type="Seq"];
-}
+};
 
 message AlarmVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string alarmId = 1;
     required string name = 2;
-    required string signalId = 3;
+    optional string signalId = 3;
     optional ExclusiveConditionVo conditions = 4;
+    optional string driverId = 5;
+    optional string alarmKey = 6;
 };
 
 // commands
@@ -67,35 +69,45 @@ message CreateAlarmCmd {
     required string name = 3;
     optional string signalId = 4;
     optional ExclusiveConditionVo conditions = 5;
-}
+    optional string driverId = 6;
+    optional string alarmKey = 7;
+};
 
 message RenameAlarmCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
     required string newName = 3;
-}
+};
 
 message SelectSignalCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
     required string newSignalId = 3;
-}
+};
+
+message SelectDriverAlarmKeyCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
+    required string alarmId = 1;
+    optional string user = 2;
+    required string driverId = 3;
+    required string alarmKey = 4;
+};
 
 message AddConditionCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
     required AlarmConditionVo condition = 3;
-}
+};
 
 message RemoveConditionCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
     required AlarmConditionVo condition = 3;
-}
+};
 
 message ReplaceConditionCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
@@ -103,31 +115,31 @@ message ReplaceConditionCmd {
     optional string user = 2;
     required AlarmConditionVo oldCondition = 3;
     required AlarmConditionVo newCondition = 4;
-}
+};
 
 message RetrieveAlarmCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
-}
+};
 
 message GetAlarmValueCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
-}
+};
 
 message EvalAlarmValueCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
-}
+};
 
 message PassivateAlarmCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.alarm.Command";
     required string alarmId = 1;
     optional string user = 2;
-}
+};
 
 // persistent objects
 
@@ -135,8 +147,10 @@ message AlarmPo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string alarmId = 1;
     required string name = 2;
-    required string signalId = 3;
+    optional string signalId = 3;
     optional ExclusiveConditionVo conditions = 4;
+    optional string driverId = 5;
+    optional string alarmKey = 6;
 };
 
 message CreateAlarmEvt {
@@ -145,56 +159,45 @@ message CreateAlarmEvt {
     required string name = 2;
     optional string signalId = 3;
     optional ExclusiveConditionVo conditions = 4;
-}
+    optional string driverId = 5;
+    optional string alarmKey = 6;
+};
 
 message RenameAlarmEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
     required string newName = 2;
-}
+};
 
 message SelectSignalEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
     required string newSignalId = 2;
-}
+};
+
+message SelectDriverAlarmKeyEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string driverId = 2;
+    required string alarmKey = 3;
+};
 
 message AddConditionEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
     required AlarmConditionVo condition = 2;
-}
+};
 
 message RemoveConditionEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
     required AlarmConditionVo condition = 2;
-}
+};
 
 message ReplaceConditionEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
     required AlarmConditionVo oldCondition = 2;
     required AlarmConditionVo newCondition = 3;
-}
-
-message RetrieveAlarmEvt {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
-    optional string user = 1;
-}
-
-message GetAlarmValueEvt {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
-    optional string user = 1;
-}
-
-message EvalAlarmValueEvt {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
-    optional string user = 1;
-}
-
-message PassivateAlarmEvt {
-    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
-    optional string user = 1;
-}
+};
 

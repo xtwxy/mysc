@@ -23,7 +23,7 @@ trait DeviceMarshaling extends DefaultJsonProtocol {
   implicit val inclusiveConditionVoFormat = jsonFormat1(InclusiveConditionVo.apply)
   implicit val exclusiveConditionVoFormat = jsonFormat1(ExclusiveConditionVo.apply)
 
-  implicit val alarmVoFormat = jsonFormat4(AlarmVo.apply)
+  implicit val alarmVoFormat = jsonFormat6(AlarmVo.apply)
   implicit val deviceModuleVoFormat = jsonFormat7(DeviceModuleVo.apply)
   implicit val deviceBatchVoFormat = jsonFormat8(DeviceBatchVo.apply)
   implicit val deviceVoFormat = jsonFormat8(DeviceVo.apply)

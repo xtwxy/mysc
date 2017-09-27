@@ -37,6 +37,9 @@ class Alarm(signalShard: () => ActorRef,
   var alarmName: Option[String] = None
   var signalId: Option[String] = None
 
+  var driverId: Option[String] = None
+  var alarmKey: Option[String] = None
+
   // transient values
   var conditions: mutable.Set[Seq[AlarmCondition]] = mutable.Set()
   var value: Option[Boolean] = None
@@ -67,11 +70,11 @@ class Alarm(signalShard: () => ActorRef,
   }
 
   override def receiveCommand: Receive = {
-    case CreateAlarmCmd(_, user, name, signalId, conds) =>
+    case CreateAlarmCmd(_, user, name, signalId, conds, driverId, alarmKey) =>
       if (isValid()) {
         sender() ! Response(ALREADY_EXISTS, None)
       } else {
-        persist(CreateAlarmEvt(user, name, signalId, conds))(updateState)
+        persist(CreateAlarmEvt(user, name, signalId, conds, driverId, alarmKey))(updateState)
       }
     case SelectSignalCmd(_, user, newSignalId) =>
       if (isValid()) {
@@ -105,7 +108,7 @@ class Alarm(signalShard: () => ActorRef,
       evalConditionsWith(sv)
     case RetrieveAlarmCmd(_, _) =>
       if (isValid()) {
-        sender() ! AlarmVo(alarmId, alarmName.get, signalId.get, exclusiveConditions(conditions))
+        sender() ! AlarmVo(alarmId, alarmName.get, signalId, exclusiveConditions(conditions), driverId, alarmKey)
       } else {
         sender() ! Response(NOT_AVAILABLE, None)
       }
@@ -131,9 +134,11 @@ class Alarm(signalShard: () => ActorRef,
   }
 
   private def updateState: (Event => Unit) = {
-    case CreateAlarmEvt(_, name, signalId, conds) =>
+    case CreateAlarmEvt(_, name, signalId, conds, driverId, alarmKey) =>
       this.alarmName = Some(name)
       this.signalId = signalId
+      this.driverId = driverId
+      this.alarmKey = alarmKey
       if(conds.isDefined) createConditions(conds.get)
       replyToSender(Response(SUCCESS, None))
     case SelectSignalEvt(_, newSignalId) =>

@@ -16,9 +16,9 @@ trait AlarmMarshaling extends DefaultJsonProtocol {
   implicit val inclusiveConditionVoFormat = jsonFormat1(InclusiveConditionVo.apply)
   implicit val exclusiveConditionVoFormat = jsonFormat1(ExclusiveConditionVo.apply)
 
-  implicit val alarmVoFormat = jsonFormat4(AlarmVo.apply)
+  implicit val alarmVoFormat = jsonFormat6(AlarmVo.apply)
   implicit val alarmValueVoFormat = jsonFormat5(AlarmValueVo.apply)
-  implicit val createAlarmCmdFormat = jsonFormat5(CreateAlarmCmd.apply)
+  implicit val createAlarmCmdFormat = jsonFormat7(CreateAlarmCmd.apply)
   implicit val renameAlarmCmdFormat = jsonFormat3(RenameAlarmCmd.apply)
   implicit val selectSignalCmdFormat = jsonFormat3(SelectSignalCmd.apply)
   implicit val addConditionCmdFormat = jsonFormat3(AddConditionCmd.apply)
