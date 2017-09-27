@@ -1,10 +1,12 @@
 package com.wincom.dcim.domain
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{ActorLogging, ActorRef, Props}
 import akka.persistence.{PersistentActor, SnapshotOffer}
+import com.wincom.dcim.message.alarm.CreateAlarmCmd
 import com.wincom.dcim.message.common._
 import com.wincom.dcim.message.device._
 import com.wincom.dcim.message.common.ResponseType._
+import com.wincom.dcim.message.signal.CreateSignalCmd
 
 import scala.collection.mutable
 
@@ -12,12 +14,12 @@ import scala.collection.mutable
   * Created by wangxy on 17-9-5.
   */
 object Device {
-  def props = Props[Device]
+  def props(signalShard: () => ActorRef, alarmShard: () => ActorRef, deviceShard: () => ActorRef)  = Props(new Device(signalShard, alarmShard, deviceShard))
 
   def name(id: String) = id
 }
 
-class Device extends PersistentActor with ActorLogging {
+class Device(signalShard: () => ActorRef, alarmShard: () => ActorRef, deviceShard: () => ActorRef) extends PersistentActor with ActorLogging {
 
   val deviceId: String = s"${self.path.name.split("_")(1)}"
   var deviceName: Option[String] = None
@@ -50,7 +52,24 @@ class Device extends PersistentActor with ActorLogging {
       if(isValid) {
         sender() ! Response(ALREADY_EXISTS, None)
       } else {
-        persist(CreateDeviceEvt(user, name, deviceType, model, propertyTagCode, signals, alarms, children))(updateState)
+        // FIXME: no transaction.
+        var signalIds: Seq[String] = Seq()
+        for(s <- signals) {
+          signalIds :+=  s.signalId
+          signalShard() ! CreateSignalCmd(s.signalId, user, s.name, s.signalType, s.driverId, s.key, s.funcs)
+        }
+        var alarmIds: Seq[String] = Seq()
+        for(a <- alarms) {
+          alarmIds :+= a.alarmId
+          alarmShard() ! CreateAlarmCmd(a.alarmId, user, a.name, Some(a.signalId), a.conditions)
+        }
+        var childrenIds: Seq[String] = Seq()
+        for(c <- children) {
+          childrenIds :+= c.deviceId
+          // possible stack overflow by recursive cycle.
+          deviceShard() ! CreateDeviceCmd(c.deviceId, user, c.name, c.deviceType, c.vendorModel, c.propertyTagCode, c.signals, c.alarms, Seq.empty)
+        }
+        persist(CreateDeviceEvt(user, name, deviceType, model, propertyTagCode, signalIds, alarmIds, childrenIds))(updateState)
       }
     case RenameDeviceCmd(_, user, newName) =>
       if(isValid()) {

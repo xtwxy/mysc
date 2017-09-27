@@ -7,6 +7,7 @@ option(scalapb.options) = {
 package com.wincom.dcim.message.device;
 
 import "com/wincom/dcim/message/signal.proto";
+import "com/wincom/dcim/message/alarm.proto";
 
 // value objects
 message DeviceVo {
@@ -16,9 +17,32 @@ message DeviceVo {
     required string deviceType = 3;
     optional string vendorModel = 4;
     optional string propertyTagCode = 5;
-    repeated string signals = 6 [(scalapb.field).collection_type="Seq"];
-    repeated string alarms = 7 [(scalapb.field).collection_type="Seq"];
-    repeated string children = 8 [(scalapb.field).collection_type="Seq"];
+    repeated string signals = 6;
+    repeated string alarms = 7;
+    repeated string children = 8;
+};
+
+message DeviceModuleVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string deviceId = 1;
+    required string name = 2;
+    required string deviceType = 3;
+    optional string vendorModel = 4;
+    optional string propertyTagCode = 5;
+    repeated com.wincom.dcim.message.signal.SignalVo signals = 6;
+    repeated com.wincom.dcim.message.alarm.AlarmVo alarms = 7;
+};
+
+message DeviceBatchVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string deviceId = 1;
+    required string name = 2;
+    required string deviceType = 3;
+    optional string vendorModel = 4;
+    optional string propertyTagCode = 5;
+    repeated com.wincom.dcim.message.signal.SignalVo signals = 6;
+    repeated com.wincom.dcim.message.alarm.AlarmVo alarms = 7;
+    repeated DeviceModuleVo children = 8;
 };
 
 // command and responses
@@ -30,9 +54,15 @@ message CreateDeviceCmd {
     required string deviceType = 4;
     optional string vendorModel = 5;
     optional string propertyTagCode = 6;
-    repeated string signals = 7 [(scalapb.field).collection_type="Seq"];
-    repeated string alarms = 8 [(scalapb.field).collection_type="Seq"];
-    repeated string children = 9 [(scalapb.field).collection_type="Seq"];
+    repeated com.wincom.dcim.message.signal.SignalVo signals = 7;
+    repeated com.wincom.dcim.message.alarm.AlarmVo alarms = 8;
+    repeated DeviceBatchVo children = 9;
+};
+
+message RetrieveDeviceCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.device.Command";
+    required string deviceId = 1;
+    optional string user = 2;
 };
 
 message RenameDeviceCmd {
@@ -113,9 +143,9 @@ message CreateDeviceEvt {
     required string deviceType = 3;
     optional string vendorModel = 4;
     optional string propertyTagCode = 5;
-    repeated string signals = 6 [(scalapb.field).collection_type="Seq"];
-    repeated string alarms = 7 [(scalapb.field).collection_type="Seq"];
-    repeated string children = 8 [(scalapb.field).collection_type="Seq"];
+    repeated string signals = 6;
+    repeated string alarms = 7;
+    repeated string children = 8;
 };
 
 message RenameDeviceEvt {
@@ -186,7 +216,7 @@ message DevicePo {
     required string deviceType = 2;
     optional string vendorModel = 3;
     optional string propertyTagCode = 4;
-    repeated string signals = 5 [(scalapb.field).collection_type="Seq"];
-    repeated string alarms = 6 [(scalapb.field).collection_type="Seq"];
-    repeated string children = 7 [(scalapb.field).collection_type="Seq"];
+    repeated string signals = 5;
+    repeated string alarms = 6;
+    repeated string children = 7;
 };
