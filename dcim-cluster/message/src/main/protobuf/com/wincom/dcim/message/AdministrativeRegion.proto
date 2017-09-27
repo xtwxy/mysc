@@ -1,0 +1,17 @@
+syntax = "proto2";
+import "google/protobuf/timestamp.proto";
+
+import "scalapb/scalapb.proto";
+option (scalapb.options) = {
+    flat_package: true
+};
+
+package com.wincom.dcim.message.adminregion;
+
+enum AdminRegionType {
+    PROVINNCE = 0;
+    CITY = 1;
+    COUNTY = 2;
+    DISTRICT = 3;
+    TOWN = 4;
+}
