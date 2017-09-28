@@ -20,6 +20,7 @@ import scala.util.{Failure, Success}
   */
 trait ServiceSupport extends RequestTimeout {
   def startService(fsus: ActorRef,
+                   devices: ActorRef,
                    drivers: ActorRef,
                    signals: ActorRef,
                    alarms: ActorRef,
@@ -33,11 +34,17 @@ trait ServiceSupport extends RequestTimeout {
     implicit val ec = system.dispatcher  //bindAndHandle requires an implicit ExecutionContext
 
     val fsuApi = new FsuService(fsus, system, requestTimeout(config)).routes // the RestApi provides a Route
+    val deviceApi = new DeviceService(devices, system, requestTimeout(config)).routes // the RestApi provides a Route
     val driverApi = new DriverService(drivers, system, requestTimeout(config)).routes // the RestApi provides a Route
     val signalApi = new SignalService(signals, system, requestTimeout(config)).routes // the RestApi provides a Route
     val alarmApi = new AlarmService(alarms, system, requestTimeout(config)).routes // the RestApi provides a Route
     val alarmRecordApi = new AlarmRecordService(alarmRecords, system, requestTimeout(config)).routes // the RestApi provides a Route
-    val api = fsuApi ~ driverApi ~ signalApi ~ alarmApi ~ alarmRecordApi
+    val api = fsuApi ~
+      deviceApi ~
+      driverApi ~
+      signalApi ~
+      alarmApi ~
+      alarmRecordApi
 
     implicit val materializer = ActorMaterializer()
 

@@ -1,0 +1,145 @@
+syntax = "proto2";
+import "google/protobuf/timestamp.proto";
+
+import "scalapb/scalapb.proto";
+option (scalapb.options) = {
+    flat_package: true
+};
+
+package com.wincom.dcim.message.adminregion;
+
+enum AdminRegionType {
+    PROVINNCE = 0;
+    CITY = 1;
+    COUNTY = 2;
+    DISTRICT = 3;
+    TOWN = 4;
+}
+
+// value objects.
+message AdminRegionVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required string regionId = 1;
+    required AdminRegionType regionType = 2;
+    required string name = 3;
+    optional string abbreviation = 4;
+    optional string code = 5;
+    optional double longitude = 6;
+    optional double latitude = 7;
+};
+
+// commands.
+message CreateAdminRegionCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required AdminRegionType regionType = 3;
+    required string name = 4;
+    optional string abbreviation = 5;
+    optional string code = 6;
+    optional double longitude = 7;
+    optional double latitude = 8;
+};
+
+message ChangeRegionTypeCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required AdminRegionType newType = 3;
+};
+
+message RenameRegionCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required string newName = 3;
+};
+
+message ChangeAbbrevCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required string newAbbrev = 3;
+};
+
+message ChangeCodeCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required string newCode = 3;
+};
+
+message ChangeLongitudeCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required string newLongitude = 3;
+};
+
+message ChangeLatitudeCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required string newLatitude = 3;
+};
+
+// events.
+message AdminRegionPo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required AdminRegionType regionType = 1;
+    required string name = 2;
+    optional string abbreviation = 3;
+    optional string code = 4;
+    optional double longitude = 5;
+    optional double latitude = 6;
+};
+
+message CreateAdminRegionEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required AdminRegionType regionType = 2;
+    required string name = 3;
+    optional string abbreviation = 4;
+    optional string code = 5;
+    optional double longitude = 6;
+    optional double latitude = 7;
+};
+
+message ChangeRegionTypeEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required AdminRegionType newType = 2;
+};
+
+message RenameRegionEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newName = 2;
+};
+
+message ChangeAbbrevEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newAbbrev = 2;
+};
+
+message ChangeCodeEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newCode = 2;
+};
+
+message ChangeLongitudeEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newLongitude = 2;
+};
+
+message ChangeLatitudeEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newLatitude = 2;
+};
+
+
+
