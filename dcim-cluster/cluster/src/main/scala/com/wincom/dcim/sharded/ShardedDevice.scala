@@ -12,7 +12,7 @@ object ShardedDevice {
 
   def name(driverId: String): String = driverId.toString
 
-  val shardName: String = "driver-shards"
+  val shardName: String = "device-shards"
   var numberOfShards = 100
 
   val extractEntityId: ShardRegion.ExtractEntityId = {

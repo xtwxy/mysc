@@ -9,7 +9,7 @@ import com.wincom.dcim.message.common.Command
 object ShardedDevices {
   def props = Props(new ShardedDevices)
 
-  def name = "sharded-drivers"
+  def name = "sharded-devices"
 }
 
 class ShardedDevices extends Actor {
