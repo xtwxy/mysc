@@ -19,13 +19,13 @@ enum AdminRegionType {
 // value objects.
 message AdminRegionVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
-    required string regionId = 1;
-    required AdminRegionType regionType = 2;
-    required string name = 3;
-    optional string abbreviation = 4;
-    optional string code = 5;
-    optional double longitude = 6;
-    optional double latitude = 7;
+    required AdminRegionType regionType = 1;
+    required string name = 2;
+    optional string abbreviation = 3;
+    optional string code = 4;
+    optional double longitude = 5;
+    optional double latitude = 6;
+    repeated string childrenIds = 7;
 };
 
 // commands.
@@ -39,6 +39,7 @@ message CreateAdminRegionCmd {
     optional string code = 6;
     optional double longitude = 7;
     optional double latitude = 8;
+    repeated string childrenIds = 9;
 };
 
 message ChangeRegionTypeCmd {
@@ -73,14 +74,28 @@ message ChangeLongitudeCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
     required string regionId = 1;
     optional string user = 2;
-    required string newLongitude = 3;
+    required double newLongitude = 3;
 };
 
 message ChangeLatitudeCmd {
     option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
     required string regionId = 1;
     optional string user = 2;
-    required string newLatitude = 3;
+    required double newLatitude = 3;
+};
+
+message AddChildCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required string newChildId = 3;
+};
+
+message RemoveChildCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.adminregion.Command";
+    required string regionId = 1;
+    optional string user = 2;
+    required string childId = 3;
 };
 
 // events.
@@ -92,6 +107,7 @@ message AdminRegionPo {
     optional string code = 4;
     optional double longitude = 5;
     optional double latitude = 6;
+    repeated string childrenIds = 7;
 };
 
 message CreateAdminRegionEvt {
@@ -103,6 +119,7 @@ message CreateAdminRegionEvt {
     optional string code = 5;
     optional double longitude = 6;
     optional double latitude = 7;
+    repeated string childrenIds = 8;
 };
 
 message ChangeRegionTypeEvt {
@@ -132,14 +149,28 @@ message ChangeCodeEvt {
 message ChangeLongitudeEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
-    required string newLongitude = 2;
+    required double newLongitude = 2;
 };
 
 message ChangeLatitudeEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
-    required string newLatitude = 2;
+    required double newLatitude = 2;
 };
+
+message AddChildEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string newChildId = 2;
+};
+
+message RemoveChildEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
+    required string childId = 2;
+};
+
+
 
 
 
