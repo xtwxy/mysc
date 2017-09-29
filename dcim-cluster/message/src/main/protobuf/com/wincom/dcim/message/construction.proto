@@ -1,0 +1,33 @@
+syntax = "proto2";
+import "google/protobuf/timestamp.proto";
+
+import "scalapb/scalapb.proto";
+option (scalapb.options) = {
+    flat_package: true
+};
+
+package com.wincom.dcim.message.construction;
+
+enum ConstructionType {
+    BUILDING = 0;
+    FLOOR = 1;
+    ROOM = 2;
+}
+
+// value objects.
+message ConstructionVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    required ConstructionType regionType = 1;
+    required string name = 2;
+    optional string abbreviation = 3;
+    optional string code = 4;
+    optional double longitude = 5;
+    optional double latitude = 6;
+    repeated string childrenIds = 7;
+};
+
+
+
+
+
+

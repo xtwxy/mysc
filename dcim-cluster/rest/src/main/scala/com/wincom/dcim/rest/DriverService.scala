@@ -200,6 +200,18 @@ trait DriverRoutes extends DriverMarshaling {
               }
             }
           } ~
+          path("get-provided-signals") {
+            pathEnd {
+              entity(as[GetProvidedSignalsCmd]) { x =>
+                onSuccess(drivers.ask(x).mapTo[ValueObject]) {
+                  case v: ProvidedSignalsVo =>
+                    complete(v)
+                  case _ =>
+                    complete(NotFound)
+                }
+              }
+            }
+          } ~
           path("start-driver") {
             pathEnd {
               entity(as[StartDriverCmd]) { v =>

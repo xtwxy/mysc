@@ -154,6 +154,16 @@ class Driver(val shardedSignal: () => ActorRef, val registry: DriverCodecRegistr
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
+    case x: GetProvidedSignalsCmd =>
+      if(isValid) {
+        if(driverCodec.isDefined) {
+          driverCodec.get forward x
+        } else {
+          sender() ! Response(NOT_AVAILABLE, Some("Driver is not loaded."))
+        }
+      } else {
+        sender() ! Response(NOT_EXIST, None)
+      }
     case StartDriverCmd(_, user) =>
     case StopDriverCmd(_, user) =>
       stop()

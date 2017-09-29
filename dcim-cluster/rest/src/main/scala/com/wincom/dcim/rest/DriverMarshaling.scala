@@ -53,6 +53,10 @@ trait DriverMarshaling extends DefaultJsonProtocol {
   implicit val paramTypeFormat = ParamTypeJsonFormat
   implicit val paramMetaVoFormat = jsonFormat7(ParamMeta.apply)
   implicit val getSupportedParamsRspFormat = jsonFormat1(ModelParamsVo.apply)
+
+  implicit val signalMetaFormat = jsonFormat3(SignalMeta.apply)
+  implicit val providedSignalsVoFormat = jsonFormat1(ProvidedSignalsVo.apply)
+  implicit val getProvidedSignalsCmdFormat = jsonFormat2(GetProvidedSignalsCmd.apply)
 }
 
 object DriverMarshaling extends DriverMarshaling

@@ -17,6 +17,17 @@ message KeyIdPair {
     required string id = 2;
 };
 
+message SignalMeta {
+    required string name = 1;
+    required com.wincom.dcim.message.signal.SignalType signalType = 2;
+    required string key = 3;
+};
+
+message ProvidedSignalsVo {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
+    repeated SignalMeta signals = 1;
+};
+
 message DriverVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     required string driverId = 1;
@@ -184,6 +195,12 @@ message RestartDriverCmd {
 };
 
 message StopDriverCmd {
+    option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
+    required string driverId = 1;
+    optional string user = 2;
+};
+
+message GetProvidedSignalsCmd {
     option(scalapb.message).extends = "com.wincom.dcim.message.driver.Command";
     required string driverId = 1;
     optional string user = 2;
