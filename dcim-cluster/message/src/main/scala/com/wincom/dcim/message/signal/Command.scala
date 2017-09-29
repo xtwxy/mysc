@@ -6,6 +6,6 @@ package com.wincom.dcim.message.signal;
 trait Command extends com.wincom.dcim.message.common.Command {
   def signalId: String
   override def entityId: String = {
-    s"alarm_${signalId}"
+    s"signal_${signalId}"
   }
 }

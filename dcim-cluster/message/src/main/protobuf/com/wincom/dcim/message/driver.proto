@@ -23,9 +23,15 @@ message SignalMeta {
     required string key = 3;
 };
 
+message AlarmMeta {
+    required string name = 1;
+    required string key = 3;
+};
+
 message ProvidedSignalsVo {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
     repeated SignalMeta signals = 1;
+    repeated AlarmMeta alarms = 2;
 };
 
 message DriverVo {
@@ -71,8 +77,6 @@ message CreateDriverCmd {
     required string model = 4;
     map<string, string> initParams = 5;
     optional string fsuId = 6;
-    repeated KeyIdPair signalIdMap = 7;
-    repeated KeyIdPair alarmIdMap = 8;
 };
 
 message RenameDriverCmd {
@@ -230,8 +234,6 @@ message CreateDriverEvt {
     required string model = 3;
     map<string, string> initParams = 4;
     optional string fsuId = 5;
-    repeated KeyIdPair signalIdMap = 6;
-    repeated KeyIdPair alarmIdMap = 7;
 };
 
 message RenameDriverEvt {

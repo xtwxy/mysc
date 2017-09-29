@@ -30,14 +30,20 @@ public class DriverImpl extends AbstractActor {
         return receiveBuilder()
                 .match(GetProvidedSignalsCmd.class, o-> {
                     List<SignalMeta> signals = new ArrayList<>();
+                    List<AlarmMeta> alarms = new ArrayList<>();
                     signals.add(SignalMeta.apply("输入1.A相电压", SignalType.AI$.MODULE$, "input1.U.a"));
                     signals.add(SignalMeta.apply("输入1.B相电压", SignalType.AI$.MODULE$, "input1.U.b"));
                     signals.add(SignalMeta.apply("输入1.C相电压", SignalType.AI$.MODULE$, "input1.U.c"));
 
-                    signals.add(SignalMeta.apply("输入1.A相熔丝状态", SignalType.DI$.MODULE$, "input1.fuse.a"));
-                    signals.add(SignalMeta.apply("输入1.B相熔丝状态", SignalType.DI$.MODULE$, "input1.fuse.b"));
-                    signals.add(SignalMeta.apply("输入1.C相熔丝状态", SignalType.DI$.MODULE$, "input1.fuse.c"));
-                    getSender().tell(ProvidedSignalsVo.apply(JavaConverters.asScalaBuffer(signals).toSeq()), getSelf());
+                    signals.add(SignalMeta.apply("输入1.开关状态", SignalType.DI$.MODULE$, "input1.switch"));
+
+                    alarms.add(AlarmMeta.apply("输入1.A相熔丝状态", "input1.fuse.a"));
+                    alarms.add(AlarmMeta.apply("输入1.B相熔丝状态", "input1.fuse.b"));
+                    alarms.add(AlarmMeta.apply("输入1.C相熔丝状态", "input1.fuse.c"));
+                    getSender().tell(ProvidedSignalsVo.apply(
+                            JavaConverters.asScalaBuffer(signals).toSeq(),
+                            JavaConverters.asScalaBuffer(alarms).toSeq()
+                    ), getSelf());
                 })
                 .match(GetSignalValueCmd.class, o -> {
                     log.info("sender(): {}, msg: {}", sender(), o);
