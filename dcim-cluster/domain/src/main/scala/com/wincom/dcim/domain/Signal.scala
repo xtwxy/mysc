@@ -38,6 +38,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
   var driverId: Option[String] = None
   var key: Option[String] = None
   var funcConfigs: collection.mutable.Seq[TransFuncVo] = mutable.ArraySeq()
+  var deleted: Option[Boolean] = Some(true)
 
   // transient values
   var funcs: collection.mutable.Seq[UnaryFunction] = mutable.ArraySeq()
@@ -61,7 +62,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.signalType = Some(signalType)
       tf.foreach(x => this.funcConfigs = this.funcConfigs :+ TransFuncVo(x.name, x.params))
     case _: RecoveryCompleted =>
-      if(isValid()) {
+      if (isValid()) {
         driverShard() ! MapSignalKeyIdCmd(driverId.get, None, key.get, signalId)
       }
     case x => log.info("RECOVER *IGNORED*: {} {}", this, x)
@@ -69,50 +70,56 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
 
   def receiveCommand: PartialFunction[Any, Unit] = {
     case CreateSignalCmd(_, user, name, t, driverId, key, fs) =>
-      if(signalName.isDefined) {
+      if (!deleted.get && signalName.isDefined) {
         sender() ! Response(ALREADY_EXISTS, None)
       } else {
         persist(CreateSignalEvt(user, name, t, driverId, key, for (f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
       }
     case RenameSignalCmd(_, user, newName) =>
-      if(signalName.isDefined) {
+      if (signalName.isDefined) {
         persist(RenameSignalEvt(user, newName))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case SelectDriverCmd(_, user, driverId) =>
-      if(signalName.isDefined) {
+      if (signalName.isDefined) {
         persist(SelectDriverEvt(user, driverId))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case SelectTypeCmd(_, user, newType) =>
-      if(signalName.isDefined) {
+      if (signalName.isDefined) {
         persist(SelectTypeEvt(user, newType))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case SelectKeyCmd(_, user, key) =>
-      if(driverId.isDefined && signalName.isDefined) {
+      if (driverId.isDefined && signalName.isDefined) {
         persist(SelectKeyEvt(user, key))(updateState)
       } else {
         sender() ! Response(NOT_AVAILABLE, None)
       }
+    case DeleteSignalCmd(_, user) =>
+      if (signalName.isDefined) {
+        persist(DeleteSignalEvt(user))(updateState)
+      } else {
+        sender() ! Response(NOT_EXIST, None)
+      }
     case UpdateFuncsCmd(_, user, fs) =>
-      if(signalName.isDefined) {
+      if (signalName.isDefined) {
         this.funcConfigs = mutable.ArraySeq() ++ fs
-        persist(UpdateFuncsEvt(user, for(f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
+        persist(UpdateFuncsEvt(user, for (f <- fs) yield TransFuncPo(f.name, f.params)))(updateState)
       } else {
         sender() ! Response(NOT_EXIST, None)
       }
     case RetrieveSignalCmd(_, user) =>
-      if(signalName.isDefined) {
+      if (signalName.isDefined) {
         sender() ! SignalVo(signalId, signalName.get, signalType.get, driverId.get, key.get, funcConfigs)
       } else {
         sender() ! Response(NOT_AVAILABLE, None)
       }
     case SaveSnapshotCmd(_, user) =>
-      if(signalName.isDefined) {
+      if (signalName.isDefined) {
         saveSnapshot(SignalPo(signalName.get, signalType.get, driverId.get, key.get, for (x <- funcConfigs) yield TransFuncPo(x.name, x.params)))
         sender() ! Response(SUCCESS, None)
       } else {
@@ -123,7 +130,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
     case SetValueCmd(_, user, v) =>
       val theSender = sender()
       if (isValid()) {
-        if(v.value.isDefined) {
+        if (v.value.isDefined) {
           var x = v.value.get
           for (f <- funcs) {
             f match {
@@ -190,6 +197,7 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.driverId = Some(driverId)
       this.key = Some(key)
       this.signalType = Some(t)
+      this.deleted = Some(false)
       updateFuncs(fs)
       replyToSender(Response(SUCCESS, None))
     case RenameSignalEvt(user, newName) =>
@@ -205,6 +213,8 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
       this.key = Some(key)
       driverShard() ! MapSignalKeyIdCmd(driverId.get, user, key, signalId)
       replyToSender(Response(SUCCESS, None))
+    case DeleteSignalEvt(user) =>
+      this.deleted = Some(true)
     case UpdateFuncsEvt(user, fs) =>
       updateFuncs(fs)
       replyToSender(Response(SUCCESS, None))
@@ -226,12 +236,12 @@ class Signal(driverShard: () => ActorRef, registry: FunctionRegistry) extends Pe
   }
 
   private def isValid(): Boolean = {
-    if (signalName.isDefined && driverId.isDefined && key.isDefined) true else false
+    if (signalName.isDefined && driverId.isDefined && key.isDefined && !deleted.get) true else false
   }
 
   private def available(): Boolean = {
     if (isValid() && value.isDefined) {
-      val d = Duration.millis(DateTime.now.getMillis- value.get.ts.seconds * 1000)
+      val d = Duration.millis(DateTime.now.getMillis - value.get.ts.seconds * 1000)
       val r = Duration.standardMinutes(1)
       val a = d.isShorterThan(r)
       return a

@@ -40,6 +40,7 @@ trait SignalMarshaling extends DefaultJsonProtocol {
   implicit val paramTypeFormat = ParamTypeJsonFormat
   implicit val paramMetaVoFormat = jsonFormat7(ParamMeta.apply)
   implicit val getSupportedParamsRspFormat = jsonFormat1(FuncParamsVo.apply)
+  implicit val deleteSignalCmdFormat = jsonFormat2(DeleteSignalCmd.apply)
 }
 
 object SignalMarshaling extends SignalMarshaling

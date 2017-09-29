@@ -158,6 +158,12 @@ message StopSignalCmd {
     optional string user = 2;
 };
 
+message DeleteSignalCmd {
+    option (scalapb.message).extends = "com.wincom.dcim.message.signal.Command";
+    required string signalId = 1;
+    optional string user = 2;
+};
+
 message GetSupportedFuncsCmd {
     option(scalapb.message).extends = "com.wincom.dcim.message.common.ValueObject";
 };
@@ -200,6 +206,11 @@ message SelectKeyEvt {
     option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
     optional string user = 1;
     required string key = 2;
+};
+
+message DeleteSignalEvt {
+    option (scalapb.message).extends = "com.wincom.dcim.message.common.Event";
+    optional string user = 1;
 };
 
 message UpdateFuncsEvt {
