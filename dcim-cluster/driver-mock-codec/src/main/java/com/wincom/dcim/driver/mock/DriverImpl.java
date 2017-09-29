@@ -10,6 +10,7 @@ import com.wincom.dcim.message.signal.*;
 import com.wincom.dcim.util.CollectionCoverter;
 import scala.Option;
 import scala.collection.JavaConverters;
+import scala.collection.immutable.Seq;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +28,17 @@ public class DriverImpl extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
+                .match(GetProvidedSignalsCmd.class, o-> {
+                    List<SignalMeta> signals = new ArrayList<>();
+                    signals.add(SignalMeta.apply("输入1.A相电压", SignalType.AI$.MODULE$, "input1.U.a"));
+                    signals.add(SignalMeta.apply("输入1.B相电压", SignalType.AI$.MODULE$, "input1.U.b"));
+                    signals.add(SignalMeta.apply("输入1.C相电压", SignalType.AI$.MODULE$, "input1.U.c"));
+
+                    signals.add(SignalMeta.apply("输入1.A相熔丝状态", SignalType.DI$.MODULE$, "input1.fuse.a"));
+                    signals.add(SignalMeta.apply("输入1.B相熔丝状态", SignalType.DI$.MODULE$, "input1.fuse.b"));
+                    signals.add(SignalMeta.apply("输入1.C相熔丝状态", SignalType.DI$.MODULE$, "input1.fuse.c"));
+                    getSender().tell(ProvidedSignalsVo.apply(JavaConverters.asScalaBuffer(signals).toSeq()), getSelf());
+                })
                 .match(GetSignalValueCmd.class, o -> {
                     log.info("sender(): {}, msg: {}", sender(), o);
                     getSender().tell(
