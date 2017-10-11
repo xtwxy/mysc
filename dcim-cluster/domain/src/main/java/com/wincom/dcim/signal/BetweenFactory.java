@@ -2,9 +2,9 @@ package com.wincom.dcim.signal;
 
 import com.wincom.dcim.message.common.ParamMeta;
 import com.wincom.dcim.message.common.ParamType;
-import com.wincom.dcim.signal.EqualToFactory.EqualTo;
-import com.wincom.dcim.signal.GreaterThanFactory.GreaterThan;
-import com.wincom.dcim.signal.LessThanFactory.LessThan;
+import com.wincom.dcim.signal.EqualToFactory.*;
+import com.wincom.dcim.signal.GreaterThanFactory.*;
+import com.wincom.dcim.signal.LessThanFactory.*;
 import scala.Option;
 import scala.Option$;
 import scala.collection.Map$;
