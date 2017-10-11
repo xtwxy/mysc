@@ -28,7 +28,9 @@ lazy val cluster = (project in file("cluster")).dependsOn(domain, rest)
 lazy val signalTransformMock = (project in file("signal-mock-trans")).dependsOn(domain)
 lazy val driverMockCodec = (project in file("driver-mock-codec")).dependsOn(domain)
 lazy val fsuMockCodec = (project in file("fsu-mock-codec")).dependsOn(domain)
+lazy val service = (project in file("service")).dependsOn(domain)
 lazy val rest = (project in file("rest")).dependsOn(domain)
+lazy val launcher = (project in file("launcher")).dependsOn(cluster)
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.rename
