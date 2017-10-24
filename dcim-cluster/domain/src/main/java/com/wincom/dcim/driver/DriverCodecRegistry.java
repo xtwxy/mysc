@@ -3,7 +3,6 @@ package com.wincom.dcim.driver;
 import akka.actor.Props;
 import akka.event.LoggingAdapter;
 import com.wincom.dcim.message.common.ParamMeta;
-import com.wincom.dcim.signal.FunctionFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;

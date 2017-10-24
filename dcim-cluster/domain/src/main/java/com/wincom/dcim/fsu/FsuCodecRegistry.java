@@ -2,7 +2,6 @@ package com.wincom.dcim.fsu;
 
 import akka.actor.Props;
 import akka.event.LoggingAdapter;
-import com.wincom.dcim.driver.DriverCodecFactory;
 import com.wincom.dcim.message.common.ParamMeta;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
