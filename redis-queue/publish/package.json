@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/xtwxy/redis-tests#readme",
   "dependencies": {
-      "redis": "~2.7.1"
+    "redis": "~2.7.1"
   }
 }

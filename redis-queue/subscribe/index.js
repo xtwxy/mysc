@@ -1,5 +1,5 @@
 var count = 10000,
-    connections = 300,
+    connections = 1,
     password = "foobared",
     redis = require("redis"),
     client = redis.createClient({
@@ -13,8 +13,12 @@ client.on("error", function(err) {
 
 var subscribe = function(conn) {
 
+    conn.on("error", function(err) {
+        console.log("Error: " + err);
+    });
+
     conn.on("connect", function() {
-        client.subscribe("chat");
+        conn.subscribe("chat");
     });
 
     conn.on("message", function(channel, message) {

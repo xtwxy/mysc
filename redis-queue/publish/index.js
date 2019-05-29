@@ -1,5 +1,5 @@
 var count = 1000000,
-    connections = 100,
+    connections = 1,
     password = "foobared",
     redis = require("redis"),
     client = redis.createClient({
