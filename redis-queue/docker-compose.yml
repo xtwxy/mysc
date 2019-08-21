@@ -1,0 +1,29 @@
+version: '2'
+
+services: 
+  redis-server:
+    container_name: redis-server
+    image: 'redis:5'
+    networks:
+      - default
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis/data:/data
+  publish:
+      container_name: publish
+      image: 'publish:1.0.0'
+      build: ./publish
+      networks:
+        - default
+      depends_on:
+        - redis-server
+  subscribe:
+      container_name: subscribe
+      image: 'subscribe:1.0.0'
+      build: ./subscribe
+      networks:
+        - default
+      depends_on:
+        - redis-server
+
