@@ -2,7 +2,7 @@ var count = 10000,
     password = "foobared",
     redis = require("redis"),
     client = redis.createClient({
-        host: '192.168.0.78',
+        host: '192.168.0.184',
         port: 6379,
         password: password
     });
