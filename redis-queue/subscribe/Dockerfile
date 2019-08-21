@@ -5,7 +5,8 @@ COPY ./ /app
 # for debug purpose, use VOLUME & mount
 # VOLUME /app
 
-EXPOSE 12345
+# uncomment if you want accept connections from port 12345
+# EXPOSE 12345
 
 WORKDIR /app
 
